@@ -261,7 +261,7 @@ function toggleFavorite(item) {
 
 .fav-page__search input:focus {
   border-color: var(--color-primary);
-  background: #fff;
+  background: var(--color-surface);
 }
 
 .search-icon {
@@ -301,7 +301,7 @@ function toggleFavorite(item) {
 .fav-table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
+  background: var(--color-surface);
   border-radius: var(--radius-lg);
   overflow: hidden;
   border: 1px solid var(--color-border-soft);
@@ -394,8 +394,7 @@ function toggleFavorite(item) {
   grid-template-columns: auto 1fr auto;
   gap: 18px;
   align-items: center;
-  background: var(--color-primary);
-  background: linear-gradient(135deg, #4f8df9 0%, #1f4ed8 100%);
+  background: var(--color-primary-gradient-deep);
   color: #fff;
   border-radius: var(--radius-lg);
   padding: 22px 26px;
@@ -429,6 +428,10 @@ function toggleFavorite(item) {
   background: #fff;
   color: var(--color-primary);
   border: none;
+}
+
+:root[data-theme='dark'] .practice-banner .btn-light {
+  background: var(--color-surface);
 }
 
 .page-footer {

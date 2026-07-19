@@ -1,6 +1,7 @@
 <script setup>
 import AppSidebar from '@/components/AppSidebar.vue'
 import AppTopbar from '@/components/AppTopbar.vue'
+import AppToaster from '@/components/AppToaster.vue'
 </script>
 
 <template>
@@ -12,5 +13,6 @@ import AppTopbar from '@/components/AppTopbar.vue'
         <router-view />
       </main>
     </div>
+    <AppToaster />
   </div>
 </template>

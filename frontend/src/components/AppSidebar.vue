@@ -1,18 +1,12 @@
 <script setup>
-import { ref, onMounted, watchEffect } from 'vue'
+import { watchEffect } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 
 const settings = useSettingsStore()
 
-onMounted(() => {
-  settings.load()
-})
-
 watchEffect(() => {
   settings.persist()
 })
-
-const open = ref(false)
 </script>
 
 <template>
@@ -30,10 +24,6 @@ const open = ref(false)
       <router-link to="/dashboard" class="sidebar__item" active-class="is-active">
         <span class="sidebar__icon">⊞</span>
         <span>Dashboard</span>
-      </router-link>
-      <router-link to="/historico" class="sidebar__item" active-class="is-active">
-        <span class="sidebar__icon">⟳</span>
-        <span>Histórico</span>
       </router-link>
       <router-link to="/favoritos" class="sidebar__item" active-class="is-active">
         <span class="sidebar__icon">★</span>

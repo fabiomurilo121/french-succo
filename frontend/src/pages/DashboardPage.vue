@@ -1,13 +1,15 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import AppIcon from '@/components/AppIcon.vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useHistoryStore, useFavoritesStore } from '@/stores/library'
+import { useToastStore } from '@/stores/toast'
 import { api } from '@/services/api'
 
 const settings = useSettingsStore()
 const history = useHistoryStore()
 const favorites = useFavoritesStore()
+const toast = useToastStore()
 
 const sourceText = ref('')
 const detectedLang = ref('auto')
@@ -20,12 +22,82 @@ const audioEl = ref(null)
 const isTranslating = computed(() => mode.value === 'translate')
 
 const stats = ref({ wordsLearned: 1240, streakDays: 15, accuracy: 92 })
-const suggestions = [
-  'Cumprimentos básicos',
-  'No restaurante',
-  'Pedindo direções',
-  'Números & Cores'
+
+const studySuggestions = [
+  {
+    id: 'greetings',
+    label: 'Cumprimentos básicos',
+    icon: 'user',
+    phrases: [
+      'Bom dia, como você está?',
+      'Prazer em conhecê-lo',
+      'Como você se chama?',
+      'Tenha um bom dia!',
+      'Até logo!',
+      'Muito obrigado, você é muito gentil'
+    ]
+  },
+  {
+    id: 'restaurant',
+    label: 'No restaurante',
+    icon: 'utensils',
+    phrases: [
+      'Eu gostaria de pedir um café com leite, por favor.',
+      'A conta, por favor.',
+      'Qual é o prato do dia?',
+      'Pode me trazer o cardápio, por favor?',
+      'Está delicioso, obrigado!',
+      'Eu sou alérgico a nozes'
+    ]
+  },
+  {
+    id: 'directions',
+    label: 'Pedindo direções',
+    icon: 'map',
+    phrases: [
+      'Onde fica a estação de metrô mais próxima?',
+      'Como eu chego à estação de trem?',
+      'Estou perdido, você pode me ajudar?',
+      'É para a esquerda ou para a direita?',
+      'Fica longe daqui?',
+      'Quanto tempo leva para ir a pé?'
+    ]
+  },
+  {
+    id: 'numbers',
+    label: 'Números & Cores',
+    icon: 'hash',
+    phrases: [
+      'Quanto custa isso?',
+      'Qual é o seu número de telefone?',
+      'Eu tenho vinte e cinco anos',
+      'Qual é a sua cor favorita?',
+      'São três horas da tarde',
+      'Eu quero dois cafés, por favor'
+    ]
+  }
 ]
+
+const suggestionIndex = ref({})
+
+function pickPhrase(suggestion) {
+  const idx = suggestionIndex.value[suggestion.id] ?? -1
+  const next = (idx + 1) % suggestion.phrases.length
+  suggestionIndex.value = { ...suggestionIndex.value, [suggestion.id]: next }
+  return suggestion.phrases[next]
+}
+
+async function applySuggestion(suggestion) {
+  if (loading.value) return
+  const phrase = pickPhrase(suggestion)
+  sourceText.value = phrase
+  toast.info(`Sugestão: ${suggestion.label}`, {
+    title: 'Frase carregada',
+    duration: 2500
+  })
+  await nextTick()
+  await processText()
+}
 
 const MAX_CHARS = 500
 const charCount = computed(() => sourceText.value.length)
@@ -42,6 +114,7 @@ watch(sourceText, (v) => {
 onMounted(() => {
   history.fetchAll()
   favorites.fetchAll()
+  if (history.items.length === 0) seedSampleHistory()
 })
 
 async function processText() {
@@ -99,9 +172,15 @@ async function processText() {
     }
   } catch (err) {
     console.error('Process error:', err)
-    errorMsg.value =
+    const message =
+      err?.detail?.message ||
       err?.message ||
       'Não foi possível processar agora. Verifique sua conexão e tente novamente.'
+    errorMsg.value = message
+    toast.error(isTranslating.value ? 'Falha ao traduzir' : 'Falha ao corrigir', {
+      message,
+      duration: 6000
+    })
   } finally {
     loading.value = false
   }
@@ -162,34 +241,136 @@ function isFav() {
   if (!result.value?.frText) return false
   return favorites.isFavorited(result.value.frText)
 }
+
+// ───── Recent history (below translator) ─────
+const historySearch = ref('')
+const historyCategory = ref('Todas')
+const historyCategories = ['Todas', 'Comum', 'Viagem', 'Estudo']
+
+const filteredHistory = computed(() => {
+  let list = history.items
+  if (historyCategory.value !== 'Todas') {
+    list = list.filter((i) => i.category === historyCategory.value)
+  }
+  if (historySearch.value.trim()) {
+    const q = historySearch.value.toLowerCase()
+    list = list.filter(
+      (i) =>
+        (i.frText || '').toLowerCase().includes(q) ||
+        (i.sourceText || '').toLowerCase().includes(q)
+    )
+  }
+  return list.slice(0, 12)
+})
+
+function formatRelative(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const diff = (Date.now() - d.getTime()) / 1000
+  if (diff < 60) return 'agora'
+  if (diff < 3600) return `há ${Math.floor(diff / 60)} min`
+  if (diff < 86400) return `há ${Math.floor(diff / 3600)} h`
+  if (diff < 86400 * 7) return `há ${Math.floor(diff / 86400)} dia${Math.floor(diff / 86400) > 1 ? 's' : ''}`
+  const day = d.getDate()
+  const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+  return `${day} ${months[d.getMonth()]}`
+}
+
+function clearHistory() {
+  if (confirm('Apagar todo o histórico de traduções?')) {
+    history.clear()
+  }
+}
+
+function isHistoryFav(item) {
+  return favorites.isFavorited(item.frText)
+}
+
+function toggleHistoryFav(item) {
+  if (isHistoryFav(item)) {
+    const fav = favorites.items.find((f) => f.frText === item.frText)
+    if (fav) favorites.remove(fav.id)
+  } else {
+    favorites.add({
+      frText: item.frText,
+      ptText: item.sourceText,
+      phonetic: item.phonetic,
+      category: item.category
+    })
+  }
+}
+
+function dismissHero() {
+  settings.dismissHero()
+}
+
+function reuseHistoryItem(item) {
+  sourceText.value = item.sourceText
+  result.value = {
+    type: item.mode === 'grammar' ? 'grammar' : 'translation',
+    frText: item.frText,
+    phonetic: item.phonetic || '',
+    translation: item.sourceText,
+    culturalTip: null,
+    category: item.category,
+    ...(item.mode === 'grammar' && {
+      corrected: item.frText,
+      originalWithErrors: item.sourceText,
+      errors: []
+    })
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+function seedSampleHistory() {
+  const now = Date.now()
+  const samples = [
+    { minutesAgo: 5, source: 'Olá, como você está hoje?', fr: 'Bonjour, comment allez-vous aujourd\'hui ?', phonetic: 'bõʒuʁ kɔmɑ̃tale vu.z‿o.ʒuʁ.dɥi', category: 'Comum' },
+    { minutesAgo: 60, source: 'Eu gostaria de pedir um café com leite, por favor.', fr: 'Je voudrais commander un café au lait, s\'il vous plaît.', phonetic: 'ʒə.vudʁɛ kɔmɑ̃.de œ̃ kafe o lɛ sil vu plɛ', category: 'Viagem' },
+    { minutesAgo: 180, source: 'Onde fica a estação de metrô mais próxima?', fr: 'Où se trouve la station de métro la plus proche ?', phonetic: 'u sə tʁuv la sta.sjɔ̃ də me.tʁo', category: 'Viagem' },
+    { minutesAgo: 60 * 24, source: 'É um prazer conhecer você.', fr: 'C\'est un plaisir de vous rencontrer.', phonetic: 'sɛst œ̃ plɛ.ziʁ də vu ʁɑ̃.kɔ̃.tʁe', category: 'Comum' },
+    { minutesAgo: 60 * 24 * 3, source: 'Qual é o seu número de telefone?', fr: 'Quel est votre numéro de téléphone ?', phonetic: 'kɛl ɛ vɔ.tʁə nœmbʁ də te.lə.fɔn', category: 'Estudo' }
+  ]
+  samples.forEach((s) => {
+    history.add({
+      sourceLang: 'pt',
+      sourceText: s.source,
+      frText: s.fr,
+      phonetic: s.phonetic,
+      category: s.category,
+      mode: 'translate',
+      createdAt: new Date(now - s.minutesAgo * 60 * 1000).toISOString()
+    })
+  })
+}
 </script>
 
 <template>
   <div class="dashboard">
-    <section class="hero">
-      <div class="hero__content">
-        <span class="hero__badge">BIENVENUE !</span>
-        <h1 class="hero__title">Pronto para praticar seu francês?</h1>
-        <p class="hero__text">
-          Traduza frases, verifique a gramática e melhore sua pronúncia com nossa
-          inteligência artificial pedagógica.
-        </p>
-        <div class="hero__actions">
-          <button class="btn btn-accent">Começar Lição</button>
-          <button class="btn btn-ghost">Ver progresso</button>
+    <Transition name="hero">
+      <section v-if="!settings.heroDismissed" class="hero">
+        <button
+          class="hero__close"
+          @click="dismissHero"
+          aria-label="Fechar banner de boas-vindas"
+          title="Fechar banner"
+        >
+          <AppIcon name="cross" :size="14" />
+        </button>
+        <div class="hero__content">
+          <span class="hero__badge">BIENVENUE</span>
+          <h1 class="hero__title">Pronto para praticar seu francês?</h1>
+          <p class="hero__text">
+            Traduza frases, verifique a gramática e melhore sua pronúncia com nossa
+            inteligência artificial pedagógica.
+          </p>
+          <div class="hero__actions">
+            <button class="btn btn-accent">Começar Lição</button>
+            <button class="btn btn-ghost">Ver progresso</button>
+          </div>
         </div>
-      </div>
-      <div class="hero__art" aria-hidden="true">
-        <div class="hero__art-bubble">
-          <span class="hero__art-emoji">🎉</span>
-          <span class="hero__art-text">Cool!</span>
-        </div>
-        <div class="hero__art-mega">
-          <span>M</span><span>E</span><span>G</span><span>A</span>
-          <small>!</small>
-        </div>
-      </div>
-    </section>
+      </section>
+    </Transition>
 
     <div class="dashboard__grid">
       <div class="dashboard__col">
@@ -245,9 +426,23 @@ function isFav() {
           </div>
 
           <div class="translator__suggestions">
-            <small>Sugestões de estudo:</small>
+            <div class="translator__suggestions-head">
+              <small>Sugestões de estudo:</small>
+              <small class="translator__hint">clique para preencher e traduzir</small>
+            </div>
             <div class="translator__chips">
-              <button v-for="s in suggestions" :key="s" class="chip">{{ s }}</button>
+              <button
+                v-for="s in studySuggestions"
+                :key="s.id"
+                class="chip chip--suggestion"
+                :class="{ 'is-loading': loading && sourceText && s.phrases.includes(sourceText) }"
+                :disabled="loading"
+                :title="`Carregar uma frase de ${s.label.toLowerCase()}`"
+                @click="applySuggestion(s)"
+              >
+                <AppIcon :name="s.icon" :size="14" class="chip__icon" />
+                <span>{{ s.label }}</span>
+              </button>
             </div>
           </div>
 
@@ -355,6 +550,102 @@ function isFav() {
       </aside>
     </div>
 
+    <section class="recent-history">
+      <header class="recent-history__head">
+        <div>
+          <h2>
+            <AppIcon name="clock" :size="18" class="recent-history__head-icon" />
+            Traduções Recentes
+          </h2>
+          <p>Suas últimas interações com o tradutor — clique para reutilizar ou favoritar.</p>
+        </div>
+        <button
+          v-if="filteredHistory.length > 0"
+          class="btn btn-light recent-history__clear"
+          @click="clearHistory"
+        >
+          <AppIcon name="trash" :size="14" />
+          <span>Limpar Tudo</span>
+        </button>
+      </header>
+
+      <div class="recent-history__filters">
+        <div class="recent-history__search">
+          <AppIcon name="search" :size="14" />
+          <input
+            v-model="historySearch"
+            type="text"
+            placeholder="Buscar nas traduções..."
+          />
+        </div>
+        <div class="recent-history__chips">
+          <button
+            v-for="cat in historyCategories"
+            :key="cat"
+            class="recent-history__chip"
+            :class="{ active: historyCategory === cat }"
+            @click="historyCategory = cat"
+          >
+            {{ cat }}
+          </button>
+        </div>
+      </div>
+
+      <div class="recent-history__list">
+        <article
+          v-for="item in filteredHistory"
+          :key="item.id"
+          class="recent-history__item"
+        >
+          <div class="recent-history__meta">
+            <span class="tag">{{ item.category || 'Comum' }}</span>
+            <span class="recent-history__time">
+              <AppIcon name="clock" :size="12" />
+              {{ formatRelative(item.createdAt) }}
+            </span>
+            <button
+              class="ic-btn recent-history__fav"
+              :class="{ 'is-fav': isHistoryFav(item) }"
+              @click="toggleHistoryFav(item)"
+              :aria-label="isHistoryFav(item) ? 'Remover dos favoritos' : 'Favoritar'"
+            >
+              <AppIcon :name="isHistoryFav(item) ? 'starFilled' : 'star'" :size="14" />
+            </button>
+          </div>
+          <div class="recent-history__lines">
+            <div class="recent-history__line recent-history__line--fr">
+              <span class="lang-bubble fr">FR</span>
+              <em>{{ item.frText }}</em>
+            </div>
+            <div class="recent-history__line recent-history__line--pt">
+              <span class="lang-bubble pt">PT</span>
+              <span>{{ item.sourceText }}</span>
+            </div>
+          </div>
+          <button
+            class="recent-history__reuse"
+            @click="reuseHistoryItem(item)"
+            title="Reutilizar esta frase"
+            aria-label="Reutilizar"
+          >
+            <AppIcon name="refresh" :size="14" />
+            <span>Reutilizar</span>
+          </button>
+        </article>
+
+        <div v-if="filteredHistory.length === 0" class="recent-history__empty">
+          <AppIcon name="book" :size="32" />
+          <p>
+            {{
+              history.items.length === 0
+                ? 'Nenhuma tradução ainda. Use o campo acima para começar.'
+                : 'Nenhum resultado para os filtros aplicados.'
+            }}
+          </p>
+        </div>
+      </div>
+    </section>
+
     <section class="stats">
       <div class="stats__card">
         <div class="stats__icon stats__icon--blue">
@@ -402,8 +693,7 @@ function isFav() {
 
 .hero {
   position: relative;
-  background: var(--color-primary);
-  background: linear-gradient(135deg, #4f8df9 0%, #3b6ef0 100%);
+  background: var(--color-primary-gradient);
   border-radius: var(--radius-xl);
   color: #fff;
   padding: 36px 40px;
@@ -411,12 +701,65 @@ function isFav() {
   align-items: center;
   gap: 24px;
   overflow: hidden;
-  box-shadow: 0 12px 30px rgba(59, 130, 246, 0.18);
+  box-shadow: var(--shadow-primary);
+}
+
+.hero__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: background 0.15s ease, transform 0.15s ease;
+  backdrop-filter: blur(4px);
+}
+
+.hero__close:hover {
+  background: rgba(255, 255, 255, 0.32);
+  transform: scale(1.08);
+}
+
+.hero__close:active {
+  transform: scale(0.95);
+}
+
+.hero__close:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
 }
 
 .hero__content {
   flex: 1;
   z-index: 1;
+}
+
+/* ───── Hero fade transition ───── */
+.hero-enter-active,
+.hero-leave-active {
+  transition: opacity 0.32s ease, transform 0.32s ease, max-height 0.4s ease, margin-bottom 0.4s ease;
+  overflow: hidden;
+}
+
+.hero-enter-from,
+.hero-leave-to {
+  opacity: 0;
+  transform: translateY(-12px);
+  max-height: 0;
+  margin-bottom: -24px;
+}
+
+.hero-enter-to,
+.hero-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 320px;
 }
 
 .hero__badge {
@@ -450,57 +793,6 @@ function isFav() {
   gap: 10px;
 }
 
-.hero__art {
-  position: relative;
-  width: 240px;
-  height: 200px;
-  flex-shrink: 0;
-}
-
-.hero__art-bubble {
-  position: absolute;
-  right: 30px;
-  top: 10px;
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #fbbf24, #f97316);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-}
-
-.hero__art-emoji {
-  font-size: 28px;
-}
-
-.hero__art-text {
-  font-weight: 800;
-  font-size: 16px;
-  color: #fff;
-}
-
-.hero__art-mega {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  align-items: end;
-  padding-bottom: 6px;
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 36px;
-  font-weight: 900;
-  text-align: center;
-}
-
-.hero__art-mega small {
-  grid-column: 4;
-  font-size: 24px;
-  color: #f97316;
-}
-
 .dashboard__grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 380px;
@@ -513,7 +805,7 @@ function isFav() {
 }
 
 .translator {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-lg);
   padding: 20px;
@@ -568,9 +860,14 @@ function isFav() {
   padding: 16px;
   font-size: 16px;
   resize: vertical;
-  background: #fff;
+  background: var(--color-surface);
+  color: var(--color-text);
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.translator__input::placeholder {
+  color: var(--color-text-soft);
 }
 
 .translator__input:focus {
@@ -610,11 +907,24 @@ function isFav() {
   color: var(--color-primary);
 }
 
+.translator__suggestions-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
 .translator__suggestions small {
   color: var(--color-text-muted);
   font-weight: 600;
-  display: block;
-  margin-bottom: 8px;
+}
+
+.translator__hint {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: var(--color-text-soft) !important;
+  font-style: italic;
 }
 
 .translator__chips {
@@ -637,6 +947,50 @@ function isFav() {
   background: var(--color-primary-soft2);
 }
 
+.chip--suggestion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.chip--suggestion:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--color-shadow-primary);
+}
+
+:root[data-theme='dark'] .chip--suggestion:hover:not(:disabled) {
+  color: #0b1220;
+}
+
+.chip--suggestion:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.chip--suggestion:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chip--suggestion.is-loading {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+:root[data-theme='dark'] .chip--suggestion.is-loading {
+  color: #0b1220;
+}
+
+.chip__icon {
+  flex-shrink: 0;
+}
+
 .translator__error {
   color: var(--color-danger);
   font-size: 13px;
@@ -644,7 +998,7 @@ function isFav() {
 }
 
 .result-empty {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-lg);
   padding: 40px 24px;
@@ -671,7 +1025,7 @@ function isFav() {
 }
 
 .result-card {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-lg);
   padding: 20px;
@@ -776,7 +1130,7 @@ function isFav() {
 }
 
 .result-card__guide {
-  background: #fff;
+  background: var(--color-surface-2);
   color: var(--color-text-muted);
   padding: 4px 12px;
   border-radius: 999px;
@@ -834,9 +1188,9 @@ function isFav() {
 }
 
 .correction-original {
-  background: #fff5f5;
-  border: 1px solid #fecaca;
-  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border: 1px solid var(--color-danger-border);
+  color: var(--color-danger-text);
   padding: 10px 12px;
   border-radius: var(--radius-md);
   margin: 0;
@@ -844,9 +1198,9 @@ function isFav() {
 }
 
 .correction-fixed {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #166534;
+  background: var(--color-correction-fixed-bg);
+  border: 1px solid var(--color-correction-fixed-border);
+  color: var(--color-success-text);
   padding: 10px 12px;
   border-radius: var(--radius-md);
   margin: 0;
@@ -931,7 +1285,11 @@ function isFav() {
 
 .btn-audio--primary {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-text-inverse);
+}
+
+:root[data-theme='dark'] .btn-audio--primary {
+  color: #0b1220;
 }
 
 .btn-audio--primary:hover {
@@ -941,8 +1299,8 @@ function isFav() {
 .result-card__tip {
   display: flex;
   gap: 12px;
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
+  background: var(--color-tip-bg);
+  border: 1px solid var(--color-tip-border);
   border-radius: var(--radius-md);
   padding: 12px 14px;
 }
@@ -961,15 +1319,245 @@ function isFav() {
 
 .result-card__tip strong {
   display: block;
-  color: #9a3412;
+  color: var(--color-tip-strong);
   margin-bottom: 4px;
 }
 
 .result-card__tip p {
   margin: 0;
   font-size: 13px;
-  color: #7c2d12;
+  color: var(--color-tip-text);
   line-height: 1.5;
+}
+
+/* ───── Recent History ───── */
+.recent-history {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.recent-history__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.recent-history__head h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recent-history__head-icon {
+  color: var(--color-primary);
+}
+
+.recent-history__head p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.recent-history__clear {
+  padding: 8px 14px;
+  font-size: 13px;
+}
+
+.recent-history__filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.recent-history__search {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.recent-history__search input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-alt);
+  font-size: 13px;
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.recent-history__search input:focus {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+}
+
+.recent-history__search :deep(.icon) {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-soft);
+}
+
+.recent-history__chips {
+  display: flex;
+  gap: 6px;
+}
+
+.recent-history__chip {
+  background: var(--color-bg-alt);
+  color: var(--color-text-muted);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--color-border-soft);
+  transition: all 0.15s ease;
+}
+
+.recent-history__chip:hover {
+  color: var(--color-text);
+}
+
+.recent-history__chip.active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  border-color: var(--color-primary-soft2);
+}
+
+.recent-history__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 440px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.recent-history__item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.recent-history__item:hover {
+  border-color: var(--color-primary-soft2);
+  background: var(--color-bg-alt);
+}
+
+.recent-history__meta {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.recent-history__time {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.recent-history__fav {
+  margin-left: auto;
+  width: 26px;
+  height: 26px;
+}
+
+.recent-history__fav.is-fav {
+  color: var(--color-accent);
+}
+
+.recent-history__fav.is-fav :deep(path) {
+  fill: currentColor;
+}
+
+.recent-history__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.recent-history__line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  min-width: 0;
+}
+
+.recent-history__line--fr em {
+  color: var(--color-text);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-history__line--pt span:last-child {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-history__reuse {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 600;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.recent-history__reuse:hover {
+  background: var(--color-primary-soft2);
+}
+
+.recent-history__empty {
+  text-align: center;
+  padding: 32px 20px;
+  color: var(--color-text-soft);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 600px) {
+  .recent-history__item {
+    grid-template-columns: 1fr;
+  }
+  .recent-history__reuse {
+    justify-self: flex-end;
+  }
 }
 
 .stats {
@@ -980,7 +1568,7 @@ function isFav() {
 }
 
 .stats__card {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-md);
   padding: 14px 18px;
@@ -1005,12 +1593,12 @@ function isFav() {
 }
 
 .stats__icon--orange {
-  background: #fff0e0;
+  background: var(--color-accent-soft);
   color: var(--color-accent);
 }
 
 .stats__icon--green {
-  background: #dcfce7;
+  background: var(--color-success-soft);
   color: var(--color-success);
 }
 
@@ -1039,9 +1627,6 @@ function isFav() {
 @media (max-width: 1100px) {
   .dashboard__grid {
     grid-template-columns: 1fr;
-  }
-  .hero__art {
-    display: none;
   }
   .stats {
     grid-template-columns: 1fr;

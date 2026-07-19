@@ -7,11 +7,16 @@ const settings = useSettingsStore()
 
 onMounted(() => {
   settings.load()
+  snapshot()
+  setTimeout(() => (hasChanges.value = false), 0)
 })
 
 watch(
-  () => ({ ...settings.$state }),
-  () => settings.persist(),
+  () => settings.$state,
+  () => {
+    if (!original.value) return
+    hasChanges.value = JSON.stringify(settings.$state) !== JSON.stringify(original.value)
+  },
   { deep: true }
 )
 
@@ -36,11 +41,6 @@ const original = ref(null)
 function snapshot() {
   original.value = JSON.parse(JSON.stringify(settings.$state))
 }
-
-onMounted(() => {
-  snapshot()
-  setTimeout(() => (hasChanges.value = false), 0)
-})
 
 watch(
   () => settings.$state,
@@ -161,6 +161,32 @@ function setSpeed(marker) {
           <p>Ajuste como os resultados de tradução e auxiliares de pronúncia aparecem.</p>
         </div>
       </header>
+
+      <div class="settings-row">
+        <div>
+          <strong>Aparência</strong>
+          <small>Escolha entre tema claro e escuro.</small>
+        </div>
+        <button
+          class="theme-switch"
+          @click="settings.setTheme(settings.resolvedTheme === 'dark' ? 'light' : 'dark')"
+          :title="`Tema atual: ${settings.resolvedTheme === 'dark' ? 'escuro' : 'claro'}`"
+          aria-label="Alternar tema"
+          role="switch"
+          :aria-checked="settings.resolvedTheme === 'dark'"
+        >
+          <span class="theme-switch__track">
+            <span class="theme-switch__indicator"></span>
+            <span class="theme-switch__icon theme-switch__icon--sun">
+              <AppIcon name="sun" :size="14" />
+            </span>
+            <span class="theme-switch__icon theme-switch__icon--moon">
+              <AppIcon name="moon" :size="14" />
+            </span>
+          </span>
+          <span class="theme-switch__label">{{ settings.resolvedTheme === 'dark' ? 'Escuro' : 'Claro' }}</span>
+        </button>
+      </div>
 
       <div class="settings-row">
         <div>
@@ -310,8 +336,7 @@ function setSpeed(marker) {
 }
 
 .settings-hero {
-  background: var(--color-bg-alt);
-  background: linear-gradient(135deg, #eef3ff 0%, #f7f5ff 100%);
+  background: var(--color-hero-bg);
   border-radius: var(--radius-xl);
   padding: 36px 40px;
   display: flex;
@@ -373,7 +398,7 @@ function setSpeed(marker) {
 }
 
 .settings-section {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-lg);
   padding: 22px 26px;
@@ -417,17 +442,17 @@ function setSpeed(marker) {
 }
 
 .settings-section__icon--yellow {
-  background: #fff0e0;
+  background: var(--color-accent-soft);
   color: var(--color-accent);
 }
 
 .settings-section__icon--violet {
-  background: #ece9ff;
-  color: #6c5ce7;
+  background: var(--color-info-soft);
+  color: var(--color-info-text);
 }
 
 .settings-section__icon--green {
-  background: #dcfce7;
+  background: var(--color-success-soft);
   color: var(--color-success);
 }
 
@@ -461,7 +486,7 @@ function setSpeed(marker) {
   padding: 8px 14px;
   font-size: 13px;
   font-weight: 600;
-  background: #fff;
+  background: var(--color-surface);
   outline: none;
   min-width: 180px;
   cursor: pointer;
@@ -505,6 +530,88 @@ function setSpeed(marker) {
   flex-wrap: wrap;
 }
 
+.theme-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  background: transparent;
+}
+
+.theme-switch__track {
+  position: relative;
+  width: 56px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border-soft);
+  overflow: hidden;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.theme-switch:hover .theme-switch__track {
+  border-color: var(--color-primary);
+}
+
+.theme-switch__indicator {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease;
+  z-index: 1;
+}
+
+:root[data-theme='dark'] .theme-switch__indicator {
+  transform: translateX(26px);
+  background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
+}
+
+.theme-switch__icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: color 0.2s ease;
+}
+
+.theme-switch__icon--sun {
+  left: 8px;
+  color: #92400e;
+}
+
+:root[data-theme='dark'] .theme-switch__icon--sun {
+  color: var(--color-text-soft);
+  opacity: 0.7;
+}
+
+.theme-switch__icon--moon {
+  right: 8px;
+  color: var(--color-text-soft);
+  opacity: 0.7;
+}
+
+:root[data-theme='dark'] .theme-switch__icon--moon {
+  color: #e0e7ff;
+  opacity: 1;
+}
+
+.theme-switch__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  min-width: 48px;
+}
+
 .settings-radio {
   display: inline-flex;
   align-items: center;
@@ -515,7 +622,7 @@ function setSpeed(marker) {
   font-size: 13px;
   cursor: pointer;
   font-weight: 600;
-  background: #fff;
+  background: var(--color-surface);
   transition: border-color 0.15s, background 0.15s;
 }
 
@@ -565,7 +672,7 @@ function setSpeed(marker) {
 .settings-switch__track {
   width: 42px;
   height: 24px;
-  background: #d1d5db;
+  background: var(--color-border);
   border-radius: 999px;
   position: relative;
   transition: background 0.2s;
@@ -579,7 +686,7 @@ function setSpeed(marker) {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--color-surface);
   transition: left 0.2s;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
@@ -599,7 +706,7 @@ function setSpeed(marker) {
 }
 
 .settings-card {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-md);
   padding: 14px 16px;

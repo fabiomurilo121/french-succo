@@ -12,12 +12,10 @@ public interface ITranslationService
 public class TranslationService : ITranslationService
 {
     private readonly IMiniMaxService _miniMax;
-    private readonly ILogger<TranslationService> _logger;
 
-    public TranslationService(IMiniMaxService miniMax, ILogger<TranslationService> logger)
+    public TranslationService(IMiniMaxService miniMax)
     {
         _miniMax = miniMax;
-        _logger = logger;
     }
 
     public async Task<TranslationResponse> TranslateAsync(string text, string? sourceLang, string region, CancellationToken ct = default)
@@ -34,40 +32,27 @@ Apenas devolva o JSON.";
 
         var user = $"Idioma de origem: {(string.IsNullOrEmpty(sourceLang) ? "auto-detect" : sourceLang)}. Texto: {text}";
 
-        try
-        {
-            var json = await _miniMax.CompleteChatAsync(system, user, ct);
-            var data = JsonSerializer.Deserialize<MiniMaxTranslatePayload>(json,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var json = await _miniMax.CompleteChatAsync(system, user, ct);
 
-            if (data is null)
-                throw new InvalidOperationException("Resposta vazia do modelo");
+        if (string.IsNullOrWhiteSpace(json))
+            throw new InvalidOperationException("Resposta vazia do modelo de tradução.");
 
-            return new TranslationResponse(
-                sourceLang ?? "pt",
-                data.FrText ?? "",
-                data.Phonetic ?? "",
-                data.Translation ?? text,
-                data.CulturalTip,
-                data.Category ?? "Comum"
-            );
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Falha na tradução; usando fallback");
-            return FallbackTranslation(text, sourceLang);
-        }
-    }
+        var data = JsonSerializer.Deserialize<MiniMaxTranslatePayload>(json,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-    private TranslationResponse FallbackTranslation(string text, string? sourceLang)
-    {
+        if (data is null)
+            throw new InvalidOperationException("Não foi possível interpretar a resposta do tradutor.");
+
+        if (string.IsNullOrWhiteSpace(data.FrText))
+            throw new InvalidOperationException("O tradutor não retornou uma frase em francês.");
+
         return new TranslationResponse(
             sourceLang ?? "pt",
-            "Bonjour, comment allez-vous aujourd'hui ?",
-            "bõ-jur kõ-mã ta-le vu o-zhur-düi",
-            text,
-            "Em francês formal, sempre use \"vous\" ao falar com desconhecidos.",
-            "Comum"
+            data.FrText,
+            data.Phonetic ?? "",
+            data.Translation ?? text,
+            data.CulturalTip,
+            data.Category ?? "Comum"
         );
     }
 

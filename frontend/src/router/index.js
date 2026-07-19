@@ -8,11 +8,6 @@ const routes = [
     component: () => import('@/pages/DashboardPage.vue')
   },
   {
-    path: '/historico',
-    name: 'historico',
-    component: () => import('@/pages/HistoricoPage.vue')
-  },
-  {
     path: '/favoritos',
     name: 'favoritos',
     component: () => import('@/pages/FavoritosPage.vue')
@@ -21,6 +16,10 @@ const routes = [
     path: '/configuracoes',
     name: 'configuracoes',
     component: () => import('@/pages/ConfiguracoesPage.vue')
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/dashboard'
   }
 ]
 

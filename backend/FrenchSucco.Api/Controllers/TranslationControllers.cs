@@ -9,12 +9,12 @@ namespace FrenchSucco.Api.Controllers;
 public class TranslateController : ControllerBase
 {
     private readonly ITranslationService _service;
-    private readonly IPhoneticService _phonetic;
+    private readonly ILogger<TranslateController> _logger;
 
-    public TranslateController(ITranslationService service, IPhoneticService phonetic)
+    public TranslateController(ITranslationService service, ILogger<TranslateController> logger)
     {
         _service = service;
-        _phonetic = phonetic;
+        _logger = logger;
     }
 
     [HttpPost]
@@ -25,13 +25,26 @@ public class TranslateController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Text))
             return BadRequest(new { message = "Texto é obrigatório." });
 
-        var result = await _service.TranslateAsync(
-            request.Text.Trim(),
-            request.SourceLang,
-            request.Region ?? "fr",
-            ct);
-
-        return Ok(result);
+        try
+        {
+            var result = await _service.TranslateAsync(
+                request.Text.Trim(),
+                request.SourceLang,
+                request.Region ?? "fr",
+                ct);
+            return Ok(result);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning(ex, "Upstream MiniMax failed for translate");
+            return StatusCode(StatusCodes.Status502BadGateway,
+                new { message = "Serviço de tradução temporariamente indisponível. Tente novamente em instantes." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return StatusCode(StatusCodes.Status502BadGateway,
+                new { message = ex.Message });
+        }
     }
 }
 
@@ -40,10 +53,12 @@ public class TranslateController : ControllerBase
 public class CorrectController : ControllerBase
 {
     private readonly IGrammarService _service;
+    private readonly ILogger<CorrectController> _logger;
 
-    public CorrectController(IGrammarService service)
+    public CorrectController(IGrammarService service, ILogger<CorrectController> logger)
     {
         _service = service;
+        _logger = logger;
     }
 
     [HttpPost]
@@ -54,8 +69,22 @@ public class CorrectController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Text))
             return BadRequest(new { message = "Texto é obrigatório." });
 
-        var result = await _service.CorrectAsync(request.Text.Trim(), request.Region ?? "fr", ct);
-        return Ok(result);
+        try
+        {
+            var result = await _service.CorrectAsync(request.Text.Trim(), request.Region ?? "fr", ct);
+            return Ok(result);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning(ex, "Upstream MiniMax failed for correct");
+            return StatusCode(StatusCodes.Status502BadGateway,
+                new { message = "Serviço de correção temporariamente indisponível. Tente novamente em instantes." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return StatusCode(StatusCodes.Status502BadGateway,
+                new { message = ex.Message });
+        }
     }
 }
 
