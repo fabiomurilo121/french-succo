@@ -1,0 +1,116 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  French Succo – .gitignore
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Node / frontend ──────────────────────────────────────────────────────────
+node_modules/
+.npm/
+.pnp/
+.pnp.js
+.yarn/
+*.tgz
+
+# Build outputs
+frontend/dist/
+dist/
+out/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+.pnpm-debug.log*
+
+# Editor / IDE
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+
+# Vue
+*.vue.d.ts
+
+# ── .NET / backend ──────────────────────────────────────────────────────────
+backend/**/bin/
+backend/**/obj/
+backend/**/out/
+backend/**/publish/
+*.user
+*.suo
+*.userprefs
+*.cachefile
+*.dll
+*.exe
+*.pdb
+
+# .NET EF Core migrations (if added later)
+backend/**/Migrations/*.cs
+!backend/**/Migrations/*.cs.template
+
+# ── Docker ───────────────────────────────────────────────────────────────────
+.docker/
+docker-compose.override.yml
+
+# ── Environment / secrets ────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+!.env.example
+
+# ── Database ─────────────────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+postgres-data/
+
+# ── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.Trash-*
+
+# Windows
+[Aa][Rr][Ee][Mm][Ss]/
+[Ii][Gg][Nn][Oo][Rr][Ee][Dd][Ff][Ii][Ll][Ee][Ss]/
+
+# ── Logs / temporary ─────────────────────────────────────────────────────────
+logs/
+*.log
+tmp/
+temp/
+.cache/
+
+# ── Coverage / testing ───────────────────────────────────────────────────────
+coverage/
+*.lcov
+.nyc_output/
+.nyc/
+*.pid
+*.seed
+*.pid.lock
+
+# ── Misc ─────────────────────────────────────────────────────────────────────
+*.swp
+*.swo
+*.bak
+*.tmp
+*.orig
+*.rej
+
+# Certs / keys
+*.pem
+*.key
+*.crt
