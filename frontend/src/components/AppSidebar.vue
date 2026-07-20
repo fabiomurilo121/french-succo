@@ -12,7 +12,7 @@ const route = useRoute()
 
 const navItems = [
   { name: 'Dashboard', to: '/dashboard', icon: icons['IMG_2'] },
-  { name: 'Favoritos', to: '/favoritos', icon: icons['IMG_4'] },
+  { name: 'Flashcards', to: '/flashcards', icon: icons['IMG_4'] },
   { name: 'Configurações', to: '/configuracoes', icon: icons['IMG_5'] }
 ]
 </script>

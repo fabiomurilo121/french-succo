@@ -70,6 +70,30 @@ const continuousFlow = computed(() => {
 const historySearch = ref('')
 const historyCategory = ref('Todas')
 const historyCategories = ['Todas', 'Comum', 'Viagem', 'Estudo']
+const historyTab = ref('history')
+
+const historyCount = computed(() => history.items.length)
+const favoritesCount = computed(() => favorites.items.length)
+
+function decorateHistoryItem(item) {
+  return {
+    ...item,
+    isFavorite: favorites.isFavorited(item.frText),
+    sourceText: item.sourceText || '',
+    category: item.category || 'Comum'
+  }
+}
+
+function decorateFavoriteItem(fav) {
+  return {
+    id: fav.id,
+    frText: fav.frText,
+    sourceText: fav.ptText || '',
+    category: fav.category || 'Comum',
+    createdAt: fav.savedAt || new Date().toISOString(),
+    isFavorite: true
+  }
+}
 
 const stats = ref([
   { id: 'words', label: 'Palavras aprendidas', value: '1,240', icon: icons['IMG_1'], bg: '#f2f7ff', color: '#3b82f6' },
@@ -198,13 +222,13 @@ function toggleMode() {
   mode.value = mode.value === 'translate' ? 'grammar' : 'translate'
 }
 
-function playAudio(speedVariant) {
-  if (!result.value?.frText || !audioEl.value) return
+function playAudioForText(text, speedVariant) {
+  if (!text || !audioEl.value) return
   try {
     const voice = settings.voice === 'male' ? 'male' : 'female'
     const region = settings.region || 'fr'
     audioEl.value.src = api.getAudioUrl(
-      result.value.frText,
+      text,
       voice,
       speedVariant === 'slow' ? 0.7 : 1.0,
       region
@@ -214,6 +238,16 @@ function playAudio(speedVariant) {
   } catch (e) {
     /* noop */
   }
+}
+
+function playAudio(speedVariant) {
+  if (!result.value?.frText) return
+  playAudioForText(result.value.frText, speedVariant)
+}
+
+function playHistoryItemAudio(item) {
+  if (!item?.frText) return
+  playAudioForText(item.frText, 'normal')
 }
 
 function copyResult() {
@@ -241,7 +275,13 @@ function isFav() {
 }
 
 const filteredHistory = computed(() => {
-  let list = history.items
+  let list
+  if (historyTab.value === 'favorites') {
+    list = favorites.items.map(decorateFavoriteItem)
+  } else {
+    list = history.items.map(decorateHistoryItem)
+  }
+
   if (historyCategory.value !== 'Todas') {
     list = list.filter((i) => i.category === historyCategory.value)
   }
@@ -253,7 +293,7 @@ const filteredHistory = computed(() => {
         (i.sourceText || '').toLowerCase().includes(q)
     )
   }
-  return list.slice(0, 8)
+  return list.slice(0, 12)
 })
 
 function formatTime(iso) {
@@ -274,9 +314,26 @@ function formatTime(iso) {
 }
 
 function clearHistory() {
-  if (confirm('Apagar todo o histórico?')) {
+  if (historyTab.value === 'favorites') {
+    if (confirm('Remover todos os favoritos? Esta ação não pode ser desfeita.')) {
+      favorites.items.slice().forEach((f) => favorites.remove(f.id))
+      toast.info('Favoritos removidos', { duration: 1800 })
+    }
+  } else if (confirm('Apagar todo o histórico de traduções?')) {
     history.clear()
+    toast.info('Histórico apagado', { duration: 1800 })
   }
+}
+
+function deleteHistoryItem(item) {
+  if (item.isFavorite) {
+    const fav = favorites.items.find((f) => f.frText === item.frText)
+    if (fav) favorites.remove(fav.id)
+  }
+  if (item.id && history.items.some((h) => h.id === item.id)) {
+    history.remove(item.id)
+  }
+  toast.info('Tradução removida', { duration: 1500 })
 }
 
 function toggleHistoryFav(item) {
@@ -296,8 +353,11 @@ function toggleHistoryFav(item) {
 }
 
 function reuseHistoryItem(item) {
-  inputText.value = item.sourceText
+  const text = item.sourceText || item.frText
+  if (!text) return
+  inputText.value = text
   window.scrollTo({ top: 0, behavior: 'smooth' })
+  toast.info('Frase carregada no tradutor', { duration: 1600 })
 }
 
 function dismissHero() {
@@ -579,19 +639,43 @@ function seedSampleHistory() {
       </div>
     </section>
 
-    <!-- Histórico -->
+    <!-- Histórico & Favoritos -->
     <section class="db__history">
       <div class="db__history-head">
-        <h2 class="db__section-title">
-          <img :src="icons['IMG_14']" alt="" /> Meu Histórico
-        </h2>
+        <div>
+          <h2 class="db__section-title">
+            <img :src="icons['IMG_14']" alt="" /> Histórico &amp; Favoritos
+          </h2>
+          <p class="db__history-sub">Suas últimas traduções e frases salvas.</p>
+        </div>
         <button
           v-if="filteredHistory.length"
           class="btn btn-secondary btn--sm"
           @click="clearHistory"
         >
           <img :src="icons['IMG_10']" alt="" />
-          Limpar Tudo
+          {{ historyTab === 'favorites' ? 'Limpar Favoritos' : 'Limpar Histórico' }}
+        </button>
+      </div>
+
+      <div class="db__history-tabs">
+        <button
+          type="button"
+          class="db__history-tab"
+          :class="{ 'is-active': historyTab === 'history' }"
+          @click="historyTab = 'history'"
+        >
+          <span>Histórico</span>
+          <span class="db__tab-count">{{ historyCount }}</span>
+        </button>
+        <button
+          type="button"
+          class="db__history-tab"
+          :class="{ 'is-active': historyTab === 'favorites' }"
+          @click="historyTab = 'favorites'"
+        >
+          <span>Favoritos</span>
+          <span class="db__tab-count">{{ favoritesCount }}</span>
         </button>
       </div>
 
@@ -600,8 +684,12 @@ function seedSampleHistory() {
           <input
             v-model="historySearch"
             type="text"
-            placeholder="Buscar nas traduções..."
-            aria-label="Buscar no histórico"
+            :placeholder="
+              historyTab === 'favorites'
+                ? 'Buscar nos favoritos...'
+                : 'Buscar no histórico...'
+            "
+            aria-label="Buscar"
           />
         </div>
         <div class="db__history-categories">
@@ -621,7 +709,7 @@ function seedSampleHistory() {
       <div class="db__history-list">
         <article
           v-for="item in filteredHistory"
-          :key="item.id"
+          :key="historyTab + '-' + item.id"
           class="db__history-item card"
         >
           <header class="db__history-meta">
@@ -630,22 +718,34 @@ function seedSampleHistory() {
               {{ formatTime(item.createdAt) }}
             </span>
             <span class="db__history-sep"></span>
-            <span class="tag">{{ item.category || 'Comum' }}</span>
+            <span class="tag">{{ item.category }}</span>
             <div class="db__history-actions">
               <button
+                class="db__history-icon-btn db__history-icon-btn--play"
+                @click="playHistoryItemAudio(item)"
+                type="button"
+                :aria-label="'Ouvir ' + item.frText"
+                title="Ouvir pronúncia"
+              >
+                <AppIcon name="speaker" :size="14" />
+              </button>
+              <button
                 class="db__history-icon-btn"
-                :class="{ 'is-fav': favorites.isFavorited(item.frText) }"
+                :class="{ 'is-fav': item.isFavorite }"
                 @click="toggleHistoryFav(item)"
                 type="button"
                 aria-label="Favoritar"
               >
-                <img
-                  :src="favorites.isFavorited(item.frText) ? `${icons['IMG_4']}` : `${icons['IMG_3']}`"
-                  alt=""
-                />
+                <AppIcon :name="item.isFavorite ? 'starFilled' : 'star'" :size="14" />
               </button>
-              <button class="db__history-icon-btn" type="button" aria-label="Mais">
-                <img :src="icons['IMG_15']" alt="" />
+              <button
+                class="db__history-icon-btn db__history-icon-btn--delete"
+                @click="deleteHistoryItem(item)"
+                type="button"
+                :aria-label="'Deletar ' + item.frText"
+                title="Deletar"
+              >
+                <AppIcon name="trash" :size="14" />
               </button>
             </div>
           </header>
@@ -659,16 +759,39 @@ function seedSampleHistory() {
               <p>{{ item.sourceText }}</p>
             </div>
           </div>
+          <footer class="db__history-foot">
+            <button
+              class="db__history-reuse"
+              type="button"
+              @click="reuseHistoryItem(item)"
+              title="Colocar essa frase no tradutor"
+            >
+              <AppIcon name="refresh" :size="13" />
+              Reutilizar no tradutor
+            </button>
+          </footer>
         </article>
 
         <div v-if="filteredHistory.length === 0" class="db__history-empty">
-          <p>Nenhuma tradução ainda. Use o campo acima para começar.</p>
+          <img :src="historyTab === 'favorites' ? icons['IMG_4'] : icons['IMG_14']" alt="" />
+          <p v-if="historyTab === 'favorites'">
+            Nenhum favorito ainda. Clique na estrela de uma tradução para salvar aqui.
+          </p>
+          <p v-else>
+            Nenhuma tradução ainda. Use o campo acima para começar.
+          </p>
         </div>
       </div>
 
       <div class="db__history-status">
         <img :src="icons['IMG_16']" alt="" />
-        <span>{{ filteredHistory.length }} traduções carregadas</span>
+        <span>
+          {{
+            historyTab === 'favorites'
+              ? filteredHistory.length + ' favorito(s) exibido(s)'
+              : filteredHistory.length + ' tradução(ões) exibida(s)'
+          }}
+        </span>
       </div>
     </section>
 
@@ -1456,6 +1579,121 @@ function seedSampleHistory() {
 .db__history-head .btn img {
   width: 14px;
   height: 14px;
+}
+
+/* Tabs: Histórico vs Favoritos */
+.db__history-tabs {
+  display: inline-flex;
+  padding: 4px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  gap: 2px;
+  align-self: flex-start;
+}
+
+.db__history-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: transparent;
+  transition: color var(--motion-fast), background var(--motion-fast),
+    box-shadow var(--motion-fast);
+  cursor: pointer;
+}
+
+.db__history-tab:hover:not(.is-active) {
+  color: var(--text-primary);
+}
+
+.db__history-tab.is-active {
+  background: var(--surface-card);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+.db__tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.db__history-tab.is-active .db__tab-count {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.db__history-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+}
+
+/* Delete icon button (red on hover) */
+.db__history-icon-btn--delete {
+  color: var(--text-faint);
+}
+
+.db__history-icon-btn--delete:hover {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+/* Play icon button (blue on hover) */
+.db__history-icon-btn--play {
+  color: var(--color-primary);
+}
+
+.db__history-icon-btn--play:hover {
+  background: var(--color-primary);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+/* Footer / Reutilizar */
+.db__history-foot {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border-soft);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.db__history-reuse {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--color-primary-softer);
+  color: var(--color-primary-deep);
+  font-family: var(--font-nav);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--color-primary-soft);
+  transition: background var(--motion-fast), color var(--motion-fast),
+    transform var(--motion-fast);
+}
+
+.db__history-reuse:hover {
+  background: var(--color-primary);
+  color: #fff;
+  transform: translateY(-1px);
 }
 
 .db__history-filters {

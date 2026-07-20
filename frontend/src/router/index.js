@@ -8,9 +8,9 @@ const routes = [
     component: () => import('@/pages/DashboardPage.vue')
   },
   {
-    path: '/favoritos',
-    name: 'favoritos',
-    component: () => import('@/pages/FavoritosPage.vue')
+    path: '/flashcards',
+    name: 'flashcards',
+    component: () => import('@/pages/FlashcardsPage.vue')
   },
   {
     path: '/configuracoes',
