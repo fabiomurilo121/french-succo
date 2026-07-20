@@ -2,6 +2,7 @@
 import { ref, watch, onMounted } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import icons from '@/assets/icons'
+import { APP_VERSION, APP_BUILD } from '@/version'
 
 const settings = useSettingsStore()
 
@@ -319,6 +320,13 @@ function setSpeed(value) {
         <button class="btn btn-primary" :disabled="!hasChanges" @click="save">
           Salvar Alterações
         </button>
+      </div>
+      <div class="cs__footer-version">
+        <span>French Succo</span>
+        <span class="cs__footer-version-pill">
+          v{{ APP_VERSION }}
+          <small>· {{ APP_BUILD }}</small>
+        </span>
       </div>
     </footer>
   </div>
@@ -768,6 +776,33 @@ function setSpeed(value) {
   flex-wrap: wrap;
   padding-top: 16px;
   border-top: 1px solid var(--border-default);
+}
+
+.cs__footer-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-nav);
+}
+
+.cs__footer-version-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+
+.cs__footer-version-pill small {
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 .cs__footer-hint {

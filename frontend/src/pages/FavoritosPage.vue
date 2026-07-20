@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useFavoritesStore } from '@/stores/library'
 import { useToastStore } from '@/stores/toast'
 import icons from '@/assets/icons'
+import { APP_VERSION, APP_BUILD } from '@/version'
 
 const favorites = useFavoritesStore()
 const toast = useToastStore()
@@ -161,7 +162,13 @@ function playAudio(text) {
     </section>
 
     <footer class="fp__footer">
-      <p>© 2026 French Succo — Todos os direitos reservados.</p>
+      <div class="fp__footer-text">
+        <p>© 2026 French Succo — Todos os direitos reservados.</p>
+        <span class="fp__footer-version">
+          v{{ APP_VERSION }}
+          <small>· {{ APP_BUILD }}</small>
+        </span>
+      </div>
       <div class="fp__footer-links">
         <a href="#">Termos</a>
         <a href="#">Privacidade</a>
@@ -533,6 +540,32 @@ function playAudio(text) {
   font-size: 11px;
   color: var(--text-muted);
   border-top: 1px solid var(--border-default);
+}
+
+.fp__footer-text {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.fp__footer-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+.fp__footer-version small {
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 .fp__footer-links {

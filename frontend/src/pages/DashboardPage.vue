@@ -1,11 +1,13 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import AppIcon from '@/components/AppIcon.vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useHistoryStore, useFavoritesStore } from '@/stores/library'
 import { useToastStore } from '@/stores/toast'
 import { api } from '@/services/api'
 import icons from '@/assets/icons'
+import { APP_VERSION, APP_BUILD } from '@/version'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
 
 const settings = useSettingsStore()
 const history = useHistoryStore()
@@ -19,9 +21,51 @@ const result = ref(null)
 const loading = ref(false)
 const errorMsg = ref('')
 const audioEl = ref(null)
+const audioLoading = ref(false)
+let audioLoadingTimer = null
+
+const overlayOpen = computed(() => loading.value || audioLoading.value)
+const overlayTitle = computed(() =>
+  audioLoading.value ? 'Reproduzindo áudio…' : 'Traduzindo…'
+)
+const overlayMessage = computed(() =>
+  audioLoading.value
+    ? 'Aguarde enquanto preparamos a pronúncia'
+    : 'Aguarde enquanto processamos sua frase'
+)
+
+function showAudioLoading() {
+  audioLoading.value = true
+  if (audioLoadingTimer) clearTimeout(audioLoadingTimer)
+  audioLoadingTimer = setTimeout(() => {
+    audioLoading.value = false
+    audioLoadingTimer = null
+  }, 1500)
+}
+
+function hideAudioLoading() {
+  audioLoading.value = false
+  if (audioLoadingTimer) {
+    clearTimeout(audioLoadingTimer)
+    audioLoadingTimer = null
+  }
+}
 
 const MAX_CHARS = 500
 const charCount = computed(() => inputText.value.length)
+
+const DEFAULT_PHONETIC = 'bõ.ʒuʁ, kɔ.mɑ̃.t‿a.le vu.z‿o.ʒuʁ.dɥi'
+
+const phoneticWords = computed(() => {
+  const ipa = result.value?.phonetic || DEFAULT_PHONETIC
+  return formatPhoneticBR(ipa)
+})
+
+const continuousFlow = computed(() => {
+  return phoneticWords.value
+    .map((w) => w.syllables.join('-'))
+    .join(' · ')
+})
 
 const historySearch = ref('')
 const historyCategory = ref('Todas')
@@ -68,6 +112,10 @@ onMounted(() => {
   history.fetchAll()
   favorites.fetchAll()
   if (history.items.length === 0) seedSampleHistory()
+})
+
+onUnmounted(() => {
+  if (audioLoadingTimer) clearTimeout(audioLoadingTimer)
 })
 
 async function processText() {
@@ -252,6 +300,50 @@ function dismissHero() {
   settings.dismissHero()
 }
 
+function formatPhoneticBR(ipa) {
+  if (!ipa) return []
+  const map = {
+    'ɑ̃': 'AN',
+    'ã': 'AN',
+    'ɛ̃': 'EN',
+    'ẽ': 'EN',
+    'ɔ̃': 'ON',
+    'õ': 'ON',
+    'œ̃': 'UN',
+    'ũ': 'UN',
+    'ĩ': 'IN',
+    'ɥ': 'ü',
+    'ŋ': 'NG',
+    'ɲ': 'NH',
+    'ʒ': 'J',
+    'ʃ': 'CH',
+    'ʁ': 'R',
+    'ø': 'ö',
+    'œ': 'ö',
+    'ɔ': 'Ó',
+    'ɛ': 'É',
+    'ə': 'e',
+    'ː': '',
+    'ˈ': '',
+    'ˌ': '',
+    '‿': '',
+    '̃': ''
+  }
+  let s = ipa
+  for (const [k, v] of Object.entries(map)) {
+    s = s.split(k).join(v)
+  }
+  return s
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => ({
+      syllables: word.split(/[\.\-·]+/).filter(Boolean)
+    }))
+    .filter((w) => w.syllables.length)
+}
+
 function seedSampleHistory() {
   const now = Date.now()
   const samples = [
@@ -403,19 +495,35 @@ function seedSampleHistory() {
           <div v-if="settings.showPhonetic" class="db__pronunciation">
             <div class="db__pronunciation-head">
               <span class="db__pronunciation-label">PRONÚNCIA</span>
-              <span class="db__pronunciation-tag">Guia Fonético</span>
+              <span class="db__pronunciation-tag">🇧🇷 pt-BR</span>
             </div>
             <div class="db__pronunciation-line">
-              <button class="db__speaker" @click="playAudio('normal')" type="button" aria-label="Ouvir">
+              <button class="db__speaker" @click="playAudio('normal')" type="button" aria-label="Ouvir pronúncia">
                 <img :src="icons['IMG_14']" alt="" />
               </button>
-              <p class="db__phonetic-text">
-                {{ result?.phonetic || 'bõ.ʒuʁ, kɔ.mã.t‿a.le vu.z‿o.ʒuʁ.dɥi' }}
-              </p>
+              <div class="db__phonetic-display">
+                <div class="db__phonetic-words">
+                  <span
+                    v-for="(word, wi) in phoneticWords"
+                    :key="wi"
+                    class="db__phonetic-word"
+                  >
+                    <span
+                      v-for="(syl, si) in word.syllables"
+                      :key="si"
+                      :class="['db__syl', { 'is-stressed': si === word.syllables.length - 1 }]"
+                    >{{ syl }}</span>
+                  </span>
+                </div>
+                <p class="db__pronunciation-flow" :title="continuousFlow">
+                  <span class="db__pronunciation-flow-label">leitura:</span>
+                  {{ continuousFlow }}
+                </p>
+                <p class="db__pronunciation-hint">
+                  <em>↳ Cada bloco é uma sílaba — as <strong>MAIÚSCULAS</strong> são as tônicas (mais força). Fale em voz alta.</em>
+                </p>
+              </div>
             </div>
-            <p class="db__pronunciation-hint">
-              <em>Fale devagar, enfatizando as vogais.</em>
-            </p>
           </div>
 
           <hr class="db__divider" />
@@ -556,10 +664,29 @@ function seedSampleHistory() {
     </section>
 
     <footer class="db__footer">
-      © 2026 French Succo — Foco no seu sucesso.
+      <span>© 2026 French Succo — Foco no seu sucesso.</span>
+      <span class="db__footer-version">
+        v{{ APP_VERSION }}
+        <small>· {{ APP_BUILD }}</small>
+      </span>
     </footer>
 
-    <audio ref="audioEl" hidden></audio>
+    <audio
+      ref="audioEl"
+      hidden
+      @loadstart="showAudioLoading"
+      @playing="hideAudioLoading"
+      @canplay="hideAudioLoading"
+      @error="hideAudioLoading"
+      @ended="hideAudioLoading"
+      @pause="hideAudioLoading"
+    ></audio>
+
+    <LoadingOverlay
+      :open="overlayOpen"
+      :title="overlayTitle"
+      :message="overlayMessage"
+    />
   </div>
 </template>
 
@@ -1037,13 +1164,14 @@ function seedSampleHistory() {
 
 .db__pronunciation-line {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
 .db__speaker {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 12px;
   background: var(--color-primary);
   color: #fff;
@@ -1051,6 +1179,7 @@ function seedSampleHistory() {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
 }
 .db__speaker img {
   width: 18px;
@@ -1058,18 +1187,82 @@ function seedSampleHistory() {
   filter: brightness(0) invert(1);
 }
 
-.db__phonetic-text {
-  margin: 0;
-  font-size: 16px;
-  font-style: italic;
+.db__phonetic-display {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.db__phonetic-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.db__phonetic-word {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.db__syl {
+  font-family: var(--font-nav);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--surface-card);
   color: var(--text-primary);
+  letter-spacing: 0.04em;
+  border: 1px solid var(--border-default);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.db__syl.is-stressed {
+  background: rgba(59, 130, 246, 0.14);
+  color: var(--color-primary-deep);
+  border-color: rgba(59, 130, 246, 0.32);
+  font-weight: 700;
+  box-shadow: 0 1px 0 rgba(59, 130, 246, 0.2);
+}
+
+.db__pronunciation-flow {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px dashed rgba(197, 219, 255, 0.6);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  word-break: break-word;
+}
+.db__pronunciation-flow-label {
+  font-family: var(--font-nav);
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-primary);
+  margin-right: 8px;
 }
 
 .db__pronunciation-hint {
   margin: 0;
-  margin-left: 52px;
   font-size: 11px;
   color: var(--text-muted);
+  line-height: 1.45;
+}
+.db__pronunciation-hint strong {
+  color: var(--color-primary);
+  font-weight: 700;
 }
 
 .db__divider {
@@ -1452,10 +1645,33 @@ function seedSampleHistory() {
 }
 
 .db__footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
   text-align: center;
   font-size: 11px;
   color: var(--text-muted);
   padding: 16px 0;
+}
+
+.db__footer-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+.db__footer-version small {
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 /* Hero fade transition */
@@ -1507,12 +1723,9 @@ function seedSampleHistory() {
   .db__result-phrase {
     font-size: 18px;
   }
-  .db__pronunciation-hint {
-    margin-left: 0;
-  }
-  .db__pronunciation-line {
-    flex-direction: column;
-    align-items: flex-start;
+  .db__syl {
+    font-size: 13px;
+    padding: 5px 8px;
   }
 }
 </style>

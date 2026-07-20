@@ -66,20 +66,6 @@ onUnmounted(() => {
         <img :src="icons['IMG_9']" alt="" />
         <span class="tb__bell-dot" />
       </button>
-      <button class="tb__icon" type="button" aria-label="Ajuda">
-        <img :src="icons['IMG_6']" alt="" />
-      </button>
-
-      <span class="tb__divider" />
-
-      <div class="tb__user">
-        <div class="tb__user-info">
-          <strong>Usuário</strong>
-          <small>Premium</small>
-        </div>
-        <div class="tb__avatar">U</div>
-        <img :src="icons['IMG_7']" alt="" class="tb__caret" />
-      </div>
 
       <button
         class="tb__theme"
@@ -87,6 +73,7 @@ onUnmounted(() => {
         :aria-checked="isDark"
         role="switch"
         :title="isDark ? 'Tema escuro' : 'Tema claro'"
+        :aria-label="isDark ? 'Trocar para tema claro' : 'Trocar para tema escuro'"
         @click="toggleTheme"
       >
         <span class="tb__theme-track">
@@ -94,6 +81,10 @@ onUnmounted(() => {
           <AppIcon name="sun" :size="12" class="tb__theme-icon tb__theme-icon--sun" />
           <AppIcon name="moon" :size="12" class="tb__theme-icon tb__theme-icon--moon" />
         </span>
+      </button>
+
+      <button class="tb__icon" type="button" aria-label="Ajuda">
+        <img :src="icons['IMG_6']" alt="" />
       </button>
     </div>
   </header>
@@ -202,6 +193,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .tb__bell {
@@ -259,81 +251,17 @@ onUnmounted(() => {
   }
 }
 
-.tb__divider {
-  width: 1px;
-  height: 28px;
-  background: var(--border-default);
-  display: none;
-}
-
-@media (min-width: 640px) {
-  .tb__divider {
-    display: block;
-  }
-}
-
-.tb__user {
-  display: none;
-  align-items: center;
-  gap: 10px;
-  padding-left: 8px;
-}
-.tb__user-info {
-  display: flex;
-  flex-direction: column;
-  text-align: right;
-  line-height: 1.2;
-}
-.tb__user-info strong {
-  font-family: var(--font-nav);
-  font-size: 12px;
-  font-weight: 700;
-}
-.tb__user-info small {
-  font-size: 10px;
-  color: var(--text-muted);
-}
-
-.tb__avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: #fff;
-  font-family: var(--font-nav);
-  font-weight: 700;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.tb__caret {
-  width: 14px;
-  height: 14px;
-  display: none;
-}
-
-@media (min-width: 640px) {
-  .tb__user {
-    display: flex;
-  }
-  .tb__home {
-    display: inline;
-  }
-  .tb__caret {
-    display: block;
-  }
-}
-
+/* Theme toggle — promoted to a larger, more prominent pill on the right */
 .tb__theme {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 50px;
-  height: 28px;
+  width: 56px;
+  height: 30px;
   border-radius: 999px;
   background: transparent;
   flex-shrink: 0;
+  order: 3;
 }
 
 .tb__theme-track {
@@ -344,14 +272,19 @@ onUnmounted(() => {
   background: var(--surface-sunken);
   border: 1px solid var(--border-default);
   overflow: hidden;
+  transition: background var(--motion-fast), border-color var(--motion-fast);
+}
+
+.tb__theme:hover .tb__theme-track {
+  border-color: var(--color-primary);
 }
 
 .tb__theme-thumb {
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: linear-gradient(135deg, #fde68a, #fbbf24);
   box-shadow: var(--shadow-sm);
@@ -361,7 +294,7 @@ onUnmounted(() => {
 
 .tb__theme.is-dark .tb__theme-thumb,
 :root[data-theme='dark'] .tb__theme .tb__theme-thumb {
-  transform: translateX(22px);
+  transform: translateX(26px);
   background: linear-gradient(135deg, #312e81, #1e3a8a);
 }
 
@@ -373,7 +306,7 @@ onUnmounted(() => {
   pointer-events: none;
 }
 .tb__theme-icon--sun {
-  left: 6px;
+  left: 8px;
   color: #92400e;
 }
 :root[data-theme='dark'] .tb__theme-icon--sun {
@@ -382,7 +315,7 @@ onUnmounted(() => {
 }
 
 .tb__theme-icon--moon {
-  right: 6px;
+  right: 8px;
   color: var(--text-soft);
   opacity: 0.7;
 }

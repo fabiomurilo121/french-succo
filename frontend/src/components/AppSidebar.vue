@@ -21,9 +21,9 @@ const navItems = [
   <aside class="sb" :class="{ 'is-open': open }">
     <header class="sb__head">
       <div class="sb__brand">
-      <div class="sb__logo">
-        <img :src="icons['IMG_1']" alt="Logo" />
-      </div>
+        <div class="sb__logo">
+          <img :src="icons['IMG_1']" alt="Logo" />
+        </div>
         <span class="sb__title">Aprender Francês</span>
       </div>
       <button
@@ -49,16 +49,16 @@ const navItems = [
           <span>{{ item.name }}</span>
         </router-link>
       </button>
-    </nav>
 
-    <footer class="sb__user">
-      <div class="sb__avatar">U</div>
-      <div class="sb__userinfo">
-        <strong>Usuário</strong>
-        <small>Premium</small>
-      </div>
-      <img :src="icons['IMG_7']" alt="" class="sb__caret" />
-    </footer>
+      <button class="sb__user" type="button" @click="emit('close')">
+        <div class="sb__avatar">U</div>
+        <div class="sb__userinfo">
+          <strong>Usuário</strong>
+          <small>Premium</small>
+        </div>
+        <img :src="icons['IMG_7']" alt="" class="sb__caret" />
+      </button>
+    </nav>
   </aside>
 </template>
 
@@ -70,7 +70,7 @@ const navItems = [
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 20px;
 }
 
 .sb__head {
@@ -178,22 +178,33 @@ const navItems = [
   opacity: 1;
 }
 
+/* ── User card as the LAST nav item ── */
 .sb__user {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border-default);
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px;
+  padding: 14px 12px 10px;
   border-radius: 14px;
-  background: var(--surface-card);
-  border: 1px solid var(--border-default);
-  margin-top: auto;
+  background: transparent;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  transition: background var(--motion-fast);
+  font-family: inherit;
+}
+
+.sb__user:hover {
+  background: var(--color-primary-softer);
 }
 
 .sb__avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary), #6366f1);
   color: #fff;
   font-family: var(--font-nav);
   font-weight: 700;
@@ -216,6 +227,9 @@ const navItems = [
   font-size: 13px;
   font-weight: 700;
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .sb__userinfo small {
   font-size: 11px;
@@ -226,6 +240,7 @@ const navItems = [
   width: 14px;
   height: 14px;
   opacity: 0.6;
+  flex-shrink: 0;
 }
 
 /* ─── Mobile: drawer ─── */
