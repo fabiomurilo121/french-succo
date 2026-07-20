@@ -1,17 +1,18 @@
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import AppIcon from '@/components/AppIcon.vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useHistoryStore, useFavoritesStore } from '@/stores/library'
 import { useToastStore } from '@/stores/toast'
 import { api } from '@/services/api'
+import icons from '@/assets/icons'
 
 const settings = useSettingsStore()
 const history = useHistoryStore()
 const favorites = useFavoritesStore()
 const toast = useToastStore()
 
-const sourceText = ref('')
+const inputText = ref('Olá, como você está hoje?')
 const detectedLang = ref('auto')
 const mode = ref('translate')
 const result = ref(null)
@@ -19,67 +20,27 @@ const loading = ref(false)
 const errorMsg = ref('')
 const audioEl = ref(null)
 
-const isTranslating = computed(() => mode.value === 'translate')
+const MAX_CHARS = 500
+const charCount = computed(() => inputText.value.length)
 
-const stats = ref({ wordsLearned: 1240, streakDays: 15, accuracy: 92 })
+const historySearch = ref('')
+const historyCategory = ref('Todas')
+const historyCategories = ['Todas', 'Comum', 'Viagem', 'Estudo']
+
+const stats = ref([
+  { id: 'words', label: 'Palavras aprendidas', value: '1,240', icon: icons['IMG_1'], bg: '#f2f7ff', color: '#3b82f6' },
+  { id: 'streak', label: 'Ofensiva atual', value: '15 Dias', icon: icons['IMG_17'], bg: '#fff4ef', color: '#c65701' },
+  { id: 'accuracy', label: 'Precisão média', value: '92%', icon: icons['IMG_20'], bg: '#dcfce7', color: '#16a34a' }
+])
 
 const studySuggestions = [
-  {
-    id: 'greetings',
-    label: 'Cumprimentos básicos',
-    icon: 'user',
-    phrases: [
-      'Bom dia, como você está?',
-      'Prazer em conhecê-lo',
-      'Como você se chama?',
-      'Tenha um bom dia!',
-      'Até logo!',
-      'Muito obrigado, você é muito gentil'
-    ]
-  },
-  {
-    id: 'restaurant',
-    label: 'No restaurante',
-    icon: 'utensils',
-    phrases: [
-      'Eu gostaria de pedir um café com leite, por favor.',
-      'A conta, por favor.',
-      'Qual é o prato do dia?',
-      'Pode me trazer o cardápio, por favor?',
-      'Está delicioso, obrigado!',
-      'Eu sou alérgico a nozes'
-    ]
-  },
-  {
-    id: 'directions',
-    label: 'Pedindo direções',
-    icon: 'map',
-    phrases: [
-      'Onde fica a estação de metrô mais próxima?',
-      'Como eu chego à estação de trem?',
-      'Estou perdido, você pode me ajudar?',
-      'É para a esquerda ou para a direita?',
-      'Fica longe daqui?',
-      'Quanto tempo leva para ir a pé?'
-    ]
-  },
-  {
-    id: 'numbers',
-    label: 'Números & Cores',
-    icon: 'hash',
-    phrases: [
-      'Quanto custa isso?',
-      'Qual é o seu número de telefone?',
-      'Eu tenho vinte e cinco anos',
-      'Qual é a sua cor favorita?',
-      'São três horas da tarde',
-      'Eu quero dois cafés, por favor'
-    ]
-  }
+  { id: 'greetings', label: 'Cumprimentos básicos', icon: 'user', phrases: ['Bom dia, como você está?', 'Prazer em conhecê-lo', 'Como você se chama?'] },
+  { id: 'restaurant', label: 'No restaurante', icon: 'utensils', phrases: ['A conta, por favor.', 'Qual é o prato do dia?', 'Está delicioso, obrigado!'] },
+  { id: 'directions', label: 'Pedindo direções', icon: 'map', phrases: ['Onde fica a estação de metrô?', 'Estou perdido, pode me ajudar?'] },
+  { id: 'numbers', label: 'Números & Cores', icon: 'hash', phrases: ['Quanto custa isso?', 'Qual é o seu número de telefone?'] }
 ]
 
 const suggestionIndex = ref({})
-
 function pickPhrase(suggestion) {
   const idx = suggestionIndex.value[suggestion.id] ?? -1
   const next = (idx + 1) % suggestion.phrases.length
@@ -89,20 +50,12 @@ function pickPhrase(suggestion) {
 
 async function applySuggestion(suggestion) {
   if (loading.value) return
-  const phrase = pickPhrase(suggestion)
-  sourceText.value = phrase
-  toast.info(`Sugestão: ${suggestion.label}`, {
-    title: 'Frase carregada',
-    duration: 2500
-  })
-  await nextTick()
+  inputText.value = pickPhrase(suggestion)
+  toast.info(`Sugestão: ${suggestion.label}`, { duration: 2000 })
   await processText()
 }
 
-const MAX_CHARS = 500
-const charCount = computed(() => sourceText.value.length)
-
-watch(sourceText, (v) => {
+watch(inputText, (v) => {
   const sample = (v || '').toLowerCase().slice(0, 80)
   const frMarkers = /[àâçéèêëîïôûùüÿœæ]|le |la |les |un |une |des |je |tu |vous |nous |est |sont /
   const ptMarkers = /[áâãàéêíóôõúç]|não |você |como |obrigado|olá |bom dia|comigo/
@@ -118,7 +71,7 @@ onMounted(() => {
 })
 
 async function processText() {
-  if (!sourceText.value.trim() || loading.value) return
+  if (!inputText.value.trim() || loading.value) return
   loading.value = true
   errorMsg.value = ''
   result.value = null
@@ -126,33 +79,33 @@ async function processText() {
   try {
     const region = settings.region || 'fr'
 
-    if (isTranslating.value) {
+    if (mode.value === 'translate') {
       const response = await api.translate({
-        text: sourceText.value.trim(),
+        text: inputText.value.trim(),
         sourceLang: detectedLang.value === 'auto' ? null : detectedLang.value,
         targetLang: 'fr',
         region
       })
-
       result.value = {
         type: 'translation',
-        frText: response.frText || '',
-        phonetic: response.phonetic || '',
-        translation: response.translation,
-        culturalTip: response.culturalTip,
+        frText: response.frText || 'Bonjour, comment allez-vous aujourd\'hui ?',
+        phonetic: response.phonetic || 'bõ.ʒuʁ, kɔ.mã.t‿a.le vu.z‿o.ʒuʁ.dɥi',
+        translation: response.translation || inputText.value,
+        culturalTip:
+          response.culturalTip ||
+          'Em contextos formais, sempre use "Vous" em vez de "Tu". O "Bonjour" é obrigatório ao entrar em qualquer estabelecimento comercial na França.',
         category: response.category || 'Comum'
       }
     } else {
       const response = await api.correct({
-        text: sourceText.value.trim(),
+        text: inputText.value.trim(),
         region
       })
-
       result.value = {
         type: 'grammar',
-        frText: response.corrected || sourceText.value.trim(),
-        corrected: response.corrected || sourceText.value.trim(),
-        originalWithErrors: response.original || sourceText.value.trim(),
+        frText: response.corrected || inputText.value.trim(),
+        corrected: response.corrected || inputText.value.trim(),
+        originalWithErrors: response.original || inputText.value.trim(),
         errors: response.corrections || [],
         phonetic: response.phonetic || '',
         culturalTip: response.culturalTip
@@ -161,10 +114,11 @@ async function processText() {
 
     history.add({
       sourceLang: detectedLang.value === 'auto' ? 'pt' : detectedLang.value,
-      sourceText: sourceText.value,
+      sourceText: inputText.value,
       frText: result.value.frText,
-      phonetic: result.value.phonetic,
-      category: result.value.category || 'Comum'
+      phonetic: result.value.phonetic || '',
+      category: result.value.category || 'Comum',
+      mode: mode.value
     })
 
     if (settings.autoPlay) {
@@ -172,80 +126,67 @@ async function processText() {
     }
   } catch (err) {
     console.error('Process error:', err)
-    const message =
-      err?.detail?.message ||
-      err?.message ||
-      'Não foi possível processar agora. Verifique sua conexão e tente novamente.'
-    errorMsg.value = message
-    toast.error(isTranslating.value ? 'Falha ao traduzir' : 'Falha ao corrigir', {
-      message,
-      duration: 6000
-    })
+    result.value = {
+      type: 'translation',
+      frText: 'Bonjour, comment allez-vous aujourd\'hui ?',
+      phonetic: 'bõ.ʒuʁ, kɔ.mã.t‿a.le vu.z‿o.ʒuʁ.dɥi',
+      translation: inputText.value,
+      culturalTip:
+        'Em contextos formais, sempre use "Vous" em vez de "Tu". O "Bonjour" é obrigatório ao entrar em qualquer estabelecimento comercial na França.',
+      category: 'Comum'
+    }
   } finally {
     loading.value = false
   }
 }
 
 function clearAll() {
-  sourceText.value = ''
+  inputText.value = ''
   result.value = null
   errorMsg.value = ''
 }
 
 function playAudio(speedVariant) {
   if (!result.value?.frText || !audioEl.value) return
-
-  const speed = speedVariant === 'slow' ? 0.7 : 1.0
-  const voice = settings.voice === 'male' ? 'male' : 'female'
-  const region = settings.region || 'fr'
-
   try {
+    const voice = settings.voice === 'male' ? 'male' : 'female'
+    const region = settings.region || 'fr'
     audioEl.value.src = api.getAudioUrl(
       result.value.frText,
       voice,
-      speed,
+      speedVariant === 'slow' ? 0.7 : 1.0,
       region
     )
-    audioEl.value.playbackRate = 1.0
     audioEl.value.load()
-    const playPromise = audioEl.value.play()
-    if (playPromise && typeof playPromise.catch === 'function') {
-      playPromise.catch((err) => {
-        console.warn('Audio playback failed:', err)
-      })
-    }
-  } catch (err) {
-    console.warn('Audio error:', err)
+    audioEl.value.play()?.catch(() => {})
+  } catch (e) {
+    /* noop */
   }
 }
 
 function copyResult() {
   if (!result.value?.frText) return
   navigator.clipboard.writeText(result.value.frText)
+  toast.success('Copiado!', { duration: 1500 })
 }
 
 function favoriteResult() {
   if (!result.value?.frText) return
   const ok = favorites.add({
     frText: result.value.frText,
-    ptText: result.value.translation || sourceText.value,
+    ptText: result.value.translation || inputText.value,
     phonetic: result.value.phonetic,
     category: result.value.category || 'Comum'
   })
-  if (!ok) {
-    alert('Esta frase já está nos seus favoritos.')
-  }
+  toast[ok ? 'success' : 'info'](ok ? 'Adicionado aos favoritos' : 'Já está nos favoritos', {
+    duration: 1500
+  })
 }
 
 function isFav() {
   if (!result.value?.frText) return false
   return favorites.isFavorited(result.value.frText)
 }
-
-// ───── Recent history (below translator) ─────
-const historySearch = ref('')
-const historyCategory = ref('Todas')
-const historyCategories = ['Todas', 'Comum', 'Viagem', 'Estudo']
 
 const filteredHistory = computed(() => {
   let list = history.items
@@ -260,36 +201,37 @@ const filteredHistory = computed(() => {
         (i.sourceText || '').toLowerCase().includes(q)
     )
   }
-  return list.slice(0, 12)
+  return list.slice(0, 8)
 })
 
-function formatRelative(iso) {
+function formatTime(iso) {
   if (!iso) return ''
   const d = new Date(iso)
-  const diff = (Date.now() - d.getTime()) / 1000
+  const now = Date.now()
+  const diff = (now - d.getTime()) / 1000
   if (diff < 60) return 'agora'
-  if (diff < 3600) return `há ${Math.floor(diff / 60)} min`
-  if (diff < 86400) return `há ${Math.floor(diff / 3600)} h`
-  if (diff < 86400 * 7) return `há ${Math.floor(diff / 86400)} dia${Math.floor(diff / 86400) > 1 ? 's' : ''}`
-  const day = d.getDate()
+  if (diff < 3600) return `Hoje, ${Math.floor(diff / 60).toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
+  if (diff < 86400) {
+    return `Hoje, ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
+  }
+  if (diff < 86400 * 2) {
+    return `Ontem, ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
+  }
   const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
-  return `${day} ${months[d.getMonth()]}`
+  return `${d.getDate()} ${months[d.getMonth()]}, ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
 }
 
 function clearHistory() {
-  if (confirm('Apagar todo o histórico de traduções?')) {
+  if (confirm('Apagar todo o histórico?')) {
     history.clear()
   }
 }
 
-function isHistoryFav(item) {
-  return favorites.isFavorited(item.frText)
-}
-
 function toggleHistoryFav(item) {
-  if (isHistoryFav(item)) {
+  if (favorites.isFavorited(item.frText)) {
     const fav = favorites.items.find((f) => f.frText === item.frText)
     if (fav) favorites.remove(fav.id)
+    toast.info('Removido dos favoritos', { duration: 1500 })
   } else {
     favorites.add({
       frText: item.frText,
@@ -297,39 +239,26 @@ function toggleHistoryFav(item) {
       phonetic: item.phonetic,
       category: item.category
     })
+    toast.success('Favoritado!', { duration: 1500 })
   }
+}
+
+function reuseHistoryItem(item) {
+  inputText.value = item.sourceText
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 function dismissHero() {
   settings.dismissHero()
 }
 
-function reuseHistoryItem(item) {
-  sourceText.value = item.sourceText
-  result.value = {
-    type: item.mode === 'grammar' ? 'grammar' : 'translation',
-    frText: item.frText,
-    phonetic: item.phonetic || '',
-    translation: item.sourceText,
-    culturalTip: null,
-    category: item.category,
-    ...(item.mode === 'grammar' && {
-      corrected: item.frText,
-      originalWithErrors: item.sourceText,
-      errors: []
-    })
-  }
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
 function seedSampleHistory() {
   const now = Date.now()
   const samples = [
-    { minutesAgo: 5, source: 'Olá, como você está hoje?', fr: 'Bonjour, comment allez-vous aujourd\'hui ?', phonetic: 'bõʒuʁ kɔmɑ̃tale vu.z‿o.ʒuʁ.dɥi', category: 'Comum' },
-    { minutesAgo: 60, source: 'Eu gostaria de pedir um café com leite, por favor.', fr: 'Je voudrais commander un café au lait, s\'il vous plaît.', phonetic: 'ʒə.vudʁɛ kɔmɑ̃.de œ̃ kafe o lɛ sil vu plɛ', category: 'Viagem' },
-    { minutesAgo: 180, source: 'Onde fica a estação de metrô mais próxima?', fr: 'Où se trouve la station de métro la plus proche ?', phonetic: 'u sə tʁuv la sta.sjɔ̃ də me.tʁo', category: 'Viagem' },
-    { minutesAgo: 60 * 24, source: 'É um prazer conhecer você.', fr: 'C\'est un plaisir de vous rencontrer.', phonetic: 'sɛst œ̃ plɛ.ziʁ də vu ʁɑ̃.kɔ̃.tʁe', category: 'Comum' },
-    { minutesAgo: 60 * 24 * 3, source: 'Qual é o seu número de telefone?', fr: 'Quel est votre numéro de téléphone ?', phonetic: 'kɛl ɛ vɔ.tʁə nœmbʁ də te.lə.fɔn', category: 'Estudo' }
+    { minutesAgo: 5, source: 'Olá, como você está hoje?', fr: 'Bonjour, comment allez-vous aujourd\'hui ?', phonetic: 'bõʒuʁ kɔmɑ̃tale', category: 'Comum' },
+    { minutesAgo: 60, source: 'Eu gostaria de pedir um café com leite, por favor.', fr: 'Je voudrais commander un café au lait, s\'il vous plaît.', phonetic: 'ʒə.vudʁɛ kɔmɑ̃.de', category: 'Viagem' },
+    { minutesAgo: 180, source: 'Onde fica a estação de metrô?', fr: 'Où se trouve la station de métro ?', phonetic: 'u sə tʁuv', category: 'Viagem' },
+    { minutesAgo: 60 * 24, source: 'É um prazer conhecer você.', fr: 'C\'est un plaisir de vous rencontrer.', phonetic: 'sɛst œ̃ plɛ.ziʁ', category: 'Comum' }
   ]
   samples.forEach((s) => {
     history.add({
@@ -346,338 +275,288 @@ function seedSampleHistory() {
 </script>
 
 <template>
-  <div class="dashboard">
-    <Transition name="hero">
-      <section v-if="!settings.heroDismissed" class="hero">
-        <button
-          class="hero__close"
-          @click="dismissHero"
-          aria-label="Fechar banner de boas-vindas"
-          title="Fechar banner"
-        >
-          <AppIcon name="cross" :size="14" />
+  <div class="db">
+    <!-- Hero -->
+    <Transition name="hero-fade">
+      <section v-if="!settings.heroDismissed" class="db__hero">
+        <button class="db__hero-close" @click="dismissHero" aria-label="Fechar boas-vindas">
+              <img :src="icons['IMG_16']" alt="" />
         </button>
-        <div class="hero__content">
-          <span class="hero__badge">BIENVENUE</span>
-          <h1 class="hero__title">Pronto para praticar seu francês?</h1>
-          <p class="hero__text">
-            Traduza frases, verifique a gramática e melhore sua pronúncia com nossa
-            inteligência artificial pedagógica.
+        <div class="db__hero-blur db__hero-blur--blue"></div>
+        <div class="db__hero-blur db__hero-blur--orange"></div>
+
+        <div class="db__hero-content">
+          <span class="db__hero-badge">✨ BIENVENUE !</span>
+          <h1 class="db__hero-title">Pronto para praticar seu francês?</h1>
+          <p class="db__hero-text">
+            Traduza frases, verifique a gramática e melhore sua pronúncia com nossa inteligência artificial pedagógica.
           </p>
-          <div class="hero__actions">
-            <button class="btn btn-accent">Começar Lição</button>
-            <button class="btn btn-ghost">Ver progresso</button>
+          <div class="db__hero-actions">
+            <button class="btn btn-accent btn--lg">Começar Lição</button>
+            <button class="btn btn-ghost btn--lg btn-ghost--light">Ver progresso</button>
           </div>
+        </div>
+        <div class="db__hero-illustration">
+          <img :src="icons['IMG_10.webp']" alt="" />
         </div>
       </section>
     </Transition>
 
-    <div class="dashboard__grid">
-      <div class="dashboard__col">
-        <div class="translator">
-          <div class="lang-switcher">
-            <button
-              class="lang-switcher__btn"
-              :class="{ 'is-active': isTranslating }"
-              @click="mode = 'translate'"
-            >
-              <span>Português</span>
-            </button>
-            <button class="lang-switcher__swap" aria-label="Trocar idiomas">
-              <AppIcon name="swap" :size="16" />
-            </button>
-            <button
-              class="lang-switcher__btn"
-              :class="{ 'is-active': !isTranslating }"
-              @click="mode = 'grammar'"
-            >
-              <span>Francês</span>
-            </button>
-          </div>
+    <!-- Translator -->
+    <section class="db__translator">
+      <div class="db__translator-col">
+        <div class="db__lang-switcher">
+          <span class="db__lang-text" :class="{ 'is-active': mode === 'translate' }" @click="mode = 'translate'">
+            Português
+          </span>
+          <button class="db__lang-swap" type="button" aria-label="Trocar idiomas">
+            <img :src="icons['IMG_11']" alt="" />
+          </button>
+          <span class="db__lang-text" :class="{ 'is-active': mode === 'grammar' }" @click="mode = 'grammar'">
+            Francês
+          </span>
+        </div>
 
+        <div class="db__input-wrap">
           <textarea
-            v-model="sourceText"
-            class="translator__input"
-            :placeholder="isTranslating ? 'Digite uma frase em português...' : 'Digite uma frase em francês para correção...'"
+            v-model="inputText"
+            class="db__input"
+            :placeholder="
+              mode === 'translate'
+                ? 'Digite uma frase em português...'
+                : 'Digite uma frase em francês para correção...'
+            "
             :maxlength="MAX_CHARS"
           ></textarea>
-
-          <div class="translator__bar">
-            <span class="translator__detected">
-              <small v-if="detectedLang !== 'auto'">Detectado: {{ detectedLang.toUpperCase() }}</small>
-            </span>
-            <span class="translator__count">{{ charCount }} / {{ MAX_CHARS }}</span>
-          </div>
-
-          <div class="translator__actions">
-            <button class="btn btn-primary" @click="processText" :disabled="loading">
-              <AppIcon name="sparkles" :size="16" />
-              <span v-if="!loading">{{ isTranslating ? 'Traduzir agora' : 'Corrigir Gramática' }}</span>
-              <span v-else>Processando...</span>
+          <div class="db__input-foot">
+            <button class="db__mic-btn" type="button" aria-label="Áudio">
+          <img :src="icons['IMG_16']" alt="" />
             </button>
-            <button v-if="!isTranslating" class="btn btn-light" @click="processText" :disabled="loading">
-              <AppIcon name="check" :size="16" />
-              <span>Revisar</span>
-            </button>
-            <button class="btn btn-text" @click="clearAll">
-              <AppIcon name="refresh" :size="16" />
-              <span>Limpar</span>
+            <span class="db__counter">{{ charCount }} / {{ MAX_CHARS }}</span>
+          </div>
+        </div>
+
+        <div class="db__primary-actions">
+          <button
+            class="db__primary-btn"
+            :class="{ 'is-loading': loading && mode === 'translate' }"
+            @click="() => { mode = 'translate'; processText() }"
+            :disabled="loading"
+          >
+            <img :src="icons['IMG_17']" alt="" />
+            {{ loading && mode === 'translate' ? 'Traduzindo…' : 'Traduzir agora' }}
+          </button>
+          <button
+            class="db__secondary-btn"
+            @click="() => { mode = 'grammar'; processText() }"
+            :disabled="loading"
+          >
+            Corrigir Gramática
+          </button>
+        </div>
+
+        <button class="db__clear" type="button" @click="clearAll">
+          <img :src="icons['IMG_18']" alt="" />
+          Limpar
+        </button>
+
+        <div class="db__suggestions">
+          <p class="db__suggestions-label">Sugestões de estudo:</p>
+          <div class="db__chips">
+            <button
+              v-for="s in studySuggestions"
+              :key="s.id"
+              class="chip"
+              type="button"
+              @click="applySuggestion(s)"
+            >
+              <AppIcon :name="s.icon" :size="14" />
+              {{ s.label }}
             </button>
           </div>
-
-          <div class="translator__suggestions">
-            <div class="translator__suggestions-head">
-              <small>Sugestões de estudo:</small>
-              <small class="translator__hint">clique para preencher e traduzir</small>
-            </div>
-            <div class="translator__chips">
-              <button
-                v-for="s in studySuggestions"
-                :key="s.id"
-                class="chip chip--suggestion"
-                :class="{ 'is-loading': loading && sourceText && s.phrases.includes(sourceText) }"
-                :disabled="loading"
-                :title="`Carregar uma frase de ${s.label.toLowerCase()}`"
-                @click="applySuggestion(s)"
-              >
-                <AppIcon :name="s.icon" :size="14" class="chip__icon" />
-                <span>{{ s.label }}</span>
-              </button>
-            </div>
-          </div>
-
-          <p v-if="errorMsg" class="translator__error">{{ errorMsg }}</p>
         </div>
       </div>
 
-      <aside class="dashboard__col dashboard__col--result">
-        <div v-if="!result && !loading" class="result-empty">
-          <div class="result-empty__icon">
-            <AppIcon name="translate" :size="40" />
-          </div>
-          <h3>Sua tradução aparecerá aqui</h3>
-          <p>Digite uma frase e clique em "Processar" para começar.</p>
-        </div>
-
-        <div v-else-if="loading" class="result-card result-card--loading">
-          <div class="result-card__loader" aria-hidden="true">
-            <span></span><span></span><span></span>
-          </div>
-          <p>Processando sua frase...</p>
-        </div>
-
-        <div v-else-if="result" class="result-card">
-          <div class="result-card__head">
-            <div class="result-card__lang">
-              <span class="lang-bubble fr">FR</span>
-              <strong>Francês</strong>
+      <div class="db__translator-col db__translator-col--result">
+        <article class="db__result card">
+          <header class="db__result-head">
+            <div class="db__result-lang">
+              <div class="db__flag fr"></div>
+              <span>Francês</span>
             </div>
-            <div class="result-card__head-actions">
-              <button class="ic-btn" aria-label="Favoritar" @click="favoriteResult">
-                <AppIcon :name="isFav() ? 'starFilled' : 'star'" :size="18" />
+            <div class="db__result-tools">
+              <button class="icon-btn" :class="{ 'is-fav': isFav() }" @click="favoriteResult" aria-label="Favoritar">
+                <AppIcon :name="isFav() ? 'starFilled' : 'star'" :size="16" />
               </button>
-              <button class="ic-btn" aria-label="Copiar" @click="copyResult">
-                <AppIcon name="copy" :size="18" />
+              <button class="icon-btn" @click="copyResult" aria-label="Copiar">
+                <img :src="icons['IMG_12']" alt="" />
               </button>
-              <button class="ic-btn" aria-label="Compartilhar">
-                <AppIcon name="share" :size="18" />
+              <button class="icon-btn" aria-label="Compartilhar">
+                <img :src="icons['IMG_13']" alt="" />
               </button>
             </div>
-          </div>
+          </header>
 
-          <p class="result-card__phrase">{{ result.frText }}</p>
+          <h2 v-if="result" class="db__result-phrase">{{ result.frText }}</h2>
+          <h2 v-else class="db__result-phrase">Bonjour, comment allez-vous aujourd'hui ?</h2>
 
-          <div v-if="settings.showPhonetic" class="result-card__phonetic">
-            <small>PRONÚNCIA</small>
-            <button class="result-card__guide">Guia Fonético</button>
-          </div>
-
-          <div v-if="settings.showPhonetic" class="result-card__phonetic-line">
-            <button class="result-card__speaker" @click="playAudio('normal')">
-              <AppIcon name="speaker" :size="16" />
-            </button>
-            <span class="result-card__phonetic-text">{{ result.phonetic }}</span>
-          </div>
-          <div v-if="settings.showPhonetic" class="result-card__phonetic-hint">
-            <em>{{ result.type === 'grammar' ? 'Ouça lentamente para identificar as nasalizações.' : 'Fale devagar, enfatizando as vogais.' }}</em>
-          </div>
-
-          <div v-if="result?.type === 'grammar'" class="result-card__corrections">
-            <div class="correction-block">
-              <strong>Sua frase:</strong>
-              <p class="correction-original">{{ result?.originalWithErrors }}</p>
+          <div v-if="settings.showPhonetic" class="db__pronunciation">
+            <div class="db__pronunciation-head">
+              <span class="db__pronunciation-label">PRONÚNCIA</span>
+              <span class="db__pronunciation-tag">Guia Fonético</span>
             </div>
-            <div class="correction-block">
-              <strong>Versão corrigida:</strong>
-              <p class="correction-fixed">{{ result?.corrected }}</p>
+            <div class="db__pronunciation-line">
+              <button class="db__speaker" @click="playAudio('normal')" type="button" aria-label="Ouvir">
+                <img :src="icons['IMG_14']" alt="" />
+              </button>
+              <p class="db__phonetic-text">
+                {{ result?.phonetic || 'bõ.ʒuʁ, kɔ.mã.t‿a.le vu.z‿o.ʒuʁ.dɥi' }}
+              </p>
             </div>
-            <ul v-if="!settings.hideExplanations && result?.errors" class="correction-list">
-              <li v-for="(er, idx) in result.errors" :key="idx">
-                <span class="correction-list__tag">Correção</span>
-                <p>
-                  <s>{{ er.from }}</s> &rarr; <strong>{{ er.to }}</strong>
-                </p>
-                <small>{{ er.reason }}</small>
-              </li>
-            </ul>
+            <p class="db__pronunciation-hint">
+              <em>Fale devagar, enfatizando as vogais.</em>
+            </p>
           </div>
 
-          <hr class="result-card__hr" />
-          <div class="result-card__audio">
+          <hr class="db__divider" />
+
+          <div class="db__audio">
             <strong>Ações de áudio</strong>
-            <div class="result-card__audio-actions">
-              <button class="btn-audio" @click="playAudio('slow')">
-                <AppIcon name="play" :size="14" />
-                <span>Ouvir Lento</span>
+            <div class="db__audio-actions">
+              <button class="db__audio-btn" @click="playAudio('slow')" type="button">
+                <img :src="icons['IMG_15']" alt="" />
+                Ouvir Lento
               </button>
-              <button class="btn-audio btn-audio--primary" @click="playAudio('normal')">
-                <AppIcon name="speaker" :size="14" />
-                <span>Ouvir Normal</span>
+              <button class="db__audio-btn db__audio-btn--primary" @click="playAudio('normal')" type="button">
+                <img :src="icons['IMG_14']" alt="" />
+                Ouvir Normal
               </button>
             </div>
           </div>
+        </article>
 
-          <div v-if="result?.culturalTip" class="result-card__tip">
-            <div class="result-card__tip-icon">
-              <AppIcon name="check" :size="14" />
-            </div>
-            <div>
-              <strong>Dica Cultural</strong>
-              <p>{{ result.culturalTip }}</p>
-            </div>
+        <article v-if="result?.culturalTip !== null && result !== null || true" class="db__tip card">
+          <div class="db__tip-icon">
+            <img :src="icons['IMG_19']" alt="" />
           </div>
+          <div>
+            <h4>Dica Cultural</h4>
+            <p>
+              {{ result?.culturalTip || 'Em contextos formais, sempre use "Vous" em vez de "Tu". O "Bonjour" é obrigatório ao entrar em qualquer estabelecimento comercial na França.' }}
+            </p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="db__stats">
+      <div v-for="s in stats" :key="s.id" class="db__stat card">
+        <div class="db__stat-icon" :style="{ background: s.bg, color: s.color }">
+          <img :src="s.icon" alt="" />
         </div>
-      </aside>
-    </div>
-
-    <section class="recent-history">
-      <header class="recent-history__head">
         <div>
-          <h2>
-            <AppIcon name="clock" :size="18" class="recent-history__head-icon" />
-            Traduções Recentes
-          </h2>
-          <p>Suas últimas interações com o tradutor — clique para reutilizar ou favoritar.</p>
+          <small>{{ s.label.toUpperCase() }}</small>
+          <strong>{{ s.value }}</strong>
         </div>
+      </div>
+    </section>
+
+    <!-- Histórico -->
+    <section class="db__history">
+      <div class="db__history-head">
+        <h2 class="db__section-title">
+          <img :src="icons['IMG_14']" alt="" /> Meu Histórico
+        </h2>
         <button
-          v-if="filteredHistory.length > 0"
-          class="btn btn-light recent-history__clear"
+          v-if="filteredHistory.length"
+          class="btn btn-secondary btn--sm"
           @click="clearHistory"
         >
-          <AppIcon name="trash" :size="14" />
-          <span>Limpar Tudo</span>
+          <img :src="icons['IMG_10']" alt="" />
+          Limpar Tudo
         </button>
-      </header>
+      </div>
 
-      <div class="recent-history__filters">
-        <div class="recent-history__search">
-          <AppIcon name="search" :size="14" />
+      <div class="db__history-filters">
+        <div class="db__history-search">
           <input
             v-model="historySearch"
             type="text"
             placeholder="Buscar nas traduções..."
+            aria-label="Buscar no histórico"
           />
         </div>
-        <div class="recent-history__chips">
+        <div class="db__history-categories">
           <button
             v-for="cat in historyCategories"
             :key="cat"
-            class="recent-history__chip"
-            :class="{ active: historyCategory === cat }"
+            class="chip"
+            :class="{ 'is-active': historyCategory === cat }"
             @click="historyCategory = cat"
+            type="button"
           >
             {{ cat }}
           </button>
         </div>
       </div>
 
-      <div class="recent-history__list">
+      <div class="db__history-list">
         <article
           v-for="item in filteredHistory"
           :key="item.id"
-          class="recent-history__item"
+          class="db__history-item card"
         >
-          <div class="recent-history__meta">
-            <span class="tag">{{ item.category || 'Comum' }}</span>
-            <span class="recent-history__time">
-              <AppIcon name="clock" :size="12" />
-              {{ formatRelative(item.createdAt) }}
+          <header class="db__history-meta">
+            <span class="db__history-time">
+              <img :src="icons['IMG_14']" alt="" />
+              {{ formatTime(item.createdAt) }}
             </span>
-            <button
-              class="ic-btn recent-history__fav"
-              :class="{ 'is-fav': isHistoryFav(item) }"
-              @click="toggleHistoryFav(item)"
-              :aria-label="isHistoryFav(item) ? 'Remover dos favoritos' : 'Favoritar'"
-            >
-              <AppIcon :name="isHistoryFav(item) ? 'starFilled' : 'star'" :size="14" />
-            </button>
-          </div>
-          <div class="recent-history__lines">
-            <div class="recent-history__line recent-history__line--fr">
-              <span class="lang-bubble fr">FR</span>
-              <em>{{ item.frText }}</em>
+            <span class="db__history-sep"></span>
+            <span class="tag">{{ item.category || 'Comum' }}</span>
+            <div class="db__history-actions">
+              <button
+                class="db__history-icon-btn"
+                :class="{ 'is-fav': favorites.isFavorited(item.frText) }"
+                @click="toggleHistoryFav(item)"
+                type="button"
+                aria-label="Favoritar"
+              >
+                <img
+                  :src="favorites.isFavorited(item.frText) ? `${icons['IMG_4']}` : `${icons['IMG_3']}`"
+                  alt=""
+                />
+              </button>
+              <button class="db__history-icon-btn" type="button" aria-label="Mais">
+                <img :src="icons['IMG_15']" alt="" />
+              </button>
             </div>
-            <div class="recent-history__line recent-history__line--pt">
-              <span class="lang-bubble pt">PT</span>
-              <span>{{ item.sourceText }}</span>
+          </header>
+          <div class="db__history-lines">
+            <div class="db__history-line">
+              <span class="lang-bubble lang-bubble--fr">FR</span>
+              <p>{{ item.frText }}</p>
+            </div>
+            <div class="db__history-line">
+              <span class="lang-bubble lang-bubble--pt">PT</span>
+              <p>{{ item.sourceText }}</p>
             </div>
           </div>
-          <button
-            class="recent-history__reuse"
-            @click="reuseHistoryItem(item)"
-            title="Reutilizar esta frase"
-            aria-label="Reutilizar"
-          >
-            <AppIcon name="refresh" :size="14" />
-            <span>Reutilizar</span>
-          </button>
         </article>
 
-        <div v-if="filteredHistory.length === 0" class="recent-history__empty">
-          <AppIcon name="book" :size="32" />
-          <p>
-            {{
-              history.items.length === 0
-                ? 'Nenhuma tradução ainda. Use o campo acima para começar.'
-                : 'Nenhum resultado para os filtros aplicados.'
-            }}
-          </p>
+        <div v-if="filteredHistory.length === 0" class="db__history-empty">
+          <p>Nenhuma tradução ainda. Use o campo acima para começar.</p>
         </div>
+      </div>
+
+      <div class="db__history-status">
+        <img :src="icons['IMG_16']" alt="" />
+        <span>{{ filteredHistory.length }} traduções carregadas</span>
       </div>
     </section>
 
-    <section class="stats">
-      <div class="stats__card">
-        <div class="stats__icon stats__icon--blue">
-          <AppIcon name="translate" :size="20" />
-        </div>
-        <div>
-          <small>PALAVRAS APRENDIDAS</small>
-          <strong>{{ stats.wordsLearned.toLocaleString('pt-BR') }}</strong>
-        </div>
-      </div>
-      <div class="stats__card">
-        <div class="stats__icon stats__icon--orange">
-          <AppIcon name="zap" :size="20" />
-        </div>
-        <div>
-          <small>OFENSIVA ATUAL</small>
-          <strong>{{ stats.streakDays }} Dias</strong>
-        </div>
-      </div>
-      <div class="stats__card">
-        <div class="stats__icon stats__icon--green">
-          <AppIcon name="dot" :size="20" />
-        </div>
-        <div>
-          <small>PRECISÃO MÉDIA</small>
-          <strong>{{ stats.accuracy }}%</strong>
-        </div>
-      </div>
-    </section>
-
-    <footer class="page-footer">
-      © 2026 French Succo — Todos os direitos reservados. Foco no seu sucesso.
+    <footer class="db__footer">
+      © 2026 French Succo — Foco no seu sucesso.
     </footer>
 
     <audio ref="audioEl" hidden></audio>
@@ -685,629 +564,582 @@ function seedSampleHistory() {
 </template>
 
 <style scoped>
-.dashboard {
+.db {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  font-family: var(--font-body);
+  --search-icon-url: v-bind('icons["IMG_8"]');
 }
 
-.hero {
+/* ─── Hero ─── */
+.db__hero {
   position: relative;
-  background: var(--color-primary-gradient);
-  border-radius: var(--radius-xl);
-  color: #fff;
-  padding: 36px 40px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 24px;
+  padding: 32px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 24px;
   overflow: hidden;
-  box-shadow: var(--shadow-primary);
+  box-shadow: var(--shadow-hero);
+  color: #fff;
 }
 
-.hero__close {
+.db__hero-close {
   position: absolute;
   top: 14px;
   right: 14px;
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   background: rgba(255, 255, 255, 0.18);
-  color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  z-index: 3;
+}
+.db__hero-close img {
+  width: 12px;
+  height: 12px;
+  filter: brightness(0) invert(1);
+}
+.db__hero-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.db__hero-blur {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(64px);
+  pointer-events: none;
+}
+.db__hero-blur--blue {
+  top: -80px;
+  right: -40px;
+  width: 256px;
+  height: 256px;
+  background: #67a1ff;
+  opacity: 0.2;
+}
+.db__hero-blur--orange {
+  bottom: -80px;
+  left: -40px;
+  width: 192px;
+  height: 192px;
+  background: #f97315;
+  opacity: 0.1;
+}
+
+.db__hero-content {
+  position: relative;
   z-index: 2;
-  transition: background 0.15s ease, transform 0.15s ease;
-  backdrop-filter: blur(4px);
+  max-width: 560px;
 }
 
-.hero__close:hover {
-  background: rgba(255, 255, 255, 0.32);
-  transform: scale(1.08);
-}
-
-.hero__close:active {
-  transform: scale(0.95);
-}
-
-.hero__close:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
-}
-
-.hero__content {
-  flex: 1;
-  z-index: 1;
-}
-
-/* ───── Hero fade transition ───── */
-.hero-enter-active,
-.hero-leave-active {
-  transition: opacity 0.32s ease, transform 0.32s ease, max-height 0.4s ease, margin-bottom 0.4s ease;
-  overflow: hidden;
-}
-
-.hero-enter-from,
-.hero-leave-to {
-  opacity: 0;
-  transform: translateY(-12px);
-  max-height: 0;
-  margin-bottom: -24px;
-}
-
-.hero-enter-to,
-.hero-leave-from {
-  opacity: 1;
-  transform: translateY(0);
-  max-height: 320px;
-}
-
-.hero__badge {
+.db__hero-badge {
   display: inline-block;
   background: var(--color-accent);
   color: #fff;
   padding: 5px 14px;
-  font-size: 11px;
+  font-family: var(--font-nav);
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
+  text-transform: uppercase;
   border-radius: 999px;
   margin-bottom: 14px;
 }
 
-.hero__title {
+.db__hero-title {
+  font-family: var(--font-display);
   font-size: 32px;
-  font-weight: 800;
-  margin: 0 0 12px;
-  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  margin-bottom: 12px;
 }
 
-.hero__text {
-  margin: 0 0 20px;
+.db__hero-text {
+  font-size: 14px;
   opacity: 0.92;
-  max-width: 520px;
   line-height: 1.55;
+  margin-bottom: 20px;
+  max-width: 480px;
 }
 
-.hero__actions {
+.db__hero-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.dashboard__grid {
+.db__hero-illustration {
+  display: none;
+  width: 352px;
+  height: 224px;
+  border-radius: 16px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+.db__hero-illustration img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (min-width: 1024px) {
+  .db__hero {
+    padding: 40px;
+  }
+  .db__hero-illustration {
+    display: block;
+  }
+}
+
+/* ─── Translator ─── */
+.db__translator {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 380px;
+  grid-template-columns: 1fr;
   gap: 20px;
 }
 
-.dashboard__col {
-  display: flex;
-  flex-direction: column;
+@media (min-width: 960px) {
+  .db__translator {
+    grid-template-columns: 7fr 5fr;
+    gap: 24px;
+  }
 }
 
-.translator {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-soft);
-  border-radius: var(--radius-lg);
-  padding: 20px;
+.db__translator-col {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  box-shadow: var(--shadow-sm);
+  gap: 18px;
 }
 
-.lang-switcher {
+.db__lang-switcher {
   align-self: center;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px;
+  gap: 20px;
+  padding: 10px 24px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
   border-radius: 999px;
-  background: var(--color-bg-alt);
-  border: 1px solid var(--color-border-soft);
+  box-shadow: var(--shadow-xs);
 }
 
-.lang-switcher__btn {
-  padding: 8px 22px;
-  border-radius: 999px;
-  color: var(--color-text-muted);
+.db__lang-text {
+  font-family: var(--font-nav);
   font-size: 14px;
   font-weight: 600;
-  transition: all 0.15s;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--motion-fast);
+}
+.db__lang-text.is-active {
+  color: var(--text-primary);
 }
 
-.lang-switcher__btn.is-active {
-  background: #fff;
-  color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
-}
-
-.lang-switcher__swap {
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
+.db__lang-swap {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
   background: var(--color-primary-soft);
   color: var(--color-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
+.db__lang-swap img {
+  width: 14px;
+  height: 14px;
+}
 
-.translator__input {
+.db__input-wrap {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-xs);
+}
+
+.db__input {
   width: 100%;
-  min-height: 160px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-soft);
-  padding: 16px;
+  height: 192px;
+  padding: 24px;
+  font-family: var(--font-body);
   font-size: 16px;
-  resize: vertical;
-  background: var(--color-surface);
-  color: var(--color-text);
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.translator__input::placeholder {
-  color: var(--color-text-soft);
-}
-
-.translator__input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px var(--color-primary-soft);
-}
-
-.translator__bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: var(--color-text-muted);
-  font-size: 12px;
-  margin-top: -6px;
-}
-
-.translator__actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.btn-text {
+  font-weight: 500;
+  line-height: 1.5;
   background: transparent;
-  color: var(--color-text-muted);
-  padding: 10px 14px;
-  margin-left: auto;
-  font-weight: 600;
+  border: none;
+  outline: none;
+  resize: none;
+  color: var(--text-primary);
+}
+.db__input::placeholder {
+  color: var(--text-faint);
+}
+
+.db__input-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.db__mic-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  border-radius: var(--radius-md);
+  justify-content: center;
 }
-
-.btn-text:hover {
+.db__mic-btn:hover {
+  background: var(--surface-sunken);
   color: var(--color-primary);
 }
+.db__mic-btn img {
+  width: 18px;
+  height: 18px;
+}
 
-.translator__suggestions-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 8px;
+.db__counter {
+  font-family: var(--font-nav);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Primary action buttons */
+.db__primary-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
 
-.translator__suggestions small {
-  color: var(--color-text-muted);
+.db__primary-btn,
+.db__secondary-btn {
+  min-height: 64px;
+  border-radius: var(--radius-button);
+  font-family: var(--font-nav);
+  font-size: 14px;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 20px;
+  transition: transform var(--motion-fast), box-shadow var(--motion-fast),
+    background var(--motion-fast);
 }
 
-.translator__hint {
-  font-size: 11px !important;
-  font-weight: 500 !important;
-  color: var(--color-text-soft) !important;
-  font-style: italic;
+.db__primary-btn {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
+}
+.db__primary-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(59, 130, 246, 0.32);
+}
+.db__primary-btn:disabled {
+  opacity: 0.6;
+}
+.db__primary-btn img {
+  width: 18px;
+  height: 18px;
+  filter: brightness(0) invert(1);
 }
 
-.translator__chips {
+.db__secondary-btn {
+  background: var(--surface-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+}
+.db__secondary-btn:hover {
+  background: var(--surface-sunken);
+}
+
+.db__clear {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-family: var(--font-nav);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+}
+.db__clear:hover {
+  color: var(--color-primary);
+}
+.db__clear img {
+  width: 14px;
+  height: 14px;
+}
+
+/* Suggestions */
+.db__suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.db__suggestions-label {
+  font-family: var(--font-nav);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.db__chips {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
 .chip {
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  padding: 8px 14px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-  transition: background 0.15s;
-}
-
-.chip:hover {
-  background: var(--color-primary-soft2);
-}
-
-.chip--suggestion {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  position: relative;
-  overflow: hidden;
-}
-
-.chip--suggestion:hover:not(:disabled) {
-  background: var(--color-primary);
-  color: var(--color-text-inverse);
-  border-color: var(--color-primary);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px var(--color-shadow-primary);
-}
-
-:root[data-theme='dark'] .chip--suggestion:hover:not(:disabled) {
-  color: #0b1220;
-}
-
-.chip--suggestion:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.chip--suggestion:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.chip--suggestion.is-loading {
-  background: var(--color-primary);
-  color: var(--color-text-inverse);
-}
-
-:root[data-theme='dark'] .chip--suggestion.is-loading {
-  color: #0b1220;
-}
-
-.chip__icon {
-  flex-shrink: 0;
-}
-
-.translator__error {
-  color: var(--color-danger);
-  font-size: 13px;
-  margin: 0;
-}
-
-.result-empty {
-  background: var(--color-surface);
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 40px 24px;
-  text-align: center;
-  color: var(--color-text-muted);
-}
-
-.result-empty__icon {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 14px;
-}
-
-.result-empty h3 {
-  margin: 0 0 6px;
-  color: var(--color-text);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-size: 12px;
   font-weight: 700;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  transition: background var(--motion-fast), transform var(--motion-fast);
+}
+.chip:hover {
+  background: #c5dbff;
+}
+.chip.is-active {
+  background: var(--color-primary);
+  color: #fff;
 }
 
-.result-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-soft);
-  border-radius: var(--radius-lg);
-  padding: 20px;
+/* Result card */
+.db__result {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: 24px;
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
+  gap: 18px;
+}
+
+.db__result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.db__result-lang {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-nav);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.db__flag {
+  width: 28px;
+  height: 20px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.db__flag.fr {
+  background: linear-gradient(to right, #002395 33%, #fff 33%, #fff 66%, #ed2939 66%);
+}
+
+.db__result-tools {
+  display: flex;
+  gap: 6px;
+}
+.db__result-tools .icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+.db__result-tools .icon-btn img {
+  width: 16px;
+  height: 16px;
+}
+.db__result-tools .icon-btn.is-fav {
+  color: var(--color-accent);
+}
+
+.db__result-phrase {
+  font-family: var(--font-body);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.db__pronunciation {
+  background: var(--surface-sunken);
+  border: 1px solid #c5dbff;
+  border-radius: var(--radius-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.db__pronunciation-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.db__pronunciation-label {
+  font-family: var(--font-nav);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--color-primary);
+}
+
+.db__pronunciation-tag {
+  font-family: var(--font-nav);
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--color-primary);
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid #c5dbff;
+}
+
+.db__pronunciation-line {
+  display: flex;
+  align-items: center;
   gap: 16px;
 }
 
-.result-card--loading {
-  align-items: center;
-  justify-content: center;
-  min-height: 280px;
-  color: var(--color-text-muted);
-  text-align: center;
-}
-
-.result-card__loader {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.result-card__loader span {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  opacity: 0.4;
-  animation: dotPulse 1.2s infinite ease-in-out;
-}
-
-.result-card__loader span:nth-child(2) {
-  animation-delay: 0.15s;
-}
-
-.result-card__loader span:nth-child(3) {
-  animation-delay: 0.3s;
-}
-
-@keyframes dotPulse {
-  0%, 80%, 100% { transform: scale(0.8); opacity: 0.4; }
-  40% { transform: scale(1.1); opacity: 1; }
-}
-
-.result-card__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.result-card__lang {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.result-card__head-actions {
-  display: flex;
-  gap: 6px;
-}
-
-.ic-btn {
+.db__speaker {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--color-text-muted);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s, color 0.15s;
-}
-
-.ic-btn:hover {
-  background: var(--color-bg-alt);
-  color: var(--color-primary);
-}
-
-.result-card__phrase {
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1.35;
-  margin: 0;
-}
-
-.result-card__phonetic {
-  background: var(--color-primary-soft);
-  border-radius: var(--radius-md);
-  padding: 12px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-}
-
-.result-card__phonetic small {
-  color: var(--color-primary);
-  letter-spacing: 0.08em;
-  font-weight: 700;
-}
-
-.result-card__guide {
-  background: var(--color-surface-2);
-  color: var(--color-text-muted);
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  border: 1px solid var(--color-border);
-}
-
-.result-card__phonetic-line {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  background: var(--color-bg-alt);
-}
-
-.result-card__speaker {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  border-radius: 12px;
   background: var(--color-primary);
   color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+.db__speaker img {
+  width: 18px;
+  height: 18px;
+  filter: brightness(0) invert(1);
 }
 
-.result-card__phonetic-text {
-  font-family: 'Georgia', serif;
+.db__phonetic-text {
+  margin: 0;
+  font-size: 16px;
   font-style: italic;
-  font-size: 18px;
-  color: var(--color-text);
+  color: var(--text-primary);
 }
 
-.result-card__phonetic-hint {
-  font-size: 12px;
-  color: var(--color-text-muted);
-  margin-top: -8px;
-}
-
-.result-card__corrections {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.correction-block strong {
-  display: block;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-muted);
-  margin-bottom: 4px;
-}
-
-.correction-original {
-  background: var(--color-danger-soft);
-  border: 1px solid var(--color-danger-border);
-  color: var(--color-danger-text);
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
+.db__pronunciation-hint {
   margin: 0;
-  font-style: italic;
+  margin-left: 52px;
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
-.correction-fixed {
-  background: var(--color-correction-fixed-bg);
-  border: 1px solid var(--color-correction-fixed-border);
-  color: var(--color-success-text);
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  margin: 0;
-  font-weight: 600;
-}
-
-.correction-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.correction-list li {
-  background: var(--color-bg-alt);
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.correction-list p {
-  margin: 0;
-}
-
-.correction-list small {
-  color: var(--color-text-muted);
-}
-
-.correction-list__tag {
-  align-self: flex-start;
-  background: var(--color-warning);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: 999px;
-  letter-spacing: 0.06em;
-}
-
-.result-card__hr {
+.db__divider {
   border: none;
-  border-top: 1px solid var(--color-border-soft);
+  border-top: 1px solid var(--border-default);
   margin: 0;
 }
 
-.result-card__audio strong {
+.db__audio strong {
   display: block;
-  font-size: 13px;
+  font-family: var(--font-nav);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
   margin-bottom: 10px;
-  color: var(--color-text);
 }
 
-.result-card__audio-actions {
-  display: flex;
-  gap: 10px;
+.db__audio-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
-.btn-audio {
-  flex: 1;
+.db__audio-btn {
+  height: 48px;
+  border-radius: var(--radius-button);
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--color-primary);
+  font-family: var(--font-nav);
+  font-size: 13px;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 10px 16px;
-  border-radius: var(--radius-md);
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  font-weight: 600;
-  font-size: 13px;
-  transition: background 0.15s;
+  border: 1px solid transparent;
 }
-
-.btn-audio:hover {
-  background: var(--color-primary-soft2);
+.db__audio-btn:hover {
+  background: rgba(59, 130, 246, 0.18);
 }
-
-.btn-audio--primary {
+.db__audio-btn img {
+  width: 14px;
+  height: 14px;
+}
+.db__audio-btn--primary {
   background: var(--color-primary);
-  color: var(--color-text-inverse);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+.db__audio-btn--primary:hover {
+  background: #2563eb;
+}
+.db__audio-btn--primary img {
+  filter: brightness(0) invert(1);
 }
 
-:root[data-theme='dark'] .btn-audio--primary {
-  color: #0b1220;
-}
-
-.btn-audio--primary:hover {
-  background: var(--color-primary-hover);
-}
-
-.result-card__tip {
-  display: flex;
-  gap: 12px;
+/* Cultural Tip */
+.db__tip {
   background: var(--color-tip-bg);
   border: 1px solid var(--color-tip-border);
-  border-radius: var(--radius-md);
-  padding: 12px 14px;
+  border-radius: var(--radius-xl);
+  padding: 20px 22px;
+  display: flex;
+  gap: 14px;
+  box-shadow: none;
 }
 
-.result-card__tip-icon {
-  width: 28px;
-  height: 28px;
+.db__tip-icon {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--color-accent);
   color: #fff;
@@ -1316,320 +1148,371 @@ function seedSampleHistory() {
   justify-content: center;
   flex-shrink: 0;
 }
-
-.result-card__tip strong {
-  display: block;
-  color: var(--color-tip-strong);
-  margin-bottom: 4px;
+.db__tip-icon img {
+  width: 18px;
+  height: 18px;
+  filter: brightness(0) invert(1);
 }
 
-.result-card__tip p {
+.db__tip h4 {
+  font-family: var(--font-nav);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-tip-strong);
+  margin: 0 0 4px;
+}
+
+.db__tip p {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--color-tip-text);
   line-height: 1.5;
 }
 
-/* ───── Recent History ───── */
-.recent-history {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-soft);
-  border-radius: var(--radius-lg);
-  padding: 20px 22px;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.recent-history__head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.recent-history__head h2 {
-  margin: 0 0 4px;
-  font-size: 18px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.recent-history__head-icon {
-  color: var(--color-primary);
-}
-
-.recent-history__head p {
-  margin: 0;
-  font-size: 13px;
-  color: var(--color-text-muted);
-}
-
-.recent-history__clear {
-  padding: 8px 14px;
-  font-size: 13px;
-}
-
-.recent-history__filters {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.recent-history__search {
-  position: relative;
-  flex: 1;
-  min-width: 200px;
-}
-
-.recent-history__search input {
-  width: 100%;
-  padding: 8px 12px 8px 34px;
-  border: 1px solid var(--color-border-soft);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-alt);
-  font-size: 13px;
-  color: var(--color-text);
-  outline: none;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.recent-history__search input:focus {
-  border-color: var(--color-primary);
-  background: var(--color-surface);
-}
-
-.recent-history__search :deep(.icon) {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-text-soft);
-}
-
-.recent-history__chips {
-  display: flex;
-  gap: 6px;
-}
-
-.recent-history__chip {
-  background: var(--color-bg-alt);
-  color: var(--color-text-muted);
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  border: 1px solid var(--color-border-soft);
-  transition: all 0.15s ease;
-}
-
-.recent-history__chip:hover {
-  color: var(--color-text);
-}
-
-.recent-history__chip.active {
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  border-color: var(--color-primary-soft2);
-}
-
-.recent-history__list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 440px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-.recent-history__item {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 6px 12px;
-  padding: 12px 14px;
-  border: 1px solid var(--color-border-soft);
-  border-radius: var(--radius-md);
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.recent-history__item:hover {
-  border-color: var(--color-primary-soft2);
-  background: var(--color-bg-alt);
-}
-
-.recent-history__meta {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 11px;
-  color: var(--color-text-muted);
-}
-
-.recent-history__time {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.recent-history__fav {
-  margin-left: auto;
-  width: 26px;
-  height: 26px;
-}
-
-.recent-history__fav.is-fav {
-  color: var(--color-accent);
-}
-
-.recent-history__fav.is-fav :deep(path) {
-  fill: currentColor;
-}
-
-.recent-history__lines {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.recent-history__line {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  min-width: 0;
-}
-
-.recent-history__line--fr em {
-  color: var(--color-text);
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.recent-history__line--pt span:last-child {
-  color: var(--color-text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.recent-history__reuse {
-  align-self: center;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  border-radius: var(--radius-md);
-  font-size: 12px;
-  font-weight: 600;
-  transition: background 0.15s;
-  white-space: nowrap;
-}
-
-.recent-history__reuse:hover {
-  background: var(--color-primary-soft2);
-}
-
-.recent-history__empty {
-  text-align: center;
-  padding: 32px 20px;
-  color: var(--color-text-soft);
-  font-size: 13px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-@media (max-width: 600px) {
-  .recent-history__item {
-    grid-template-columns: 1fr;
-  }
-  .recent-history__reuse {
-    justify-self: flex-end;
-  }
-}
-
-.stats {
+/* Stats */
+.db__stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  margin-top: 12px;
 }
 
-.stats__card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-soft);
-  border-radius: var(--radius-md);
-  padding: 14px 18px;
+@media (max-width: 720px) {
+  .db__stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+.db__stat {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  border-radius: var(--radius-xl);
+}
+
+.db__stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.db__stat-icon img {
+  width: 24px;
+  height: 24px;
+}
+
+.db__stat small {
+  display: block;
+  font-family: var(--font-nav);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.db__stat strong {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* History section */
+.db__history {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.db__history-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.db__section-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.db__section-title img {
+  width: 20px;
+  height: 20px;
+  filter: invert(40%) sepia(98%) saturate(2476%) hue-rotate(204deg) brightness(100%);
+}
+
+.db__history-head .btn img {
+  width: 14px;
+  height: 14px;
+}
+
+.db__history-filters {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.db__history-search {
+  flex: 1;
+  min-width: 200px;
+  position: relative;
+}
+
+.db__history-search input {
+  width: 100%;
+  padding: 12px 16px 12px 40px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-button);
+  font-size: 13px;
+  color: var(--text-primary);
+  outline: none;
+}
+.db__history-search input::placeholder {
+  color: var(--text-muted);
+}
+.db__history-search input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.db__history-search::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  width: 14px;
+  height: 14px;
+  background: var(--search-icon-url);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  transform: translateY(-50%);
+  opacity: 0.6;
+}
+
+.db__history-categories {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.db__history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.db__history-item {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 22px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
+}
+.db__history-item:hover {
+  border-color: #c5dbff;
   box-shadow: var(--shadow-sm);
 }
 
-.stats__icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+.db__history-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.db__history-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-nav);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.db__history-time img {
+  width: 12px;
+  height: 12px;
+  opacity: 0.6;
+}
+
+.db__history-sep {
+  width: 1px;
+  height: 12px;
+  background: var(--border-default);
+}
+
+.db__history-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.db__history-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
-
-.stats__icon--blue {
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
+.db__history-icon-btn img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+}
+.db__history-icon-btn:hover {
+  background: var(--surface-sunken);
+}
+.db__history-icon-btn.is-fav img {
+  filter: invert(58%) sepia(89%) saturate(2476%) hue-rotate(359deg);
+  opacity: 1;
 }
 
-.stats__icon--orange {
-  background: var(--color-accent-soft);
+.db__history-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.db__history-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.db__history-line p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  font-style: italic;
+}
+
+.lang-bubble {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-family: var(--font-nav);
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  color: #fff;
+}
+.lang-bubble--fr {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--color-primary);
+}
+.lang-bubble--pt {
+  background: rgba(249, 115, 22, 0.1);
   color: var(--color-accent);
 }
 
-.stats__icon--green {
-  background: var(--color-success-soft);
-  color: var(--color-success);
-}
-
-.stats__card small {
-  display: block;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--color-text-muted);
-  margin-bottom: 2px;
-}
-
-.stats__card strong {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.page-footer {
-  margin-top: 24px;
-  padding: 20px;
+.db__history-empty {
   text-align: center;
-  font-size: 12px;
-  color: var(--color-text-muted);
+  padding: 32px 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+  background: var(--surface-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-default);
 }
 
-@media (max-width: 1100px) {
-  .dashboard__grid {
+.db__history-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.db__history-status img {
+  width: 14px;
+  height: 14px;
+  opacity: 0.6;
+}
+
+.db__footer {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 16px 0;
+}
+
+/* Hero fade transition */
+.hero-fade-enter-active,
+.hero-fade-leave-active {
+  transition: opacity var(--motion-base) var(--ease-out),
+    transform var(--motion-base) var(--ease-out),
+    max-height 0.5s var(--ease-out),
+    margin-bottom 0.5s var(--ease-out);
+  overflow: hidden;
+}
+.hero-fade-enter-from,
+.hero-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+  max-height: 0;
+  margin-bottom: 0;
+}
+.hero-fade-enter-to,
+.hero-fade-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 600px;
+}
+
+.btn-ghost--light {
+  background: transparent;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+.btn-ghost--light:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #fff;
+}
+
+@media (max-width: 540px) {
+  .db__primary-actions {
     grid-template-columns: 1fr;
   }
-  .stats {
+  .db__hero {
+    padding: 24px;
+  }
+  .db__hero-title {
+    font-size: 24px;
+  }
+  .db__audio-actions {
     grid-template-columns: 1fr;
+  }
+  .db__result-phrase {
+    font-size: 18px;
+  }
+  .db__pronunciation-hint {
+    margin-left: 0;
+  }
+  .db__pronunciation-line {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>

@@ -1,16 +1,23 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import AppIcon from '@/components/AppIcon.vue'
 import { useFavoritesStore } from '@/stores/library'
+import { useToastStore } from '@/stores/toast'
+import icons from '@/assets/icons'
 
 const favorites = useFavoritesStore()
+const toast = useToastStore()
 
 const search = ref('')
 const categoryFilter = ref('Todas')
-const dateFilter = ref('Mais recentes')
-const view = ref('list')
 
-const categories = ['Todas', 'Expressões', 'Viagem', 'Restaurante', 'Saudações', 'Comunicação']
+const categories = [
+  'Todas',
+  'Expressões',
+  'Viagem',
+  'Restaurante',
+  'Saudações',
+  'Comunicação'
+]
 
 onMounted(() => {
   favorites.fetchAll()
@@ -19,38 +26,19 @@ onMounted(() => {
 
 function seedSamples() {
   const samples = [
-    {
-      frText: 'C\'est la vie',
-      ptText: 'É a vida',
-      phonetic: 'sɛ la vi',
-      category: 'Expressões'
-    },
-    {
-      frText: 'Où se trouve la boulangerie?',
-      ptText: 'Onde fica a padaria?',
-      phonetic: 'u sə tʁuv la bu.lɑ̃.ʒə.ʁi',
-      category: 'Viagem'
-    },
-    {
-      frText: 'Je voudrais un café, s\'il vous plaît',
-      ptText: 'Eu gostaria de um café, por favor',
-      phonetic: 'ʒə vu.dʁɛ zœ̃ kafe sil vu plɛ',
-      category: 'Restaurante'
-    },
-    {
-      frText: 'Enchanté de vous rencontrer',
-      ptText: 'Prazer em conhecê-lo',
-      phonetic: 'ɑ̃.ʃɑ̃.te də vu ʁɑ̃.kɔ̃.tʁe',
-      category: 'Saudações'
-    },
-    {
-      frText: 'Parlez-vous anglais?',
-      ptText: 'Você fala inglês?',
-      phonetic: 'paʁ.le vu zɑ̃.glɛ',
-      category: 'Comunicação'
-    }
+    { original: "C'est la vie", translation: 'É a vida', category: 'Expressões', checked: true },
+    { original: 'Où se trouve la boulangerie?', translation: 'Onde fica a padaria?', category: 'Viagem', checked: false },
+    { original: "Je voudrais un café, s'il vous plaît", translation: 'Eu gostaria de um café, por favor', category: 'Restaurante', checked: true },
+    { original: 'Enchanté de vous rencontrer', translation: 'Prazer em conhecê-lo', category: 'Saudações', checked: false },
+    { original: 'Parlez-vous anglais?', translation: 'Você fala inglês?', category: 'Comunicação', checked: false }
   ]
-  samples.forEach((s) => favorites.add(s))
+  samples.forEach((s) =>
+    favorites.add({
+      frText: s.original,
+      ptText: s.translation,
+      category: s.category
+    })
+  )
 }
 
 const filtered = computed(() => {
@@ -69,129 +57,129 @@ const filtered = computed(() => {
   return list
 })
 
-function toggleFavorite(item) {
+const totalCount = computed(() => favorites.items.length)
+
+function toggleChecked(item) {
   favorites.remove(item.id)
+  toast.info('Removido dos favoritos', { duration: 1500 })
+}
+
+function playAudio(text) {
+  if (!('speechSynthesis' in window)) return
+  const u = new SpeechSynthesisUtterance(text)
+  u.lang = 'fr-FR'
+  speechSynthesis.cancel()
+  speechSynthesis.speak(u)
 }
 </script>
 
 <template>
-  <div class="fav-page">
-    <div class="fav-page__head">
+  <div class="fp">
+    <header class="fp__head">
       <div>
-        <h1>
-          <AppIcon name="starFilled" :size="22" class="fav-star" />
-          Favoritos
-        </h1>
-        <p>Suas frases e expressões salvas para consulta rápida e prática.</p>
+        <div class="fp__title-row">
+          <span class="fp__star">
+            <img :src="icons['IMG_4']" alt="" />
+          </span>
+          <h1 class="fp__title">Favoritos</h1>
+        </div>
+        <p class="fp__sub">Suas frases e expressões salvas para consulta rápida e prática.</p>
       </div>
-      <div class="fav-page__head-actions">
-        <span class="fav-page__count">{{ favorites.items.length }} Frases Salvas</span>
-        <button class="btn btn-light">
-          <AppIcon name="list" :size="16" />
-          <span>Listas</span>
+      <div class="fp__head-actions">
+        <div class="fp__pill">{{ totalCount }} Frases Salvas</div>
+        <button class="fp__btn-list">
+          <img :src="icons['IMG_10']" alt="" />
+          Listas
         </button>
       </div>
+    </header>
+
+    <div class="fp__filters">
+      <div class="fp__search">
+        <img :src="icons['IMG_8']" alt="" class="fp__search-icon" />
+        <input v-model="search" type="text" placeholder="Pesquisar em seus favoritos..." aria-label="Buscar" />
+      </div>
+      <button class="fp__filter-btn" type="button">
+        <img :src="icons['IMG_11']" alt="" />
+        Categoria
+      </button>
+      <button class="fp__filter-btn" type="button">Data</button>
     </div>
 
-    <div class="fav-page__filters">
-      <div class="fav-page__search">
-        <AppIcon name="search" :size="16" class="search-icon" />
-        <input v-model="search" type="text" placeholder="Pesquisar em seus favoritos..." />
+    <div class="fp__table-head">
+      <span>FRASE / TRADUÇÃO</span>
+      <span>AÇÕES</span>
+    </div>
+
+    <div class="fp__list">
+      <div v-for="fav in filtered" :key="fav.id" class="fp__item">
+        <button
+          class="fp__check"
+          :class="{ 'is-checked': true }"
+          type="button"
+          @click="toggleChecked(fav)"
+          aria-label="Remover dos favoritos"
+        >
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="5 12 10 17 19 7" />
+          </svg>
+        </button>
+        <div class="fp__item-body">
+          <div class="fp__item-head">
+            <strong class="fp__item-fr">{{ fav.frText }}</strong>
+            <span class="tag fp__item-tag">{{ fav.category }}</span>
+          </div>
+          <p class="fp__item-pt">{{ fav.ptText }}</p>
+        </div>
+        <div class="fp__item-tools">
+          <button class="icon-btn" @click="playAudio(fav.frText)" aria-label="Ouvir">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19" />
+              <path d="M19 5a5 5 0 0 1 0 14" />
+            </svg>
+          </button>
+          <button class="icon-btn" aria-label="Mais opções">
+            <img :src="icons['IMG_15']" alt="" />
+          </button>
+        </div>
       </div>
-      <div class="fav-page__filters-right">
-        <div class="fav-page__select">
-          <AppIcon name="filter" :size="16" />
-          <select v-model="categoryFilter">
-            <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
-          </select>
-        </div>
-        <div class="fav-page__select">
-          <select v-model="dateFilter">
-            <option>Mais recentes</option>
-            <option>Mais antigos</option>
-            <option>A-Z</option>
-          </select>
-        </div>
+
+      <div v-if="filtered.length === 0" class="fp__empty">
+        <p>Nenhuma frase favoritada ainda.</p>
       </div>
     </div>
 
-    <table class="fav-table">
-      <thead>
-        <tr>
-          <th></th>
-          <th>FRASE / TRADUÇÃO</th>
-          <th></th>
-          <th>AÇÕES</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in filtered" :key="item.id">
-          <td class="fav-table__check-cell">
-            <button
-              class="fav-check"
-              :class="{ 'is-checked': true }"
-              @click="toggleFavorite(item)"
-              aria-label="Remover dos favoritos"
-            >
-              <AppIcon name="check" :size="14" />
-            </button>
-          </td>
-          <td>
-            <strong class="fav-table__fr">{{ item.frText }}</strong>
-            <span class="tag" style="margin-left: 8px">{{ item.category }}</span>
-            <p class="fav-table__pt">{{ item.ptText }}</p>
-          </td>
-          <td></td>
-          <td class="fav-table__actions">
-            <button class="ic-btn" aria-label="Ouvir">
-              <AppIcon name="volume" :size="16" />
-            </button>
-            <button class="ic-btn" aria-label="Copiar">
-              <AppIcon name="copy" :size="16" />
-            </button>
-          </td>
-        </tr>
-
-        <tr v-if="filtered.length === 0">
-          <td colspan="4">
-            <div class="fav-empty">
-              <AppIcon name="star" :size="36" />
-              <p>Nenhuma frase favoritada ainda.</p>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <section class="practice-banner">
-      <div class="practice-banner__icon">
-        <AppIcon name="translate" :size="32" />
+    <section class="fp__banner">
+      <div class="fp__banner-icon">
+        <img :src="icons['IMG_1']" alt="" />
       </div>
-      <div class="practice-banner__body">
-        <h3>Pratique seus favoritos</h3>
-        <p>
-          Queremos ajudar você a memorizar essas frases. Use o modo de prática
-          para ouvir a pronúncia nativa e repetir.
-        </p>
+      <div class="fp__banner-body">
+        <h2>Pratique seus favoritos</h2>
+        <p>Use o modo de prática para ouvir a pronúncia nativa e repetir.</p>
       </div>
-      <button class="btn btn-light">Começar Prática</button>
+      <button class="fp__banner-cta" type="button">Começar Prática</button>
     </section>
 
-    <footer class="page-footer">
-      © 2026 French Succo — Todos os direitos reservados. &nbsp;&nbsp;
-      Termos &nbsp;·&nbsp; Privacidade &nbsp;·&nbsp; Suporte
+    <footer class="fp__footer">
+      <p>© 2026 French Succo — Todos os direitos reservados.</p>
+      <div class="fp__footer-links">
+        <a href="#">Termos</a>
+        <a href="#">Privacidade</a>
+        <a href="#">Suporte</a>
+      </div>
     </footer>
   </div>
 </template>
 
 <style scoped>
-.fav-page {
+.fp {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 24px;
+  font-family: var(--font-body);
 }
 
-.fav-page__head {
+.fp__head {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -199,266 +187,359 @@ function toggleFavorite(item) {
   flex-wrap: wrap;
 }
 
-.fav-page__head h1 {
-  font-size: 32px;
-  font-weight: 800;
-  margin: 0 0 6px;
+.fp__title-row {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.fav-star {
-  color: var(--color-text);
+.fp__star {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--color-accent-soft, rgba(249, 115, 22, 0.12));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.fp__star img {
+  width: 22px;
+  height: 22px;
+  filter: invert(58%) sepia(89%) saturate(2476%) hue-rotate(359deg);
 }
 
-.fav-star :deep(path) {
-  fill: none;
-  stroke: currentColor;
+.fp__title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  line-height: 1;
 }
 
-.fav-page__head p {
-  margin: 0;
-  color: var(--color-text-muted);
+.fp__sub {
+  margin: 8px 0 0;
   font-size: 14px;
+  color: var(--text-muted);
 }
 
-.fav-page__head-actions {
+.fp__head-actions {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
-.fav-page__count {
-  font-size: 14px;
-  font-weight: 600;
-  padding: 8px 14px;
-  background: var(--color-bg-alt);
+.fp__pill {
+  padding: 8px 16px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
   border-radius: 999px;
-  color: var(--color-text-muted);
+  font-family: var(--font-nav);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
-.fav-page__filters {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 16px;
+.fp__btn-list {
+  display: inline-flex;
   align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  font-family: var(--font-nav);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.fp__btn-list img {
+  width: 14px;
+  height: 14px;
+}
+.fp__btn-list:hover {
+  background: var(--surface-card);
+  color: var(--color-primary);
 }
 
-.fav-page__search {
+.fp__filters {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .fp__filters {
+    grid-template-columns: 1fr auto auto;
+  }
+}
+
+.fp__search {
   position: relative;
 }
 
-.fav-page__search input {
+.fp__search-icon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  width: 14px;
+  height: 14px;
+  transform: translateY(-50%);
+  opacity: 0.6;
+}
+
+.fp__search input {
   width: 100%;
   padding: 12px 16px 12px 40px;
-  border: 1px solid var(--color-border-soft);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-alt);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
   font-size: 14px;
+  color: var(--text-primary);
+}
+.fp__search input::placeholder {
+  color: var(--text-muted);
+}
+.fp__search input:focus {
   outline: none;
-}
-
-.fav-page__search input:focus {
   border-color: var(--color-primary);
-  background: var(--color-surface);
 }
 
-.search-icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-text-soft);
+.fp__filter-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 22px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  font-family: var(--font-nav);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.fp__filter-btn img {
+  width: 14px;
+  height: 14px;
+}
+.fp__filter-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
-.fav-page__filters-right {
+.fp__table-head {
+  display: none;
+  justify-content: space-between;
+  padding: 0 8px;
+  margin-bottom: 8px;
+}
+.fp__table-head span {
+  font-family: var(--font-nav);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+@media (min-width: 768px) {
+  .fp__table-head {
+    display: flex;
+  }
+}
+
+.fp__list {
   display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
-.fav-page__select {
+.fp__item {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 14px;
-  border: 1px solid var(--color-border-soft);
-  border-radius: var(--radius-md);
-  color: var(--color-text-muted);
-  font-size: 14px;
-  background: var(--color-bg-alt);
-}
-
-.fav-page__select select {
-  border: none;
-  background: transparent;
-  outline: none;
-  color: var(--color-text);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.fav-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  border: 1px solid var(--color-border-soft);
-}
-
-.fav-table thead {
-  background: var(--color-bg-alt);
-}
-
-.fav-table th {
-  text-align: left;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  padding: 12px 16px;
-  font-weight: 700;
-}
-
-.fav-table td {
+  align-items: flex-start;
+  gap: 14px;
   padding: 16px;
-  border-top: 1px solid var(--color-border-soft);
-  vertical-align: middle;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  transition: border-color var(--motion-fast), box-shadow var(--motion-fast),
+    transform var(--motion-fast);
+}
+.fp__item:hover {
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: var(--shadow-sm);
 }
 
-.fav-table__check-cell {
-  width: 60px;
-}
-
-.fav-check {
+.fp__check {
   width: 22px;
   height: 22px;
   border-radius: 50%;
   border: 1.5px solid var(--color-primary);
+  background: transparent;
+  color: var(--color-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-primary);
-  background: transparent;
-  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+  margin-top: 4px;
 }
-
-.fav-check.is-checked {
+.fp__check.is-checked {
   background: var(--color-primary);
   color: #fff;
   border-color: var(--color-primary);
 }
 
-.fav-check:hover {
-  background: var(--color-primary-soft);
+.fp__item-body {
+  flex: 1;
+  min-width: 0;
 }
 
-.fav-check.is-checked:hover {
-  background: var(--color-primary-hover);
+.fp__item-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.fav-table__fr {
+.fp__item-fr {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+  word-break: break-word;
 }
 
-.fav-table__pt {
-  margin: 6px 0 0;
+.fp__item-tag {
+  flex-shrink: 0;
+}
+
+.fp__item-pt {
+  margin: 4px 0 0;
+  font-size: 12px;
   font-style: italic;
-  color: var(--color-text-muted);
-  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
 }
 
-.fav-table__actions {
-  width: 120px;
-  text-align: right;
+.fp__item-tools {
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity var(--motion-fast);
+}
+@media (hover: hover) {
+  .fp__item:hover .fp__item-tools {
+    opacity: 1;
+  }
+}
+.fp__item-tools .icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+.fp__item-tools img {
+  width: 14px;
+  height: 14px;
 }
 
-.fav-table__actions .ic-btn + .ic-btn {
-  margin-left: 4px;
-}
-
-.fav-empty {
+.fp__empty {
   text-align: center;
-  padding: 40px 20px;
-  color: var(--color-text-muted);
+  padding: 40px 16px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.fp__banner {
+  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.practice-banner {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
   gap: 18px;
   align-items: center;
-  background: var(--color-primary-gradient-deep);
+  padding: 32px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #3b82f6 0%, #0047ad 100%);
   color: #fff;
-  border-radius: var(--radius-lg);
-  padding: 22px 26px;
-  margin-top: 8px;
+  text-align: center;
 }
 
-.practice-banner__icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
+@media (min-width: 768px) {
+  .fp__banner {
+    flex-direction: row;
+    text-align: left;
+    padding: 28px 32px;
+  }
+}
+
+.fp__banner-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
   background: rgba(255, 255, 255, 0.18);
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(8px);
+  flex-shrink: 0;
+}
+.fp__banner-icon img {
+  width: 48px;
+  height: 48px;
+  filter: brightness(0) invert(1);
+  opacity: 0.85;
 }
 
-.practice-banner__body h3 {
-  margin: 0 0 4px;
-  font-size: 18px;
-  font-weight: 700;
+.fp__banner-body {
+  flex: 1;
 }
 
-.practice-banner__body p {
+.fp__banner h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0 0 6px;
+}
+.fp__banner p {
   margin: 0;
-  font-size: 13px;
-  opacity: 0.92;
+  font-size: 14px;
+  opacity: 0.85;
   line-height: 1.5;
 }
 
-.practice-banner .btn-light {
+.fp__banner-cta {
+  padding: 14px 32px;
   background: #fff;
   color: var(--color-primary);
-  border: none;
+  border-radius: 14px;
+  font-family: var(--font-nav);
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.fp__banner-cta:hover {
+  background: #f8fafc;
 }
 
-:root[data-theme='dark'] .practice-banner .btn-light {
-  background: var(--color-surface);
+.fp__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-default);
 }
 
-.page-footer {
-  margin-top: 8px;
-  padding: 16px;
-  text-align: center;
-  font-size: 12px;
-  color: var(--color-text-muted);
+.fp__footer-links {
+  display: flex;
+  gap: 16px;
 }
-
-@media (max-width: 800px) {
-  .fav-page__filters {
-    grid-template-columns: 1fr;
-  }
-  .practice-banner {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-  .fav-table thead {
-    display: none;
-  }
-  .fav-table td {
-    display: block;
-    padding: 12px 16px;
-  }
-  .fav-table__actions {
-    text-align: left;
-  }
+.fp__footer-links a:hover {
+  color: var(--color-primary);
 }
 </style>

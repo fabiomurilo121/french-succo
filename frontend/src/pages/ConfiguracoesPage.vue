@@ -1,42 +1,21 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
-import AppIcon from '@/components/AppIcon.vue'
+import { ref, watch, onMounted } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
+import icons from '@/assets/icons'
 
 const settings = useSettingsStore()
+
+const reminderTimes = ['08:00', '12:00', '14:00', '18:00', '20:00', '21:00']
+const regions = ['França (Padrão)', 'Québec', 'Bélgica']
+
+const hasChanges = ref(false)
+const original = ref(null)
 
 onMounted(() => {
   settings.load()
   snapshot()
   setTimeout(() => (hasChanges.value = false), 0)
 })
-
-watch(
-  () => settings.$state,
-  () => {
-    if (!original.value) return
-    hasChanges.value = JSON.stringify(settings.$state) !== JSON.stringify(original.value)
-  },
-  { deep: true }
-)
-
-const reminderTimes = [
-  '08:00', '12:00', '14:00', '18:00', '20:00', '21:00'
-]
-
-const voices = [
-  { value: 'female', label: 'Feminina (Natural)' },
-  { value: 'male', label: 'Masculina (Natural)' }
-]
-
-const regionOptions = [
-  { value: 'fr', label: 'França (Padrão)' },
-  { value: 'qc', label: 'Québec' },
-  { value: 'be', label: 'Bélgica' }
-]
-
-const hasChanges = ref(false)
-const original = ref(null)
 
 function snapshot() {
   original.value = JSON.parse(JSON.stringify(settings.$state))
@@ -53,6 +32,8 @@ watch(
 
 function restoreDefaults() {
   settings.restoreDefaults()
+  snapshot()
+  hasChanges.value = false
 }
 
 function save() {
@@ -60,34 +41,36 @@ function save() {
   hasChanges.value = false
 }
 
-const speedMarkers = ['0.5x', '1.0x', '2.0x']
-
-function setSpeed(marker) {
-  const val = parseFloat(marker)
-  if (!Number.isNaN(val)) settings.speed = val
+function setSpeed(value) {
+  settings.speed = parseFloat(value)
 }
 </script>
 
 <template>
-  <div class="settings-page">
-    <section class="settings-hero">
-      <div class="settings-hero__content">
-        <span class="settings-hero__badge">Preferências do App</span>
-        <h1>Configurações de Aprendizado</h1>
-        <p>
-          Personalize sua experiência de estudo. Ajuste a voz, velocidade e
-          sotaque para tornar seu aprendizado de francês mais natural e eficiente.
+  <div class="cs">
+    <!-- Hero -->
+    <section class="cs__hero">
+      <div class="cs__hero-content">
+        <span class="cs__hero-badge">Preferências do App</span>
+        <h1 class="cs__hero-title">Configurações de Aprendizado</h1>
+        <p class="cs__hero-text">
+          Personalize sua experiência de estudo. Ajuste a voz, velocidade e sotaque para tornar seu aprendizado de francês mais natural e eficiente.
         </p>
       </div>
-      <div class="settings-hero__art" aria-hidden="true">
-        <div class="settings-hero__art-circle"></div>
+      <div class="cs__hero-art">
+        <img :src="icons['IMG_10.webp']" alt="" />
       </div>
     </section>
 
-    <section class="settings-section">
-      <header class="settings-section__head">
-        <div class="settings-section__icon settings-section__icon--blue">
-          <AppIcon name="volume" :size="18" />
+    <!-- Áudio -->
+    <section class="cs__section">
+      <header class="cs__section-head">
+        <div class="cs__section-icon cs__section-icon--blue">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19" />
+            <path d="M19 5a5 5 0 0 1 0 14" />
+            <path d="M15 9a3 3 0 0 1 0 6" />
+          </svg>
         </div>
         <div>
           <h2>Preferências de Áudio</h2>
@@ -95,66 +78,85 @@ function setSpeed(marker) {
         </div>
       </header>
 
-      <div class="settings-row">
-        <div>
-          <strong>Tipo de Voz</strong>
-          <small>Escolha entre vozes masculinas ou femininas com diferentes tons.</small>
-        </div>
-        <select v-model="settings.voice" class="settings-select">
-          <option v-for="v in voices" :key="v.value" :value="v.value">{{ v.label }}</option>
-        </select>
-      </div>
-
-      <div class="settings-row">
-        <div>
-          <strong>Velocidade de Reprodução</strong>
-          <small>Atual: {{ settings.speed }}x (ideal para treinar o ouvido)</small>
-        </div>
-        <div class="settings-slider">
-          <input
-            type="range"
-            min="0.5"
-            max="2"
-            step="0.1"
-            v-model.number="settings.speed"
-          />
-          <div class="settings-slider__ticks">
-            <button
-              v-for="m in speedMarkers"
-              :key="m"
-              :class="{ active: Math.abs(parseFloat(m) - settings.speed) < 0.05 }"
-              @click="setSpeed(m)"
-            >
-              {{ m }}
-            </button>
+      <div class="cs__card">
+        <div class="cs__row">
+          <div>
+            <strong>Tipo de Voz</strong>
+            <small>Escolha entre vozes masculinas ou femininas com diferentes tons.</small>
+          </div>
+          <div class="cs__select-wrap">
+            <select v-model="settings.voice" class="select">
+              <option value="female">Feminina (Natural)</option>
+              <option value="male">Masculina (Natural)</option>
+            </select>
           </div>
         </div>
-      </div>
 
-      <div class="settings-row">
-        <div>
-          <strong>Região de Pronúncia</strong>
-          <small>Ajuste o sotaque para regiões específicas onde o francês é falado.</small>
+        <hr class="cs__divider" />
+
+        <div class="cs__row">
+          <div>
+            <strong>Velocidade de Reprodução</strong>
+            <small>Atual: {{ settings.speed.toFixed(1) }}x (Ideal para treinar o ouvido)</small>
+          </div>
+          <div class="cs__slider-block">
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              :value="settings.speed"
+              @input="(e) => setSpeed(e.target.value)"
+              class="cs__range"
+            />
+            <div class="cs__ticks">
+              <button
+                v-for="m in ['0.5x', '1.0x', '2.0x']"
+                :key="m"
+                type="button"
+                :class="{ 'is-active': Math.abs(parseFloat(m) - settings.speed) < 0.05 }"
+                @click="setSpeed(m)"
+              >
+                {{ m }}
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="settings-radios">
-          <label
-            v-for="opt in regionOptions"
-            :key="opt.value"
-            class="settings-radio"
-            :class="{ active: settings.region === opt.value }"
-          >
-            <input type="radio" v-model="settings.region" :value="opt.value" />
-            <span class="settings-radio__dot"></span>
-            <span>{{ opt.label }}</span>
-          </label>
+
+        <hr class="cs__divider" />
+
+        <div class="cs__row">
+          <div>
+            <strong>Região de Pronúncia</strong>
+            <small>Ajuste o sotaque para regiões específicas onde o francês é falado.</small>
+          </div>
+          <div class="cs__radios">
+            <label
+              v-for="r in regions"
+              :key="r"
+              class="cs__radio"
+              :class="{ 'is-active': settings.region === r.split(' ')[0].toLowerCase() || (settings.region === 'qc' && r.includes('Québec')) || (settings.region === 'be' && r.includes('Bélgica')) }"
+            >
+              <input
+                type="radio"
+                :value="r.includes('França') ? 'fr' : r.includes('Québec') ? 'qc' : 'be'"
+                v-model="settings.region"
+              />
+              <span class="cs__radio-dot"></span>
+              <span>{{ r }}</span>
+            </label>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="settings-section">
-      <header class="settings-section__head">
-        <div class="settings-section__icon settings-section__icon--yellow">
-          <AppIcon name="zap" :size="18" />
+    <!-- Interface e Estudo -->
+    <section class="cs__section">
+      <header class="cs__section-head">
+        <div class="cs__section-icon cs__section-icon--orange">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10" />
+          </svg>
         </div>
         <div>
           <h2>Interface e Estudo</h2>
@@ -162,89 +164,67 @@ function setSpeed(marker) {
         </div>
       </header>
 
-      <div class="settings-row">
-        <div>
-          <strong>Aparência</strong>
-          <small>Escolha entre tema claro e escuro.</small>
+      <div class="cs__card">
+        <div class="cs__toggle-row">
+          <div>
+            <strong>Reprodução Automática</strong>
+            <small>Ouvir a pronúncia automaticamente após cada tradução.</small>
+          </div>
+          <label class="switch" :class="{ 'is-on': settings.autoPlay }">
+            <input type="checkbox" v-model="settings.autoPlay" />
+            <span class="switch__track"><span class="switch__thumb"></span></span>
+          </label>
         </div>
-        <button
-          class="theme-switch"
-          @click="settings.setTheme(settings.resolvedTheme === 'dark' ? 'light' : 'dark')"
-          :title="`Tema atual: ${settings.resolvedTheme === 'dark' ? 'escuro' : 'claro'}`"
-          aria-label="Alternar tema"
-          role="switch"
-          :aria-checked="settings.resolvedTheme === 'dark'"
-        >
-          <span class="theme-switch__track">
-            <span class="theme-switch__indicator"></span>
-            <span class="theme-switch__icon theme-switch__icon--sun">
-              <AppIcon name="sun" :size="14" />
-            </span>
-            <span class="theme-switch__icon theme-switch__icon--moon">
-              <AppIcon name="moon" :size="14" />
-            </span>
-          </span>
-          <span class="theme-switch__label">{{ settings.resolvedTheme === 'dark' ? 'Escuro' : 'Claro' }}</span>
-        </button>
-      </div>
 
-      <div class="settings-row">
-        <div>
-          <strong>Reprodução Automática</strong>
-          <small>Ouvir a pronúncia automaticamente após cada tradução.</small>
-        </div>
-        <label class="settings-switch" :class="{ on: settings.autoPlay }">
-          <input type="checkbox" v-model="settings.autoPlay" />
-          <span class="settings-switch__track">
-            <span class="settings-switch__thumb"></span>
-          </span>
-        </label>
-      </div>
+        <hr class="cs__divider" />
 
-      <div class="settings-row">
-        <div>
-          <strong>Mostrar Fonética</strong>
-          <small>Exibir guia fonético abaixo das palavras em francês.</small>
+        <div class="cs__toggle-row">
+          <div>
+            <strong>Mostrar Fonética</strong>
+            <small>Exibir guia fonético abaixo das palavras em francês.</small>
+          </div>
+          <label class="switch" :class="{ 'is-on': settings.showPhonetic }">
+            <input type="checkbox" v-model="settings.showPhonetic" />
+            <span class="switch__track"><span class="switch__thumb"></span></span>
+          </label>
         </div>
-        <label class="settings-switch" :class="{ on: settings.showPhonetic }">
-          <input type="checkbox" v-model="settings.showPhonetic" />
-          <span class="settings-switch__track">
-            <span class="settings-switch__thumb"></span>
-          </span>
-        </label>
-      </div>
 
-      <div class="settings-row">
-        <div>
-          <strong>Destaque de Verbos</strong>
-          <small>Colorir verbos conjugados para facilitar a identificação gramatical.</small>
-        </div>
-        <label class="settings-switch" :class="{ on: settings.highlightVerbs }">
-          <input type="checkbox" v-model="settings.highlightVerbs" />
-          <span class="settings-switch__track">
-            <span class="settings-switch__thumb"></span>
-          </span>
-        </label>
-      </div>
+        <hr class="cs__divider" />
 
-      <div class="settings-row">
-        <div>
-          <strong>Ocultar Explicações de Correção</strong>
-          <small>Mostrar apenas a frase corrigida, sem detalhes.</small>
+        <div class="cs__toggle-row">
+          <div>
+            <strong>Destaque de Verbos</strong>
+            <small>Colorir verbos conjugados para facilitar a identificação gramatical.</small>
+          </div>
+          <label class="switch" :class="{ 'is-on': settings.highlightVerbs }">
+            <input type="checkbox" v-model="settings.highlightVerbs" />
+            <span class="switch__track"><span class="switch__thumb"></span></span>
+          </label>
         </div>
-        <label class="settings-switch" :class="{ on: settings.hideExplanations }">
-          <input type="checkbox" v-model="settings.hideExplanations" />
-          <span class="settings-switch__track">
-            <span class="settings-switch__thumb"></span>
-          </span>
-        </label>
+
+        <hr class="cs__divider" />
+
+        <div class="cs__toggle-row">
+          <div>
+            <strong>Ocultar Explicações de Correção</strong>
+            <small>Mostrar apenas a frase corrigida, sem detalhes.</small>
+          </div>
+          <label class="switch" :class="{ 'is-on': settings.hideExplanations }">
+            <input type="checkbox" v-model="settings.hideExplanations" />
+            <span class="switch__track"><span class="switch__thumb"></span></span>
+          </label>
+        </div>
       </div>
     </section>
 
-    <section class="settings-section">
-      <header class="settings-section__head">
-        <div class="settings-section__icon settings-section__icon--violet">
-          <AppIcon name="bell" :size="18" />
+    <!-- Notificações -->
+    <section class="cs__section">
+      <header class="cs__section-head">
+        <div class="cs__section-icon cs__section-icon--violet">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
         </div>
         <div>
           <h2>Notificações e Lembretes</h2>
@@ -252,34 +232,42 @@ function setSpeed(marker) {
         </div>
       </header>
 
-      <div class="settings-row">
-        <div>
-          <strong>Lembrete Diário</strong>
-          <small>Receber uma notificação para manter sua ofensiva de estudos.</small>
+      <div class="cs__card">
+        <div class="cs__toggle-row">
+          <div>
+            <strong>Lembrete Diário</strong>
+            <small>Receber uma notificação para manter sua ofensiva de estudos.</small>
+          </div>
+          <label class="switch" :class="{ 'is-on': settings.dailyReminder }">
+            <input type="checkbox" v-model="settings.dailyReminder" />
+            <span class="switch__track"><span class="switch__thumb"></span></span>
+          </label>
         </div>
-        <label class="settings-switch" :class="{ on: settings.dailyReminder }">
-          <input type="checkbox" v-model="settings.dailyReminder" />
-          <span class="settings-switch__track">
-            <span class="settings-switch__thumb"></span>
-          </span>
-        </label>
-      </div>
 
-      <div class="settings-row">
-        <div>
-          <strong>Horário do Lembrete</strong>
-          <small>Defina o melhor momento do dia para praticar.</small>
+        <hr class="cs__divider" />
+
+        <div class="cs__row">
+          <div>
+            <strong>Horário do Lembrete</strong>
+            <small>Defina o melhor momento do dia para praticar.</small>
+          </div>
+          <div class="cs__select-wrap cs__select-wrap--sm">
+            <select v-model="settings.reminderTime" class="select">
+              <option v-for="t in reminderTimes" :key="t" :value="t">{{ t }}</option>
+            </select>
+          </div>
         </div>
-        <select v-model="settings.reminderTime" class="settings-select">
-          <option v-for="t in reminderTimes" :key="t" :value="t">{{ t }}</option>
-        </select>
       </div>
     </section>
 
-    <section class="settings-section">
-      <header class="settings-section__head">
-        <div class="settings-section__icon settings-section__icon--green">
-          <AppIcon name="user" :size="18" />
+    <!-- Conta -->
+    <section class="cs__section">
+      <header class="cs__section-head">
+        <div class="cs__section-icon cs__section-icon--green">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 21a8 8 0 0 1 16 0" />
+          </svg>
         </div>
         <div>
           <h2>Conta e Segurança</h2>
@@ -287,41 +275,49 @@ function setSpeed(marker) {
         </div>
       </header>
 
-      <div class="settings-cards">
-        <button class="settings-card">
-          <div class="settings-card__avatar">
-            <span>U</span>
+      <div class="cs__account-grid">
+        <button class="cs__account-card" type="button">
+          <div class="cs__account-avatar">
+            <img :src="icons['IMG_14.webp']" alt="" />
           </div>
-          <div class="settings-card__info">
+          <div>
             <strong>Perfil de Estudante</strong>
             <small>usuario.premium@exemplo.com</small>
           </div>
-          <AppIcon name="arrow" :size="16" class="settings-card__arrow" />
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
         </button>
 
-        <button class="settings-card">
-          <div class="settings-card__avatar settings-card__avatar--blue">
-            <AppIcon name="shield" :size="20" />
+        <button class="cs__account-card" type="button">
+          <div class="cs__account-avatar cs__account-avatar--blue">
+            <img :src="icons['IMG_16']" alt="" />
           </div>
-          <div class="settings-card__info">
+          <div>
             <strong>Privacidade e Dados</strong>
             <small>Gerenciar histórico e exportação</small>
           </div>
-          <AppIcon name="arrow" :size="16" class="settings-card__arrow" />
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
         </button>
       </div>
     </section>
 
-    <footer class="settings-footer">
-      <div class="settings-footer__hint">
-        <AppIcon name="check" :size="14" />
+    <!-- Footer -->
+    <footer class="cs__footer">
+      <div class="cs__footer-hint">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12" y2="16" />
+        </svg>
         <small>As alterações são salvas automaticamente na nuvem.</small>
       </div>
-      <div class="settings-footer__actions">
-        <button class="btn btn-light" @click="restoreDefaults">Restaurar Padrões</button>
+      <div class="cs__footer-actions">
+        <button class="btn btn-secondary" @click="restoreDefaults">Restaurar Padrões</button>
         <button class="btn btn-primary" :disabled="!hasChanges" @click="save">
-          <AppIcon name="check" :size="16" />
-          <span>Salvar Alterações</span>
+          Salvar Alterações
         </button>
       </div>
     </footer>
@@ -329,472 +325,494 @@ function setSpeed(marker) {
 </template>
 
 <style scoped>
-.settings-page {
+.cs {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 36px;
+  font-family: var(--font-body);
 }
 
-.settings-hero {
-  background: var(--color-hero-bg);
-  border-radius: var(--radius-xl);
-  padding: 36px 40px;
-  display: flex;
-  align-items: center;
-  gap: 32px;
-  position: relative;
+/* Hero */
+.cs__hero {
+  background: var(--surface-sunken);
+  border: 1px solid #c5dbff;
+  border-radius: 24px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.settings-hero__content {
+@media (min-width: 768px) {
+  .cs__hero {
+    flex-direction: row;
+  }
+}
+
+.cs__hero-content {
+  padding: 32px;
   flex: 1;
-  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.settings-hero__badge {
+@media (min-width: 768px) {
+  .cs__hero-content {
+    padding: 48px;
+  }
+}
+
+.cs__hero-badge {
   display: inline-block;
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  padding: 5px 14px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  align-self: flex-start;
+  padding: 4px 14px;
+  background: #c5dbff;
+  color: var(--color-primary-deep);
+  font-family: var(--font-nav);
+  font-size: 12px;
+  font-weight: 600;
   border-radius: 999px;
-  margin-bottom: 12px;
 }
 
-.settings-hero h1 {
+.cs__hero-title {
+  font-family: var(--font-display);
   font-size: 28px;
-  font-weight: 800;
-  margin: 0 0 10px;
-}
-
-.settings-hero p {
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
   margin: 0;
-  color: var(--color-text-muted);
-  line-height: 1.6;
-  font-size: 14px;
 }
 
-.settings-hero__art {
-  width: 240px;
+@media (min-width: 768px) {
+  .cs__hero-title {
+    font-size: 36px;
+  }
+}
+
+.cs__hero-text {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.55;
+  max-width: 480px;
+  margin: 0;
+}
+
+.cs__hero-art {
+  width: 100%;
   height: 240px;
-  border-radius: var(--radius-xl);
-  background: linear-gradient(135deg, #e3e7ee 0%, #f0f4fa 100%);
-  position: relative;
+  background: var(--surface-card);
+  overflow: hidden;
   flex-shrink: 0;
 }
-
-.settings-hero__art-circle {
-  position: absolute;
-  width: 140px;
-  height: 140px;
-  background: rgba(255, 255, 255, 0.55);
-  border-radius: 50%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  backdrop-filter: blur(6px);
+.cs__hero-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
 }
 
-.settings-section {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-soft);
-  border-radius: var(--radius-lg);
-  padding: 22px 26px;
-  box-shadow: var(--shadow-sm);
+@media (min-width: 768px) {
+  .cs__hero-art {
+    width: 320px;
+    height: auto;
+  }
 }
 
-.settings-section__head {
+/* Sections */
+.cs__section {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-bottom: 16px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--color-border-soft);
+  flex-direction: column;
+  gap: 16px;
 }
 
-.settings-section__head h2 {
-  margin: 0 0 4px;
-  font-size: 18px;
-  font-weight: 700;
+.cs__section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
 }
 
-.settings-section__head p {
-  margin: 0;
-  font-size: 13px;
-  color: var(--color-text-muted);
-}
-
-.settings-section__icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+.cs__section-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.settings-section__icon--blue {
-  background: var(--color-primary-soft);
+.cs__section-icon--blue {
+  background: rgba(59, 130, 246, 0.1);
   color: var(--color-primary);
 }
-
-.settings-section__icon--yellow {
-  background: var(--color-accent-soft);
+.cs__section-icon--orange {
+  background: var(--color-tip-bg);
   color: var(--color-accent);
 }
-
-.settings-section__icon--violet {
-  background: var(--color-info-soft);
-  color: var(--color-info-text);
+.cs__section-icon--violet {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
 }
-
-.settings-section__icon--green {
+.cs__section-icon--green {
   background: var(--color-success-soft);
-  color: var(--color-success);
+  color: var(--color-success-text);
 }
 
-.settings-row {
+.cs__section-head h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.cs__section-head p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Cards */
+.cs__card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-shadow: var(--shadow-xs);
+}
+
+.cs__row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 14px 0;
-  border-bottom: 1px dashed var(--color-border-soft);
-}
-
-.settings-row:last-child {
-  border-bottom: none;
-}
-
-.settings-row strong {
-  font-size: 14px;
-  font-weight: 600;
-  display: block;
-}
-
-.settings-row small {
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.settings-select {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 8px 14px;
-  font-size: 13px;
-  font-weight: 600;
-  background: var(--color-surface);
-  outline: none;
-  min-width: 180px;
-  cursor: pointer;
-}
-
-.settings-slider {
-  width: 260px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-}
-
-.settings-slider input[type='range'] {
-  width: 100%;
-  accent-color: var(--color-primary);
-}
-
-.settings-slider__ticks {
-  display: flex;
-  justify-content: space-between;
-}
-
-.settings-slider__ticks button {
-  background: transparent;
-  font-size: 11px;
-  color: var(--color-text-muted);
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-weight: 600;
-}
-
-.settings-slider__ticks button.active {
-  color: var(--color-primary);
-  background: var(--color-primary-soft);
-}
-
-.settings-radios {
-  display: flex;
-  gap: 10px;
+  gap: 20px;
   flex-wrap: wrap;
 }
 
-.theme-switch {
+.cs__row > div strong,
+.cs__toggle-row > div strong {
+  display: block;
+  font-family: var(--font-nav);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cs__row > div small,
+.cs__toggle-row > div small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.cs__toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cs__divider {
+  border: none;
+  border-top: 1px solid var(--border-default);
+  margin: 0;
+}
+
+.cs__select-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 240px;
+}
+.cs__select-wrap--sm {
+  max-width: 140px;
+}
+
+.cs__select-wrap .select {
+  background-color: var(--surface-page);
+}
+
+/* Slider */
+.cs__slider-block {
+  width: 100%;
+  max-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cs__range {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  cursor: pointer;
+  background: #c5dbff;
+}
+
+.cs__range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: #c5dbff;
+}
+
+.cs__range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid var(--color-primary);
+  margin-top: -6px;
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.2);
+}
+
+.cs__range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid var(--color-primary);
+}
+
+.cs__ticks {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.cs__ticks button {
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-nav);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+.cs__ticks button.is-active {
+  color: var(--color-primary);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+/* Radios */
+.cs__radios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.cs__radio {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 0;
-  background: transparent;
+  gap: 10px;
+  cursor: pointer;
+  font-family: var(--font-nav);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 6px 8px;
+  border-radius: 8px;
+  transition: color var(--motion-fast);
 }
-
-.theme-switch__track {
+.cs__radio:hover {
+  color: var(--color-primary);
+}
+.cs__radio input {
+  display: none;
+}
+.cs__radio-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--text-faint);
   position: relative;
-  width: 56px;
-  height: 30px;
-  border-radius: 999px;
-  background: var(--color-bg-alt);
-  border: 1px solid var(--color-border-soft);
-  overflow: hidden;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition: border-color var(--motion-fast);
 }
-
-.theme-switch:hover .theme-switch__track {
+.cs__radio.is-active {
+  color: var(--color-primary);
+}
+.cs__radio.is-active .cs__radio-dot {
   border-color: var(--color-primary);
 }
+.cs__radio.is-active .cs__radio-dot::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
 
-.theme-switch__indicator {
+/* Switch (using tokens from main.css) */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.switch input {
+  display: none;
+}
+.switch__track {
+  position: absolute;
+  inset: 0;
+  background: var(--border-strong, #cbd5e1);
+  border-radius: 999px;
+  transition: background var(--motion-fast);
+}
+.switch__thumb {
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
-  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease;
-  z-index: 1;
-}
-
-:root[data-theme='dark'] .theme-switch__indicator {
-  transform: translateX(26px);
-  background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
-}
-
-.theme-switch__icon {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 14px;
-  height: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-  transition: color 0.2s ease;
-}
-
-.theme-switch__icon--sun {
-  left: 8px;
-  color: #92400e;
-}
-
-:root[data-theme='dark'] .theme-switch__icon--sun {
-  color: var(--color-text-soft);
-  opacity: 0.7;
-}
-
-.theme-switch__icon--moon {
-  right: 8px;
-  color: var(--color-text-soft);
-  opacity: 0.7;
-}
-
-:root[data-theme='dark'] .theme-switch__icon--moon {
-  color: #e0e7ff;
-  opacity: 1;
-}
-
-.theme-switch__label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text);
-  min-width: 48px;
-}
-
-.settings-radio {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  font-size: 13px;
-  cursor: pointer;
-  font-weight: 600;
-  background: var(--color-surface);
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.settings-radio input {
-  display: none;
-}
-
-.settings-radio__dot {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  border: 2px solid var(--color-text-soft);
-  display: inline-block;
-  position: relative;
-}
-
-.settings-radio.active {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-.settings-radio.active .settings-radio__dot {
-  border-color: var(--color-primary);
-}
-
-.settings-radio.active .settings-radio__dot::after {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.settings-switch {
-  position: relative;
-  display: inline-block;
-}
-
-.settings-switch input {
-  display: none;
-}
-
-.settings-switch__track {
-  width: 42px;
-  height: 24px;
-  background: var(--color-border);
-  border-radius: 999px;
-  position: relative;
-  transition: background 0.2s;
-  display: inline-block;
-}
-
-.settings-switch__thumb {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--color-surface);
-  transition: left 0.2s;
+  background: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: left var(--motion-fast);
 }
-
-.settings-switch.on .settings-switch__track {
+.switch.is-on .switch__track {
   background: var(--color-primary);
 }
-
-.settings-switch.on .settings-switch__thumb {
-  left: 20px;
+.switch.is-on .switch__thumb {
+  left: 23px;
 }
 
-.settings-cards {
+/* Account grid */
+.cs__account-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
-.settings-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-soft);
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
+@media (min-width: 768px) {
+  .cs__account-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.cs__account-card {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  padding: 18px 22px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  cursor: pointer;
   text-align: left;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--motion-fast), transform var(--motion-fast);
+  color: var(--text-muted);
 }
-
-.settings-card:hover {
-  border-color: var(--color-primary-soft2);
-  box-shadow: var(--shadow-sm);
-}
-
-.settings-card__avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--color-bg-alt);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  color: var(--color-text-muted);
-  flex-shrink: 0;
-}
-
-.settings-card__avatar--blue {
-  background: var(--color-primary-soft);
+.cs__account-card:hover {
+  border-color: #c5dbff;
+  transform: translateY(-1px);
   color: var(--color-primary);
 }
-
-.settings-card__info {
-  flex: 1;
-  min-width: 0;
+.cs__account-card:hover svg {
+  transform: translateX(2px);
 }
 
-.settings-card__info strong {
+.cs__account-card strong {
   display: block;
-  font-size: 13px;
+  font-family: var(--font-nav);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
-
-.settings-card__info small {
+.cs__account-card small {
+  display: block;
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.cs__account-card svg {
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: transform var(--motion-fast);
 }
 
-.settings-card__arrow {
-  color: var(--color-text-soft);
+.cs__account-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--surface-sunken);
+}
+.cs__account-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cs__account-avatar--blue {
+  background: #c5dbff;
+  padding: 10px;
 }
 
-.settings-footer {
+/* Footer */
+.cs__footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 0 4px;
+  gap: 16px;
   flex-wrap: wrap;
-  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-default);
 }
 
-.settings-footer__hint {
+.cs__footer-hint {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--color-text-muted);
   font-size: 12px;
+  color: var(--text-muted);
+}
+.cs__footer-hint svg {
+  color: var(--color-primary);
 }
 
-.settings-footer__actions {
+.cs__footer-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-@media (max-width: 800px) {
-  .settings-hero {
-    padding: 28px;
-  }
-  .settings-hero__art {
-    display: none;
-  }
-  .settings-row {
+@media (max-width: 720px) {
+  .cs__row,
+  .cs__toggle-row {
     flex-direction: column;
     align-items: flex-start;
-    gap: 14px;
   }
-  .settings-cards {
-    grid-template-columns: 1fr;
+  .cs__select-wrap,
+  .cs__slider-block {
+    max-width: none;
+    width: 100%;
+  }
+  .cs__hero-content {
+    padding: 24px;
+  }
+  .cs__hero-title {
+    font-size: 22px;
+  }
+  .cs__footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .cs__footer-actions {
+    width: 100%;
+  }
+  .cs__footer-actions .btn {
+    flex: 1;
   }
 }
 </style>

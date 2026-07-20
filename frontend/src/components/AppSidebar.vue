@@ -1,200 +1,254 @@
 <script setup>
-import { watchEffect } from 'vue'
-import { useSettingsStore } from '@/stores/settings'
+import { useRoute } from 'vue-router'
+import AppIcon from '@/components/AppIcon.vue'
+import icons from '@/assets/icons'
 
-const settings = useSettingsStore()
-
-watchEffect(() => {
-  settings.persist()
+defineProps({
+  open: { type: Boolean, default: false }
 })
+const emit = defineEmits(['close'])
+
+const route = useRoute()
+
+const navItems = [
+  { name: 'Dashboard', to: '/dashboard', icon: icons['IMG_2'] },
+  { name: 'Favoritos', to: '/favoritos', icon: icons['IMG_4'] },
+  { name: 'Configurações', to: '/configuracoes', icon: icons['IMG_5'] }
+]
 </script>
 
 <template>
-  <aside class="sidebar">
-    <div class="sidebar__brand">
-      <div class="sidebar__logo">
-        <span class="sidebar__logo-cn">文</span>
-        <span class="sidebar__logo-a">A</span>
-        <span class="sidebar__logo-fr">A</span>
+  <aside class="sb" :class="{ 'is-open': open }">
+    <header class="sb__head">
+      <div class="sb__brand">
+      <div class="sb__logo">
+        <img :src="icons['IMG_1']" alt="Logo" />
       </div>
-      <span class="sidebar__title">Aprender Francês</span>
-    </div>
+        <span class="sb__title">Aprender Francês</span>
+      </div>
+      <button
+        class="sb__close"
+        type="button"
+        aria-label="Fechar menu"
+        @click="emit('close')"
+      >
+        <AppIcon name="cross" :size="22" />
+      </button>
+    </header>
 
-    <nav class="sidebar__nav">
-      <router-link to="/dashboard" class="sidebar__item" active-class="is-active">
-        <span class="sidebar__icon">⊞</span>
-        <span>Dashboard</span>
-      </router-link>
-      <router-link to="/favoritos" class="sidebar__item" active-class="is-active">
-        <span class="sidebar__icon">★</span>
-        <span>Favoritos</span>
-      </router-link>
-      <router-link to="/configuracoes" class="sidebar__item" active-class="is-active">
-        <span class="sidebar__icon">⚙</span>
-        <span>Configurações</span>
-      </router-link>
+    <nav class="sb__nav" aria-label="Navegação principal">
+      <button
+        v-for="item in navItems"
+        :key="item.to"
+        class="sb__item"
+        :class="{ 'is-active': route.path === item.to }"
+        @click="emit('close')"
+      >
+        <router-link :to="item.to" class="sb__link">
+          <img :src="item.icon" :alt="item.name" />
+          <span>{{ item.name }}</span>
+        </router-link>
+      </button>
     </nav>
 
-    <div class="sidebar__footer">
-      <div class="sidebar__user">
-        <div class="sidebar__avatar">U</div>
-        <div class="sidebar__userinfo">
-          <strong>Usuário</strong>
-          <small>Premium</small>
-        </div>
-        <span class="sidebar__caret">⌄</span>
+    <footer class="sb__user">
+      <div class="sb__avatar">U</div>
+      <div class="sb__userinfo">
+        <strong>Usuário</strong>
+        <small>Premium</small>
       </div>
-    </div>
+      <img :src="icons['IMG_7']" alt="" class="sb__caret" />
+    </footer>
   </aside>
 </template>
 
 <style scoped>
-.sidebar {
-  background: var(--color-sidebar);
-  border-right: 1px solid var(--color-border-soft);
+.sb {
+  background: var(--surface-sidebar);
+  border-right: 1px solid var(--border-default);
   padding: 24px 16px;
+  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 28px;
-  position: sticky;
-  top: 0;
-  height: 100vh;
 }
 
-.sidebar__brand {
+.sb__head {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
   padding: 0 8px;
 }
 
-.sidebar__logo {
-  position: relative;
-  width: 44px;
-  height: 44px;
+.sb__close {
+  display: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  align-items: center;
+  justify-content: center;
+}
+.sb__close:hover {
+  background: var(--surface-card);
+  color: var(--color-primary);
+}
+
+.sb__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sb__logo {
+  width: 40px;
+  height: 40px;
   border-radius: 12px;
   background: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  font-weight: 700;
   flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
 }
 
-.sidebar__logo-cn,
-.sidebar__logo-fr {
-  position: absolute;
-  font-size: 11px;
-  font-weight: 700;
+.sb__logo img {
+  width: 22px;
+  height: 22px;
 }
 
-.sidebar__logo-cn {
-  top: 6px;
-  left: 8px;
+.sb__title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-primary-text);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.sidebar__logo-fr {
-  bottom: 6px;
-  right: 8px;
-}
-
-.sidebar__logo-a {
-  font-size: 18px;
-  letter-spacing: -1px;
-}
-
-.sidebar__title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-primary);
-}
-
-.sidebar__nav {
+.sb__nav {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex: 1;
 }
 
-.sidebar__item {
+.sb__item {
+  padding: 0;
+  border-radius: 14px;
+  background: transparent;
+  text-align: left;
+}
+
+.sb__link {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
-  border-radius: var(--radius-md);
-  color: var(--color-text-muted);
-  font-weight: 500;
-  font-size: 14px;
-  transition: all 0.15s ease;
-}
-
-.sidebar__item:hover {
-  background: rgba(59, 130, 246, 0.06);
-  color: var(--color-primary);
-}
-
-.sidebar__item.is-active {
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
+  padding: 10px 14px;
+  border-radius: 14px;
+  color: var(--color-primary-text);
+  font-family: var(--font-nav);
   font-weight: 600;
+  font-size: 14px;
+  width: 100%;
+  transition: background var(--motion-fast), color var(--motion-fast);
 }
 
-.sidebar__icon {
+.sb__link img {
   width: 20px;
-  display: inline-flex;
-  justify-content: center;
-  font-size: 16px;
+  height: 20px;
+  opacity: 0.75;
+  transition: opacity var(--motion-fast);
 }
 
-.sidebar__footer {
-  margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid var(--color-border-soft);
+.sb__link:hover {
+  background: var(--color-primary-softer);
 }
 
-.sidebar__user {
+.sb__item.is-active .sb__link {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+}
+
+.sb__item.is-active .sb__link img {
+  opacity: 1;
+}
+
+.sb__user {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   padding: 8px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: background 0.15s;
+  border-radius: 14px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  margin-top: auto;
 }
 
-.sidebar__user:hover {
-  background: rgba(59, 130, 246, 0.06);
-}
-
-.sidebar__avatar {
+.sb__avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
   background: var(--color-primary);
   color: #fff;
+  font-family: var(--font-nav);
+  font-weight: 700;
+  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
+  flex-shrink: 0;
 }
 
-.sidebar__userinfo {
+.sb__userinfo {
   display: flex;
   flex-direction: column;
-  line-height: 1.2;
+  line-height: 1.25;
   flex: 1;
+  min-width: 0;
 }
-
-.sidebar__userinfo strong {
+.sb__userinfo strong {
+  font-family: var(--font-nav);
   font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
 }
-
-.sidebar__userinfo small {
+.sb__userinfo small {
   font-size: 11px;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
 }
 
-.sidebar__caret {
-  color: var(--color-text-soft);
+.sb__caret {
+  width: 14px;
+  height: 14px;
+  opacity: 0.6;
+}
+
+/* ─── Mobile: drawer ─── */
+@media (max-width: 959px) {
+  .sb {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 60;
+    width: 256px;
+    height: 100dvh;
+    transform: translateX(-105%);
+    transition: transform 0.3s var(--ease-out);
+    box-shadow: var(--shadow-lg);
+    border-right: 1px solid var(--border-default);
+  }
+
+  .sb.is-open {
+    transform: translateX(0);
+  }
+
+  .sb__close {
+    display: inline-flex;
+  }
 }
 </style>

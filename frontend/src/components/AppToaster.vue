@@ -57,24 +57,15 @@ const toasts = computed(() => toast.toasts)
 <style scoped>
 .toaster {
   position: fixed;
-  top: 88px;
-  right: 24px;
+  top: calc(var(--topbar-h) + 16px);
+  right: 16px;
   z-index: 9999;
   display: flex;
   flex-direction: column;
   gap: 10px;
   pointer-events: none;
   max-width: 380px;
-  width: calc(100% - 48px);
-}
-
-@media (max-width: 600px) {
-  .toaster {
-    top: 76px;
-    right: 12px;
-    left: 12px;
-    width: auto;
-  }
+  width: calc(100% - 32px);
 }
 
 .toast {
@@ -82,31 +73,27 @@ const toasts = computed(() => toast.toasts)
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  background: var(--color-surface);
-  color: var(--color-text);
-  border: 1px solid var(--color-border-soft);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-left: 4px solid var(--text-soft);
   border-radius: var(--radius-md);
-  padding: 12px 14px 14px;
+  padding: 12px 14px;
   box-shadow: var(--shadow-lg);
   pointer-events: auto;
   overflow: hidden;
   min-width: 280px;
-  border-left-width: 4px;
-  transition: border-color 0.2s ease;
 }
 
 .toast--success {
   border-left-color: var(--color-success);
 }
-
 .toast--error {
-  border-left-color: var(--color-danger);
+  border-left-color: #ef4444;
 }
-
 .toast--warning {
-  border-left-color: var(--color-warning);
+  border-left-color: var(--color-accent);
 }
-
 .toast--info {
   border-left-color: var(--color-primary);
 }
@@ -125,17 +112,14 @@ const toasts = computed(() => toast.toasts)
   background: var(--color-success-soft);
   color: var(--color-success);
 }
-
 .toast--error .toast__icon {
-  background: var(--color-danger-soft);
-  color: var(--color-danger);
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
 }
-
 .toast--warning .toast__icon {
-  background: var(--color-accent-soft);
-  color: var(--color-warning);
+  background: var(--color-tip-bg);
+  color: var(--color-accent);
 }
-
 .toast--info .toast__icon {
   background: var(--color-primary-soft);
   color: var(--color-primary);
@@ -151,35 +135,34 @@ const toasts = computed(() => toast.toasts)
 }
 
 .toast__body strong {
+  font-family: var(--font-nav);
   font-size: 13px;
   font-weight: 700;
-  color: var(--color-text);
+  color: var(--text-primary);
 }
 
 .toast__body p {
   margin: 0;
   font-size: 13px;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   line-height: 1.45;
   word-wrap: break-word;
 }
 
 .toast__close {
-  width: 24px;
-  height: 24px;
-  border-radius: 999px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
   background: transparent;
-  color: var(--color-text-soft);
+  color: var(--text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: background 0.15s, color 0.15s;
 }
-
 .toast__close:hover {
-  background: var(--color-bg-alt);
-  color: var(--color-text);
+  background: var(--surface-sunken);
+  color: var(--text-primary);
 }
 
 .toast__progress {
@@ -197,15 +180,12 @@ const toasts = computed(() => toast.toasts)
 .toast--success .toast__progress {
   color: var(--color-success);
 }
-
 .toast--error .toast__progress {
-  color: var(--color-danger);
+  color: #ef4444;
 }
-
 .toast--warning .toast__progress {
-  color: var(--color-warning);
+  color: var(--color-accent);
 }
-
 .toast--info .toast__progress {
   color: var(--color-primary);
 }
@@ -219,23 +199,29 @@ const toasts = computed(() => toast.toasts)
   to { transform: scaleX(0); }
 }
 
-/* ───── Transitions ───── */
 .toast-enter-active,
 .toast-leave-active {
-  transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--motion-base) var(--ease-out);
 }
-
-.toast-enter-from {
-  opacity: 0;
-  transform: translateX(40px);
-}
-
+.toast-enter-from,
 .toast-leave-to {
   opacity: 0;
   transform: translateX(40px);
 }
-
 .toast-move {
-  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform var(--motion-base) var(--ease-out);
+}
+
+@media (max-width: 600px) {
+  .toaster {
+    top: calc(var(--topbar-h) + 12px);
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-width: none;
+  }
+  .toast {
+    min-width: 0;
+  }
 }
 </style>
