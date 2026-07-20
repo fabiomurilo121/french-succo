@@ -18,6 +18,11 @@ const routes = [
     component: () => import('@/pages/CompletePage.vue')
   },
   {
+    path: '/detalhes',
+    name: 'detalhes',
+    component: () => import('@/pages/DetalhesPage.vue')
+  },
+  {
     path: '/configuracoes',
     name: 'configuracoes',
     component: () => import('@/pages/ConfiguracoesPage.vue')

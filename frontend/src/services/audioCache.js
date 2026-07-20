@@ -1,6 +1,6 @@
 import { api } from './api'
 
-const STORAGE_KEY = 'french-succo:audio-cache-v1'
+const STORAGE_KEY = 'french-succo:audio-cache-v2'
 const TTL_DAYS = 30
 const TTL_MS = TTL_DAYS * 24 * 60 * 60 * 1000
 const MAX_ENTRIES = 500
@@ -78,7 +78,7 @@ class AudioCache {
       }
     }
 
-    const url = generateUrl || (() => api.getAudioUrl(text, voice, speed, region))()
+    const url = (generateUrl || (() => api.getAudioUrl(text, voice, speed, region)))()
     this.entries.set(key, { url, ts: Date.now() })
 
     // LRU-ish eviction when over limit
@@ -144,8 +144,8 @@ export function getAudioUrl(text, opts = {}) {
     api.getAudioUrl(
       text,
       opts.voice || 'female',
-      opts.region || 'fr',
-      opts.speed != null ? opts.speed : 1.0
+      opts.speed != null ? opts.speed : 1.0,
+      opts.region || 'fr'
     )
   )
 }

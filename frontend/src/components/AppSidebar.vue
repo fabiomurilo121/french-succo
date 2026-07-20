@@ -11,10 +11,11 @@ const emit = defineEmits(['close'])
 const route = useRoute()
 
 const navItems = [
-  { name: 'Dashboard', to: '/dashboard', icon: icons['IMG_2'] },
-  { name: 'Flashcards', to: '/flashcards', icon: icons['IMG_4'] },
-  { name: 'Completar Frases', to: '/complete', icon: icons['IMG_4'] },
-  { name: 'Configurações', to: '/configuracoes', icon: icons['IMG_5'] }
+  { name: 'Início', to: '/dashboard', icon: 'home' },
+  { name: 'Flashcards', to: '/flashcards', icon: 'cards' },
+  { name: 'Completar Frases', to: '/complete', icon: 'puzzle' },
+  { name: 'Detalhes', to: '/detalhes', icon: 'chartBar' },
+  { name: 'Configurações', to: '/configuracoes', icon: 'settings' }
 ]
 </script>
 
@@ -46,7 +47,7 @@ const navItems = [
         @click="emit('close')"
       >
         <router-link :to="item.to" class="sb__link">
-          <img :src="item.icon" :alt="item.name" />
+          <AppIcon :name="item.icon" :size="20" class="sb__icon" />
           <span>{{ item.name }}</span>
         </router-link>
       </button>
@@ -183,11 +184,13 @@ const navItems = [
   transition: background var(--motion-fast), color var(--motion-fast);
 }
 
-.sb__link img {
+.sb__icon {
   width: 20px;
   height: 20px;
+  flex-shrink: 0;
   opacity: 0.75;
-  transition: opacity var(--motion-fast);
+  color: var(--color-primary-text);
+  transition: opacity var(--motion-fast), color var(--motion-fast);
 }
 
 .sb__link:hover {
@@ -199,8 +202,9 @@ const navItems = [
   color: var(--color-primary-deep);
 }
 
-.sb__item.is-active .sb__link img {
+.sb__item.is-active .sb__icon {
   opacity: 1;
+  color: var(--color-primary);
 }
 
 /* ── User card as the LAST nav item ── */

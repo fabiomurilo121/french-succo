@@ -96,12 +96,6 @@ function decorateFavoriteItem(fav) {
   }
 }
 
-const stats = ref([
-  { id: 'words', label: 'Palavras aprendidas', value: '1,240', icon: icons['IMG_1'], bg: '#f2f7ff', color: '#3b82f6' },
-  { id: 'streak', label: 'Ofensiva atual', value: '15 Dias', icon: icons['IMG_17'], bg: '#fff4ef', color: '#c65701' },
-  { id: 'accuracy', label: 'Precisão média', value: '92%', icon: icons['IMG_20'], bg: '#dcfce7', color: '#16a34a' }
-])
-
 const studySuggestions = [
   { id: 'greetings', label: 'Cumprimentos básicos', icon: 'user', phrases: ['Bom dia, como você está?', 'Prazer em conhecê-lo', 'Como você se chama?'] },
   { id: 'restaurant', label: 'No restaurante', icon: 'utensils', phrases: ['A conta, por favor.', 'Qual é o prato do dia?', 'Está delicioso, obrigado!'] },
@@ -640,19 +634,6 @@ function seedSampleHistory() {
             </div>
           </div>
         </article>
-      </div>
-    </section>
-
-    <!-- Stats -->
-    <section class="db__stats">
-      <div v-for="s in stats" :key="s.id" class="db__stat card">
-        <div class="db__stat-icon" :style="{ background: s.bg, color: s.color }">
-          <img :src="s.icon" alt="" />
-        </div>
-        <div>
-          <small>{{ s.label.toUpperCase() }}</small>
-          <strong>{{ s.value }}</strong>
-        </div>
       </div>
     </section>
 
@@ -1519,56 +1500,7 @@ function seedSampleHistory() {
 
 /* Cultural Tip — movido para Help Panel */
 
-/* Stats */
-.db__stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-@media (max-width: 720px) {
-  .db__stats {
-    grid-template-columns: 1fr;
-  }
-}
-
-.db__stat {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 18px;
-  border-radius: var(--radius-xl);
-}
-
-.db__stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.db__stat-icon img {
-  width: 24px;
-  height: 24px;
-}
-
-.db__stat small {
-  display: block;
-  font-family: var(--font-nav);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  margin-bottom: 4px;
-}
-
-.db__stat strong {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
+/* Stats — removidos (movidos para a página /detalhes) */
 
 /* History section */
 .db__history {

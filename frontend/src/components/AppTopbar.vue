@@ -14,6 +14,9 @@ const breadcrumb = computed(() => {
   const map = {
     dashboard: 'Painel de Tradução',
     favoritos: 'Favoritos',
+    flashcards: 'Flashcards',
+    complete: 'Completar Frases',
+    detalhes: 'Detalhes & Estatísticas',
     configuracoes: 'Configurações'
   }
   return map[route.name] || 'Painel'

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, nextTick } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import icons from '@/assets/icons'
 import { APP_VERSION, APP_BUILD } from '@/version'
@@ -8,6 +8,15 @@ const settings = useSettingsStore()
 
 const reminderTimes = ['08:00', '12:00', '14:00', '18:00', '20:00', '21:00']
 const regions = ['França (Padrão)', 'Québec', 'Bélgica']
+
+const sections = [
+  { id: 'audio',     label: 'Áudio',                icon: 'volume'  },
+  { id: 'interface', label: 'Interface & Estudo',   icon: 'zap'     },
+  { id: 'notify',    label: 'Notificações',         icon: 'bell'    },
+  { id: 'account',   label: 'Conta & Segurança',    icon: 'user'    }
+]
+
+const activeSection = ref('audio')
 
 const hasChanges = ref(false)
 const original = ref(null)
@@ -45,10 +54,33 @@ function save() {
 function setSpeed(value) {
   settings.speed = parseFloat(value)
 }
+
+function scrollTo(id) {
+  activeSection.value = id
+  const el = document.getElementById('cs-' + id)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
 </script>
 
 <template>
   <div class="cs">
+    <!-- Sub-nav: quick access to sections -->
+    <nav class="cs__subnav" aria-label="Navegação rápida">
+      <button
+        v-for="s in sections"
+        :key="s.id"
+        type="button"
+        class="cs__subnav-btn"
+        :class="{ 'is-active': activeSection === s.id }"
+        @click="scrollTo(s.id)"
+      >
+        <AppIcon :name="s.icon" :size="14" />
+        {{ s.label }}
+      </button>
+    </nav>
+
     <!-- Hero -->
     <section class="cs__hero">
       <div class="cs__hero-content">
@@ -64,7 +96,7 @@ function setSpeed(value) {
     </section>
 
     <!-- Áudio -->
-    <section class="cs__section">
+    <section id="cs-audio" class="cs__section">
       <header class="cs__section-head">
         <div class="cs__section-icon cs__section-icon--blue">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -152,7 +184,7 @@ function setSpeed(value) {
     </section>
 
     <!-- Interface e Estudo -->
-    <section class="cs__section">
+    <section id="cs-interface" class="cs__section">
       <header class="cs__section-head">
         <div class="cs__section-icon cs__section-icon--orange">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -219,7 +251,7 @@ function setSpeed(value) {
     </section>
 
     <!-- Notificações -->
-    <section class="cs__section">
+    <section id="cs-notify" class="cs__section">
       <header class="cs__section-head">
         <div class="cs__section-icon cs__section-icon--violet">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -262,7 +294,7 @@ function setSpeed(value) {
     </section>
 
     <!-- Conta -->
-    <section class="cs__section">
+    <section id="cs-account" class="cs__section">
       <header class="cs__section-head">
         <div class="cs__section-icon cs__section-icon--green">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -351,7 +383,53 @@ function setSpeed(value) {
 }
 
 @media (min-width: 768px) {
-  .cs__hero {
+/* ─── Sub-navigation (quick access) ─── */
+.cs__subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  box-shadow: var(--shadow-xs);
+  position: sticky;
+  top: 12px;
+  z-index: 5;
+  align-self: flex-start;
+}
+
+.cs__subnav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-nav);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background var(--motion-fast), color var(--motion-fast);
+}
+
+.cs__subnav-btn:hover:not(.is-active) {
+  background: var(--surface-sunken);
+  color: var(--text-primary);
+}
+
+.cs__subnav-btn.is-active {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25);
+}
+
+.cs__subnav-btn :deep(svg) {
+  flex-shrink: 0;
+}
+
+.cs__hero {
     flex-direction: row;
   }
 }
@@ -432,6 +510,7 @@ function setSpeed(value) {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  scroll-margin-top: 90px; /* compensa o sub-nav sticky */
 }
 
 .cs__section-head {
