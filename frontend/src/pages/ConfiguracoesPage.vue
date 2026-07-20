@@ -168,7 +168,7 @@ function scrollTo(id) {
               v-for="r in regions"
               :key="r"
               class="cs__radio"
-              :class="{ 'is-active': settings.region === r.split(' ')[0].toLowerCase() || (settings.region === 'qc' && r.includes('Québec')) || (settings.region === 'be' && r.includes('Bélgica')) }"
+              :class="{ 'is-active': settings.region === (r.includes('França') ? 'fr' : r.includes('Québec') ? 'qc' : 'be') }"
             >
               <input
                 type="radio"
