@@ -5,6 +5,7 @@ import { useSettingsStore } from '@/stores/settings'
 import { useHistoryStore, useFavoritesStore } from '@/stores/library'
 import { useToastStore } from '@/stores/toast'
 import { api } from '@/services/api'
+import { getAudioUrl, audioCache } from '@/services/audioCache'
 import icons from '@/assets/icons'
 import { APP_VERSION, APP_BUILD } from '@/version'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
@@ -227,12 +228,12 @@ function playAudioForText(text, speedVariant) {
   try {
     const voice = settings.voice === 'male' ? 'male' : 'female'
     const region = settings.region || 'fr'
-    audioEl.value.src = api.getAudioUrl(
-      text,
+    const { url } = getAudioUrl(text, {
       voice,
-      speedVariant === 'slow' ? 0.7 : 1.0,
-      region
-    )
+      region,
+      speed: speedVariant === 'slow' ? 0.7 : 1.0
+    })
+    audioEl.value.src = url
     audioEl.value.load()
     audioEl.value.play()?.catch(() => {})
   } catch (e) {
@@ -246,8 +247,24 @@ function playAudio(speedVariant) {
 }
 
 function playHistoryItemAudio(item) {
-  if (!item?.frText) return
-  playAudioForText(item.frText, 'normal')
+  if (!item?.frText || !audioEl.value) return
+  try {
+    const voice = settings.voice === 'male' ? 'male' : 'female'
+    const region = settings.region || 'fr'
+    const { url, cached } = getAudioUrl(item.frText, {
+      voice,
+      region,
+      speed: 1.0
+    })
+    audioEl.value.src = url
+    audioEl.value.load()
+    audioEl.value.play()?.catch(() => {})
+    if (cached) {
+      toast.info('Áudio carregado do cache local', { duration: 1500 })
+    }
+  } catch (e) {
+    /* noop */
+  }
 }
 
 function copyResult() {
@@ -722,10 +739,11 @@ function seedSampleHistory() {
             <div class="db__history-actions">
               <button
                 class="db__history-icon-btn db__history-icon-btn--play"
+                :class="{ 'is-cached': audioCache.has(item.frText, { voice: settings.voice === 'male' ? 'male' : 'female', region: settings.region || 'fr', speed: 1.0 }) }"
                 @click="playHistoryItemAudio(item)"
                 type="button"
                 :aria-label="'Ouvir ' + item.frText"
-                title="Ouvir pronúncia"
+                :title="audioCache.has(item.frText, { voice: settings.voice === 'male' ? 'male' : 'female', region: settings.region || 'fr', speed: 1.0 }) ? 'Áudio já em cache local — sem custo de tokens' : 'Vai gerar áudio pela primeira vez'"
               >
                 <AppIcon name="speaker" :size="14" />
               </button>
@@ -800,6 +818,13 @@ function seedSampleHistory() {
       <span class="db__footer-version">
         v{{ APP_VERSION }}
         <small>· {{ APP_BUILD }}</small>
+      </span>
+      <span
+        class="db__cache-indicator"
+        :title="`${audioCache.size} áudio(s) em cache local — evita nova síntese`"
+      >
+        <span class="db__cache-dot" :class="{ 'is-active': audioCache.size > 0 }"></span>
+        {{ audioCache.size }} áudio(s) em cache
       </span>
     </footer>
 
@@ -1664,6 +1689,30 @@ function seedSampleHistory() {
   transform: scale(1.05);
 }
 
+/* Se o áudio já está em cache, marca visual com borda verde + badge */
+.db__history-icon-btn--play.is-cached {
+  position: relative;
+  box-shadow: 0 0 0 2px var(--color-success-soft);
+}
+
+.db__history-icon-btn--play.is-cached:hover {
+  background: var(--color-success);
+  box-shadow: 0 0 0 2px var(--color-success-soft),
+    0 4px 10px rgba(22, 163, 74, 0.25);
+}
+
+.db__history-icon-btn--play.is-cached::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-success);
+  box-shadow: 0 0 0 2px var(--surface-card);
+}
+
 /* Footer / Reutilizar */
 .db__history-foot {
   margin-top: 4px;
@@ -1901,6 +1950,35 @@ function seedSampleHistory() {
   font-size: 11px;
   color: var(--text-muted);
   padding: 16px 0;
+}
+
+.db__cache-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  font-family: var(--font-nav);
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  cursor: help;
+  white-space: nowrap;
+}
+
+.db__cache-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.db__cache-dot.is-active {
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
 }
 
 .db__footer-version {

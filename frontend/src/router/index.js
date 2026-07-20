@@ -13,6 +13,11 @@ const routes = [
     component: () => import('@/pages/FlashcardsPage.vue')
   },
   {
+    path: '/complete',
+    name: 'complete',
+    component: () => import('@/pages/CompletePage.vue')
+  },
+  {
     path: '/configuracoes',
     name: 'configuracoes',
     component: () => import('@/pages/ConfiguracoesPage.vue')
