@@ -11,7 +11,7 @@
   --surface-raised: #ffffff;
   --surface-sunken: #f2f7ff;
   --surface-soft: #c5dbff33;
-  --surface-sidebar: #f2f7ff;
+  --surface-sidebar: #ffffff;
   --surface-overlay: rgba(15, 23, 42, 0.4);
 
   /* Text */
@@ -101,7 +101,7 @@
   --surface-card: #131b2c;
   --surface-raised: #1a2336;
   --surface-sunken: #0a101c;
-  --surface-sidebar: #0e1525;
+  --surface-sidebar: #131a2c;
   --surface-overlay: rgba(0, 0, 0, 0.7);
 
   --text-primary: #f1f5f9;

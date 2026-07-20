@@ -194,6 +194,10 @@ function clearAll() {
   errorMsg.value = ''
 }
 
+function toggleMode() {
+  mode.value = mode.value === 'translate' ? 'grammar' : 'translate'
+}
+
 function playAudio(speedVariant) {
   if (!result.value?.frText || !audioEl.value) return
   try {
@@ -398,15 +402,32 @@ function seedSampleHistory() {
     <section class="db__translator">
       <div class="db__translator-col">
         <div class="db__lang-switcher">
-          <span class="db__lang-text" :class="{ 'is-active': mode === 'translate' }" @click="mode = 'translate'">
-            Português
-          </span>
-          <button class="db__lang-swap" type="button" aria-label="Trocar idiomas">
+          <button
+            type="button"
+            class="db__lang-option"
+            :class="{ 'is-active': mode === 'translate' }"
+            @click="mode = 'translate'"
+          >
+            <img :src="icons['BR']" alt="BR" class="db__lang-flag-img" />
+            <span>Português</span>
+          </button>
+          <button
+            class="db__lang-swap"
+            type="button"
+            aria-label="Trocar idiomas"
+            @click="toggleMode"
+          >
             <img :src="icons['IMG_11']" alt="" />
           </button>
-          <span class="db__lang-text" :class="{ 'is-active': mode === 'grammar' }" @click="mode = 'grammar'">
-            Francês
-          </span>
+          <button
+            type="button"
+            class="db__lang-option"
+            :class="{ 'is-active': mode === 'grammar' }"
+            @click="mode = 'grammar'"
+          >
+            <img :src="icons['FR']" alt="FR" class="db__lang-flag-img" />
+            <span>Francês</span>
+          </button>
         </div>
 
         <div class="db__input-wrap">
@@ -540,18 +561,6 @@ function seedSampleHistory() {
                 Ouvir Normal
               </button>
             </div>
-          </div>
-        </article>
-
-        <article v-if="result?.culturalTip !== null && result !== null || true" class="db__tip card">
-          <div class="db__tip-icon">
-            <img :src="icons['IMG_19']" alt="" />
-          </div>
-          <div>
-            <h4>Dica Cultural</h4>
-            <p>
-              {{ result?.culturalTip || 'Em contextos formais, sempre use "Vous" em vez de "Tu". O "Bonjour" é obrigatório ao entrar em qualquer estabelecimento comercial na França.' }}
-            </p>
           </div>
         </article>
       </div>
@@ -851,35 +860,76 @@ function seedSampleHistory() {
   align-self: center;
   display: inline-flex;
   align-items: center;
-  gap: 20px;
-  padding: 10px 24px;
+  gap: 4px;
+  padding: 5px;
   background: var(--surface-card);
   border: 1px solid var(--border-default);
   border-radius: 999px;
   box-shadow: var(--shadow-xs);
 }
 
-.db__lang-text {
+.db__lang-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
   font-family: var(--font-nav);
   font-size: 14px;
   font-weight: 600;
   color: var(--text-muted);
+  background: transparent;
   cursor: pointer;
-  transition: color var(--motion-fast);
+  position: relative;
+  transition: color var(--motion-base) var(--ease-out),
+    background var(--motion-base) var(--ease-out),
+    box-shadow var(--motion-base) var(--ease-out),
+    transform var(--motion-base) var(--ease-out);
 }
-.db__lang-text.is-active {
+
+.db__lang-option:hover:not(.is-active) {
   color: var(--text-primary);
+  background: var(--color-primary-softer);
+}
+
+.db__lang-option.is-active {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transform: scale(1.02);
+}
+
+.db__lang-option.is-active .db__lang-flag {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45);
+}
+
+.db__lang-flag-img {
+  width: 22px;
+  height: 16px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  object-fit: cover;
+  display: block;
 }
 
 .db__lang-swap {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: var(--color-primary-soft);
   color: var(--color-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--motion-fast), transform 0.4s var(--ease-out);
+}
+.db__lang-swap:hover {
+  background: var(--color-primary);
+  color: #fff;
+  transform: rotate(180deg);
 }
 .db__lang-swap img {
   width: 14px;
@@ -1319,48 +1369,7 @@ function seedSampleHistory() {
   filter: brightness(0) invert(1);
 }
 
-/* Cultural Tip */
-.db__tip {
-  background: var(--color-tip-bg);
-  border: 1px solid var(--color-tip-border);
-  border-radius: var(--radius-xl);
-  padding: 20px 22px;
-  display: flex;
-  gap: 14px;
-  box-shadow: none;
-}
-
-.db__tip-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  color: #fff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.db__tip-icon img {
-  width: 18px;
-  height: 18px;
-  filter: brightness(0) invert(1);
-}
-
-.db__tip h4 {
-  font-family: var(--font-nav);
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--color-tip-strong);
-  margin: 0 0 4px;
-}
-
-.db__tip p {
-  margin: 0;
-  font-size: 12px;
-  color: var(--color-tip-text);
-  line-height: 1.5;
-}
+/* Cultural Tip — movido para Help Panel */
 
 /* Stats */
 .db__stats {

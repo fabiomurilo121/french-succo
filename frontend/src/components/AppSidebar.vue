@@ -65,12 +65,36 @@ const navItems = [
 <style scoped>
 .sb {
   background: var(--surface-sidebar);
-  border-right: 1px solid var(--border-default);
   padding: 24px 16px;
-  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100dvh;
+  overflow-y: auto;
+  flex-shrink: 0;
+  box-shadow:
+    1px 0 0 0 var(--border-default),
+    4px 0 16px -4px rgba(15, 23, 42, 0.06),
+    16px 0 32px -8px rgba(15, 23, 42, 0.06);
+}
+
+.sb::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(
+    180deg,
+    var(--color-primary) 0%,
+    var(--color-primary-soft) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
 }
 
 .sb__head {
@@ -256,6 +280,10 @@ const navItems = [
     transition: transform 0.3s var(--ease-out);
     box-shadow: var(--shadow-lg);
     border-right: 1px solid var(--border-default);
+  }
+
+  .sb::after {
+    display: none;
   }
 
   .sb.is-open {

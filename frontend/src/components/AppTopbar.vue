@@ -5,7 +5,7 @@ import { useSettingsStore } from '@/stores/settings'
 import AppIcon from '@/components/AppIcon.vue'
 import icons from '@/assets/icons'
 
-const emit = defineEmits(['toggle-menu'])
+const emit = defineEmits(['toggle-menu', 'toggle-help'])
 
 const route = useRoute()
 const settings = useSettingsStore()
@@ -83,7 +83,12 @@ onUnmounted(() => {
         </span>
       </button>
 
-      <button class="tb__icon" type="button" aria-label="Ajuda">
+      <button
+        class="tb__icon"
+        type="button"
+        aria-label="Ajuda"
+        @click="emit('toggle-help')"
+      >
         <img :src="icons['IMG_6']" alt="" />
       </button>
     </div>
@@ -97,11 +102,32 @@ onUnmounted(() => {
   gap: 16px;
   height: var(--topbar-h);
   padding: 0 16px;
-  background: var(--surface-page);
+  background: var(--surface-card);
   border-bottom: 1px solid var(--border-default);
+  box-shadow:
+    0 1px 0 0 var(--color-primary-soft),
+    0 4px 14px -6px rgba(15, 23, 42, 0.06);
   position: sticky;
   top: 0;
   z-index: 30;
+}
+
+.tb::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-primary) 30%,
+    var(--color-accent) 70%,
+    transparent 100%
+  );
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 .tb__hamburger {
@@ -223,7 +249,7 @@ onUnmounted(() => {
   height: 8px;
   border-radius: 50%;
   background: #7a7e84;
-  border: 2px solid var(--surface-page);
+  border: 2px solid var(--surface-card);
 }
 
 .tb__icon {
