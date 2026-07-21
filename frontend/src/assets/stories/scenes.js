@@ -641,229 +641,476 @@ const leavingPharmacy = wrap(
 const parisHero = wrap(
   `<defs>
     <linearGradient id="ph-sky" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0" stop-color="#bae6fd"/>
+      <stop offset="0" stop-color="#0c4a6e"/>
+      <stop offset="0.25" stop-color="#7dd3fc"/>
       <stop offset="0.55" stop-color="#fde68a"/>
-      <stop offset="1" stop-color="#fed7aa"/>
+      <stop offset="0.85" stop-color="#fed7aa"/>
+      <stop offset="1" stop-color="#fb923c"/>
     </linearGradient>
     <linearGradient id="ph-river" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0" stop-color="#7dd3fc"/>
-      <stop offset="1" stop-color="#0ea5e9"/>
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="0.5" stop-color="#0ea5e9"/>
+      <stop offset="1" stop-color="#075985"/>
     </linearGradient>
     <linearGradient id="ph-tower" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0" stop-color="#475569"/>
-      <stop offset="1" stop-color="#1e293b"/>
+      <stop offset="0" stop-color="#64748b"/>
+      <stop offset="0.4" stop-color="#475569"/>
+      <stop offset="1" stop-color="#0f172a"/>
     </linearGradient>
+    <radialGradient id="ph-sun" cx="0.5" cy="0.5">
+      <stop offset="0" stop-color="#fef9c3"/>
+      <stop offset="0.5" stop-color="#fde68a"/>
+      <stop offset="1" stop-color="#fbbf24" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="ph-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" />
+    </filter>
   </defs>` +
+  // sky gradient with sunset
   `<rect width="400" height="400" fill="url(#ph-sky)"/>` +
-  `<circle cx="60" cy="70" r="32" fill="#fef3c7"/>` +
-  `<circle cx="60" cy="70" r="32" fill="#fde68a"/>` +
-  `<ellipse cx="120" cy="90" rx="40" ry="10" fill="#fff" opacity="0.6"/>` +
-  `<ellipse cx="280" cy="60" rx="50" ry="12" fill="#fff" opacity="0.5"/>` +
-  `<rect y="240" width="400" height="160" fill="url(#ph-river)"/>` +
-  `<rect x="0" y="235" width="400" height="10" fill="#0c4a6e"/>` +
-  `<path d="M0 250 Q100 245 200 252 T400 248" stroke="#bae6fd" stroke-width="2" fill="none" opacity="0.6"/>` +
-  `<path d="M0 280 Q150 275 280 282 T400 278" stroke="#bae6fd" stroke-width="2" fill="none" opacity="0.5"/>` +
-  `<rect x="170" y="100" width="60" height="140" fill="url(#ph-tower)"/>` +
-  `<polygon points="200,60 195,100 205,100" fill="url(#ph-tower)"/>` +
-  `<line x1="200" y1="40" x2="200" y2="100" stroke="#fbbf24" stroke-width="2"/>` +
-  `<circle cx="200" cy="40" r="3" fill="#fbbf24"/>` +
-  `<rect x="178" y="115" width="44" height="6" fill="#64748b"/>` +
-  `<rect x="178" y="135" width="44" height="6" fill="#64748b"/>` +
-  `<rect x="178" y="165" width="44" height="6" fill="#64748b"/>` +
-  `<rect x="178" y="200" width="44" height="6" fill="#64748b"/>` +
-  `<rect x="172" y="115" width="6" height="125" fill="#64748b"/>` +
-  `<rect x="222" y="115" width="6" height="125" fill="#64748b"/>` +
-  `<path d="M170 240 L150 290 L250 290 L230 240 Z" fill="url(#ph-tower)"/>` +
-  `<rect x="20" y="170" width="60" height="70" fill="#cbd5e1" stroke="#475569" stroke-width="2"/>` +
-  `<polygon points="15,170 50,140 85,170" fill="#64748b"/>` +
-  `<rect x="32" y="185" width="14" height="20" fill="#bfdbfe"/>` +
-  `<rect x="52" y="185" width="14" height="20" fill="#bfdbfe"/>` +
-  `<rect x="32" y="210" width="14" height="14" fill="#bfdbfe"/>` +
-  `<rect x="52" y="210" width="14" height="14" fill="#bfdbfe"/>` +
-  `<rect x="100" y="150" width="50" height="90" fill="#e2e8f0" stroke="#475569" stroke-width="2"/>` +
-  `<polygon points="95,150 125,125 155,150" fill="#475569"/>` +
-  `<rect x="108" y="165" width="12" height="16" fill="#fbbf24"/>` +
-  `<rect x="130" y="165" width="12" height="16" fill="#fbbf24"/>` +
-  `<rect x="108" y="190" width="12" height="14" fill="#fbbf24"/>` +
-  `<rect x="130" y="190" width="12" height="14" fill="#fbbf24"/>` +
-  `<rect x="108" y="212" width="12" height="14" fill="#fbbf24"/>` +
-  `<rect x="130" y="212" width="12" height="14" fill="#fbbf24"/>` +
-  `<rect x="280" y="160" width="60" height="80" fill="#cbd5e1" stroke="#475569" stroke-width="2"/>` +
-  `<polygon points="275,160 310,130 345,160" fill="#64748b"/>` +
-  `<rect x="290" y="175" width="14" height="18" fill="#bae6fd"/>` +
-  `<rect x="316" y="175" width="14" height="18" fill="#bae6fd"/>` +
-  `<rect x="290" y="200" width="14" height="14" fill="#bae6fd"/>` +
-  `<rect x="316" y="200" width="14" height="14" fill="#bae6fd"/>` +
-  `<rect x="350" y="180" width="40" height="60" fill="#e2e8f0" stroke="#475569" stroke-width="2"/>` +
-  `<polygon points="345,180 370,155 395,180" fill="#475569"/>` +
-  `<rect x="358" y="195" width="10" height="14" fill="#fde68a"/>` +
-  `<rect x="372" y="195" width="10" height="14" fill="#fde68a"/>` +
-  `<rect x="358" y="215" width="10" height="12" fill="#fde68a"/>` +
-  `<rect x="372" y="215" width="10" height="12" fill="#fde68a"/>` +
-  `<ellipse cx="60" cy="280" rx="22" ry="6" fill="#16a34a" opacity="0.7"/>` +
-  `<circle cx="60" cy="250" r="14" fill="#22c55e"/>` +
-  `<circle cx="60" cy="245" r="9" fill="#86efac"/>` +
-  `<circle cx="340" cy="280" rx="22" ry="6" fill="#16a34a" opacity="0.7"/>` +
-  `<circle cx="340" cy="250" r="14" fill="#22c55e"/>` +
-  `<circle cx="340" cy="245" r="9" fill="#86efac"/>` +
-  `<circle cx="80" cy="320" r="20" fill="#fbbf24"/>` +
-  `<circle cx="80" cy="312" r="10" fill="#fde68a"/>` +
-  `<rect x="68" y="328" width="24" height="34" fill="#dc2626"/>` +
-  `<rect x="60" y="362" width="10" height="22" fill="#1e293b"/>` +
-  `<rect x="90" y="362" width="10" height="22" fill="#1e293b"/>` +
-  `<circle cx="320" cy="320" r="20" fill="#fda4af"/>` +
-  `<circle cx="320" cy="312" r="10" fill="#fecdd3"/>` +
-  `<rect x="308" y="328" width="24" height="34" fill="#0ea5e9"/>` +
-  `<rect x="300" y="362" width="10" height="22" fill="#1e293b"/>` +
-  `<rect x="330" y="362" width="10" height="22" fill="#1e293b"/>` +
-  `<ellipse cx="200" cy="310" rx="36" ry="8" fill="#fbbf24" opacity="0.7"/>` +
-  `<rect x="172" y="298" width="56" height="14" rx="3" fill="#fbbf24"/>` +
-  `<rect x="170" y="295" width="60" height="8" rx="2" fill="#1e293b"/>` +
-  `<circle cx="180" cy="313" r="6" fill="#1e293b"/>` +
-  `<circle cx="220" cy="313" r="6" fill="#1e293b"/>`,
-  '#bae6fd'
+  // soft sun glow
+  `<circle cx="80" cy="120" r="80" fill="url(#ph-sun)" opacity="0.7"/>` +
+  `<circle cx="80" cy="120" r="36" fill="#fef3c7"/>` +
+  `<circle cx="80" cy="120" r="36" fill="#fde68a"/>` +
+  // birds
+  `<path d="M220 70 q5 -8 10 0 q5 -8 10 0" stroke="#1e293b" stroke-width="2" fill="none"/>` +
+  `<path d="M260 90 q4 -6 8 0 q4 -6 8 0" stroke="#1e293b" stroke-width="2" fill="none"/>` +
+  // distant clouds
+  `<ellipse cx="320" cy="80" rx="40" ry="8" fill="#fff" opacity="0.7"/>` +
+  `<ellipse cx="330" cy="78" rx="22" ry="10" fill="#fff" opacity="0.6"/>` +
+  `<ellipse cx="180" cy="50" rx="30" ry="6" fill="#fff" opacity="0.5"/>` +
+  // Seine river
+  `<rect y="260" width="400" height="140" fill="url(#ph-river)"/>` +
+  `<rect x="0" y="258" width="400" height="4" fill="#0c4a6e"/>` +
+  // river reflections
+  `<path d="M0 270 Q100 268 200 272 T400 270" stroke="#bae6fd" stroke-width="2" fill="none" opacity="0.6"/>` +
+  `<path d="M0 295 Q150 292 280 296 T400 294" stroke="#bae6fd" stroke-width="2" fill="none" opacity="0.5"/>` +
+  `<path d="M0 320 Q120 318 240 322 T400 320" stroke="#bae6fd" stroke-width="1.5" fill="none" opacity="0.4"/>` +
+  `<path d="M0 350 Q160 348 300 352 T400 350" stroke="#bae6fd" stroke-width="1.5" fill="none" opacity="0.3"/>` +
+  // Eiffel Tower - detailed
+  `<rect x="172" y="110" width="56" height="135" fill="url(#ph-tower)"/>` +
+  `<polygon points="200,55 192,110 208,110" fill="url(#ph-tower)"/>` +
+  `<line x1="200" y1="35" x2="200" y2="110" stroke="#fbbf24" stroke-width="2"/>` +
+  `<circle cx="200" cy="35" r="3" fill="#fbbf24" filter="url(#ph-glow)"/>` +
+  // tower arches/details
+  `<path d="M180 145 Q200 130 220 145" stroke="#94a3b8" stroke-width="1.5" fill="none"/>` +
+  `<path d="M180 175 Q200 160 220 175" stroke="#94a3b8" stroke-width="1.5" fill="none"/>` +
+  `<path d="M180 205 Q200 190 220 205" stroke="#94a3b8" stroke-width="1.5" fill="none"/>` +
+  // tower crossbeams
+  `<rect x="174" y="120" width="52" height="3" fill="#1e293b"/>` +
+  `<rect x="174" y="150" width="52" height="3" fill="#1e293b"/>` +
+  `<rect x="174" y="185" width="52" height="3" fill="#1e293b"/>` +
+  `<rect x="174" y="220" width="52" height="3" fill="#1e293b"/>` +
+  `<rect x="174" y="115" width="4" height="130" fill="#1e293b"/>` +
+  `<rect x="222" y="115" width="4" height="130" fill="#1e293b"/>` +
+  // tower base
+  `<path d="M168 245 L142 295 L258 295 L232 245 Z" fill="url(#ph-tower)"/>` +
+  // distant building left (museum-style)
+  `<rect x="20" y="160" width="60" height="100" fill="#e2e8f0" stroke="#475569" stroke-width="2"/>` +
+  `<polygon points="14,160 50,128 86,160" fill="#475569"/>` +
+  `<rect x="14" y="160" width="72" height="6" fill="#1e293b"/>` +
+  `<rect x="32" y="178" width="14" height="22" fill="#fef3c7"/>` +
+  `<rect x="52" y="178" width="14" height="22" fill="#fef3c7"/>` +
+  `<rect x="32" y="208" width="14" height="20" fill="#fef3c7"/>` +
+  `<rect x="52" y="208" width="14" height="20" fill="#fef3c7"/>` +
+  `<rect x="32" y="234" width="14" height="20" fill="#fef3c7"/>` +
+  `<rect x="52" y="234" width="14" height="20" fill="#fef3c7"/>` +
+  // building center-left
+  `<rect x="100" y="145" width="50" height="115" fill="#f1f5f9" stroke="#475569" stroke-width="2"/>` +
+  `<polygon points="95,145 125,118 155,145" fill="#334155"/>` +
+  `<rect x="95" y="145" width="60" height="5" fill="#1e293b"/>` +
+  `<rect x="108" y="160" width="12" height="16" fill="#fbbf24"/>` +
+  `<rect x="130" y="160" width="12" height="16" fill="#fbbf24"/>` +
+  `<rect x="108" y="184" width="12" height="14" fill="#fbbf24"/>` +
+  `<rect x="130" y="184" width="12" height="14" fill="#fbbf24"/>` +
+  `<rect x="108" y="206" width="12" height="14" fill="#fbbf24"/>` +
+  `<rect x="130" y="206" width="12" height="14" fill="#fbbf24"/>` +
+  `<rect x="108" y="228" width="12" height="14" fill="#fbbf24"/>` +
+  `<rect x="130" y="228" width="12" height="14" fill="#fbbf24"/>` +
+  // building right (taller, classic)
+  `<rect x="265" y="150" width="55" height="110" fill="#cbd5e1" stroke="#475569" stroke-width="2"/>` +
+  `<polygon points="260,150 292,118 325,150" fill="#334155"/>` +
+  `<rect x="260" y="150" width="65" height="5" fill="#1e293b"/>` +
+  `<rect x="278" y="165" width="13" height="18" fill="#bae6fd"/>` +
+  `<rect x="296" y="165" width="13" height="18" fill="#bae6fd"/>` +
+  `<rect x="278" y="190" width="13" height="14" fill="#bae6fd"/>` +
+  `<rect x="296" y="190" width="13" height="14" fill="#bae6fd"/>` +
+  `<rect x="278" y="212" width="13" height="14" fill="#bae6fd"/>` +
+  `<rect x="296" y="212" width="13" height="14" fill="#bae6fd"/>` +
+  `<rect x="278" y="232" width="13" height="14" fill="#bae6fd"/>` +
+  `<rect x="296" y="232" width="13" height="14" fill="#bae6fd"/>` +
+  // far right building
+  `<rect x="330" y="170" width="50" height="90" fill="#f1f5f9" stroke="#475569" stroke-width="2"/>` +
+  `<polygon points="325,170 355,148 385,170" fill="#475569"/>` +
+  `<rect x="325" y="170" width="60" height="5" fill="#1e293b"/>` +
+  `<rect x="340" y="185" width="12" height="16" fill="#fde68a"/>` +
+  `<rect x="358" y="185" width="12" height="16" fill="#fde68a"/>` +
+  `<rect x="340" y="208" width="12" height="14" fill="#fde68a"/>` +
+  `<rect x="358" y="208" width="12" height="14" fill="#fde68a"/>` +
+  `<rect x="340" y="230" width="12" height="14" fill="#fde68a"/>` +
+  `<rect x="358" y="230" width="12" height="14" fill="#fde68a"/>` +
+  // street lamps
+  `<rect x="118" y="260" width="2" height="40" fill="#1e293b"/>` +
+  `<circle cx="119" cy="258" r="4" fill="#fde68a"/>` +
+  `<rect x="278" y="260" width="2" height="40" fill="#1e293b"/>` +
+  `<circle cx="279" cy="258" r="4" fill="#fde68a"/>` +
+  // foreground tree left
+  `<ellipse cx="40" cy="305" rx="22" ry="6" fill="#16a34a" opacity="0.7"/>` +
+  `<rect x="38" y="305" width="4" height="20" fill="#78350f"/>` +
+  `<circle cx="40" cy="280" r="16" fill="#16a34a"/>` +
+  `<circle cx="40" cy="275" r="11" fill="#22c55e"/>` +
+  `<circle cx="32" cy="270" r="8" fill="#22c55e"/>` +
+  `<circle cx="48" cy="270" r="8" fill="#22c55e"/>` +
+  // foreground tree right
+  `<ellipse cx="360" cy="305" rx="22" ry="6" fill="#16a34a" opacity="0.7"/>` +
+  `<rect x="358" y="305" width="4" height="20" fill="#78350f"/>` +
+  `<circle cx="360" cy="280" r="16" fill="#16a34a"/>` +
+  `<circle cx="360" cy="275" r="11" fill="#22c55e"/>` +
+  `<circle cx="352" cy="270" r="8" fill="#22c55e"/>` +
+  `<circle cx="368" cy="270" r="8" fill="#22c55e"/>` +
+  // pedestrian 1 (left)
+  `<circle cx="80" cy="318" r="11" fill="#fbbf24"/>` +
+  `<circle cx="80" cy="313" r="6" fill="#fde68a"/>` +
+  `<rect x="72" y="324" width="16" height="24" fill="#dc2626"/>` +
+  `<rect x="68" y="348" width="6" height="16" fill="#1e293b"/>` +
+  `<rect x="86" y="348" width="6" height="16" fill="#1e293b"/>` +
+  `<path d="M94 330 q8 -2 10 -10" stroke="#fde68a" stroke-width="3" fill="none" stroke-linecap="round"/>` +
+  // pedestrian 2 (right)
+  `<circle cx="320" cy="318" r="11" fill="#fda4af"/>` +
+  `<circle cx="320" cy="313" r="6" fill="#fecdd3"/>` +
+  `<rect x="312" y="324" width="16" height="24" fill="#0ea5e9"/>` +
+  `<rect x="308" y="348" width="6" height="16" fill="#1e293b"/>` +
+  `<rect x="326" y="348" width="6" height="16" fill="#1e293b"/>` +
+  // yellow taxi (center)
+  `<ellipse cx="200" cy="332" rx="40" ry="5" fill="#0c4a6e" opacity="0.4"/>` +
+  `<rect x="160" y="304" width="80" height="22" rx="4" fill="#fbbf24"/>` +
+  `<rect x="160" y="320" width="80" height="8" rx="2" fill="#1e293b"/>` +
+  `<rect x="166" y="308" width="32" height="14" fill="#bae6fd" opacity="0.7"/>` +
+  `<rect x="202" y="308" width="32" height="14" fill="#bae6fd" opacity="0.7"/>` +
+  `<rect x="190" y="298" width="20" height="8" fill="#fbbf24"/>` +
+  `<rect x="194" y="294" width="12" height="4" fill="#fbbf24"/>` +
+  `<circle cx="174" cy="332" r="8" fill="#1e293b"/>` +
+  `<circle cx="226" cy="332" r="8" fill="#1e293b"/>` +
+  `<circle cx="174" cy="332" r="3" fill="#cbd5e1"/>` +
+  `<circle cx="226" cy="332" r="3" fill="#cbd5e1"/>`,
+  '#0c4a6e'
 )
 
 const marcheHero = wrap(
   `<defs>
     <linearGradient id="mh-sky" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0" stop-color="#fed7aa"/>
+      <stop offset="0" stop-color="#f97316"/>
+      <stop offset="0.3" stop-color="#fbbf24"/>
+      <stop offset="0.7" stop-color="#fde68a"/>
       <stop offset="1" stop-color="#fef3c7"/>
     </linearGradient>
+    <linearGradient id="mh-ground" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#a16207"/>
+      <stop offset="1" stop-color="#78350f"/>
+    </linearGradient>
+    <radialGradient id="mh-sun" cx="0.5" cy="0.5">
+      <stop offset="0" stop-color="#fef9c3"/>
+      <stop offset="0.5" stop-color="#fde68a"/>
+      <stop offset="1" stop-color="#fbbf24" stop-opacity="0"/>
+    </radialGradient>
   </defs>` +
-  `<rect width="400" height="120" fill="url(#mh-sky)"/>` +
-  `<circle cx="340" cy="50" r="28" fill="#fde68a"/>` +
-  `<rect y="350" width="400" height="50" fill="#92400e"/>` +
-  `<rect y="345" width="400" height="8" fill="#78350f"/>` +
-  `<path d="M0 120 L60 80 L120 120 L180 80 L240 120 L300 80 L360 120 L400 100 L400 140 L0 140 Z" fill="#dc2626"/>` +
-  `<path d="M0 120 L60 80 L120 120 L180 80 L240 120 L300 80 L360 120 L400 100" stroke="#fff" stroke-width="2" fill="none"/>` +
-  `<rect x="20" y="140" width="120" height="80" fill="#fff" stroke="#1e293b" stroke-width="2"/>` +
-  `<polygon points="20,140 80,110 140,140" fill="#dc2626"/>` +
-  `<rect x="20" y="140" width="120" height="14" fill="#dc2626"/>` +
-  `<text x="80" y="152" font-family="serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">LÉGUMES</text>` +
-  `<circle cx="50" cy="190" r="16" fill="#dc2626"/>` +
-  `<circle cx="50" cy="184" r="8" fill="#f87171"/>` +
-  `<path d="M48 174 L50 168 L52 174" stroke="#16a34a" stroke-width="2" fill="none"/>` +
-  `<circle cx="90" cy="195" r="14" fill="#fb923c"/>` +
-  `<circle cx="90" cy="190" r="7" fill="#fed7aa"/>` +
-  `<circle cx="120" cy="200" r="12" fill="#86efac"/>` +
-  `<rect x="160" y="140" width="120" height="80" fill="#fff" stroke="#1e293b" stroke-width="2"/>` +
-  `<polygon points="160,140 220,110 280,140" fill="#16a34a"/>` +
-  `<rect x="160" y="140" width="120" height="14" fill="#16a34a"/>` +
-  `<text x="220" y="152" font-family="serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">FROMAGE</text>` +
-  `<ellipse cx="200" cy="195" rx="22" ry="10" fill="#fde047"/>` +
-  `<ellipse cx="200" cy="190" rx="22" ry="10" fill="#fef08a"/>` +
-  `<ellipse cx="245" cy="200" rx="18" ry="8" fill="#facc15"/>` +
-  `<circle cx="240" cy="200" r="3" fill="#92400e"/>` +
-  `<circle cx="250" cy="200" r="3" fill="#92400e"/>` +
-  `<rect x="300" y="140" width="100" height="80" fill="#fff" stroke="#1e293b" stroke-width="2"/>` +
-  `<polygon points="300,140 350,110 400,140" fill="#a16207"/>` +
-  `<rect x="300" y="140" width="100" height="14" fill="#a16207"/>` +
-  `<text x="350" y="152" font-family="serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">PAIN</text>` +
-  `<ellipse cx="335" cy="190" rx="20" ry="8" fill="#92400e"/>` +
-  `<ellipse cx="335" cy="186" rx="20" ry="8" fill="#d97706"/>` +
-  `<ellipse cx="370" cy="195" rx="18" ry="7" fill="#a16207"/>` +
-  `<rect x="20" y="240" width="100" height="60" fill="#fff" stroke="#1e293b" stroke-width="2"/>` +
-  `<rect x="20" y="240" width="100" height="12" fill="#7c3aed"/>` +
-  `<text x="70" y="250" font-family="serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">OLIVES</text>` +
-  `<ellipse cx="50" cy="275" rx="10" ry="6" fill="#65a30d"/>` +
-  `<ellipse cx="75" cy="280" rx="10" ry="6" fill="#84cc16"/>` +
-  `<ellipse cx="100" cy="275" rx="10" ry="6" fill="#451a03"/>` +
-  `<rect x="140" y="240" width="100" height="60" fill="#fff" stroke="#1e293b" stroke-width="2"/>` +
-  `<rect x="140" y="240" width="100" height="12" fill="#dc2626"/>` +
-  `<text x="190" y="250" font-family="serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">FRUITS</text>` +
-  `<circle cx="170" cy="280" r="14" fill="#dc2626"/>` +
-  `<circle cx="170" cy="276" r="7" fill="#f87171"/>` +
-  `<circle cx="200" cy="280" r="12" fill="#facc15"/>` +
-  `<ellipse cx="220" cy="282" rx="10" ry="8" fill="#a3e635"/>` +
-  `<rect x="260" y="240" width="120" height="60" fill="#fff" stroke="#1e293b" stroke-width="2"/>` +
-  `<rect x="260" y="240" width="120" height="12" fill="#0284c7"/>` +
-  `<text x="320" y="250" font-family="serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">POISSON</text>` +
-  `<ellipse cx="310" cy="278" rx="14" ry="6" fill="#94a3b8"/>` +
-  `<path d="M324 278 L334 274 L334 282 Z" fill="#94a3b8"/>` +
-  `<circle cx="305" cy="278" r="2" fill="#1e293b"/>` +
-  `<ellipse cx="350" cy="280" rx="14" ry="6" fill="#cbd5e1"/>` +
-  `<path d="M364 280 L374 276 L374 284 Z" fill="#cbd5e1"/>` +
-  `<circle cx="345" cy="280" r="2" fill="#1e293b"/>` +
-  `<circle cx="100" cy="350" r="20" fill="#fbbf24"/>` +
-  `<circle cx="100" cy="342" r="10" fill="#fde68a"/>` +
-  `<rect x="88" y="358" width="24" height="32" fill="#dc2626"/>` +
-  `<rect x="80" y="388" width="10" height="12" fill="#1e293b"/>` +
-  `<rect x="110" y="388" width="10" height="12" fill="#1e293b"/>` +
-  `<ellipse cx="120" y="380" rx="14" ry="5" fill="#92400e"/>` +
-  `<path d="M106 380 Q120 372 134 380" stroke="#a16207" stroke-width="3" fill="none"/>` +
-  `<circle cx="320" cy="350" r="22" fill="#fda4af"/>` +
-  `<circle cx="320" cy="342" r="12" fill="#fecdd3"/>` +
-  `<rect x="306" y="358" width="28" height="32" fill="#0ea5e9"/>` +
-  `<rect x="298" y="388" width="10" height="12" fill="#1e293b"/>` +
-  `<rect x="332" y="388" width="10" height="12" fill="#1e293b"/>`,
-  '#fed7aa'
+  // warm morning sky
+  `<rect width="400" height="400" fill="url(#mh-sky)"/>` +
+  // sun
+  `<circle cx="80" cy="70" r="80" fill="url(#mh-sun)" opacity="0.6"/>` +
+  `<circle cx="80" cy="70" r="32" fill="#fef3c7"/>` +
+  `<circle cx="80" cy="70" r="32" fill="#fde68a"/>` +
+  // distant hills
+  `<path d="M0 130 Q60 110 120 125 Q180 105 240 120 Q300 100 360 118 Q400 110 400 130 L400 140 L0 140 Z" fill="#a16207" opacity="0.4"/>` +
+  // distant building silhouettes
+  `<rect x="20" y="115" width="40" height="25" fill="#92400e" opacity="0.4"/>` +
+  `<polygon points="20,115 40,100 60,115" fill="#78350f" opacity="0.5"/>` +
+  `<rect x="300" y="110" width="60" height="30" fill="#92400e" opacity="0.4"/>` +
+  `<polygon points="300,110 330,90 360,110" fill="#78350f" opacity="0.5"/>` +
+  // ground
+  `<rect y="350" width="400" height="50" fill="url(#mh-ground)"/>` +
+  `<rect y="345" width="400" height="8" fill="#451a03"/>` +
+  // cobblestone pattern
+  `<ellipse cx="40" cy="370" rx="8" ry="3" fill="#451a03" opacity="0.3"/>` +
+  `<ellipse cx="120" cy="365" rx="8" ry="3" fill="#451a03" opacity="0.3"/>` +
+  `<ellipse cx="200" cy="372" rx="8" ry="3" fill="#451a03" opacity="0.3"/>` +
+  `<ellipse cx="280" cy="368" rx="8" ry="3" fill="#451a03" opacity="0.3"/>` +
+  `<ellipse cx="360" cy="370" rx="8" ry="3" fill="#451a03" opacity="0.3"/>` +
+  // market awnings (scalloped stripes)
+  `<path d="M0 140 L40 105 L80 140 L120 105 L160 140 L200 105 L240 140 L280 105 L320 140 L360 105 L400 140 L400 165 L0 165 Z" fill="#dc2626"/>` +
+  `<path d="M0 140 L40 105 L80 140 L120 105 L160 140 L200 105 L240 140 L280 105 L320 140 L360 105 L400 140" stroke="#fff" stroke-width="2" fill="none"/>` +
+  // striped pattern on awning
+  `<path d="M40 105 L80 140 M120 105 L160 140 M200 105 L240 140 M280 105 L320 140 M360 105 L400 140" stroke="#fef3c7" stroke-width="1.5" opacity="0.6"/>` +
+  // shadow under awning
+  `<rect y="160" width="400" height="6" fill="#7f1d1d" opacity="0.5"/>` +
+  // stall 1 - Légumes
+  `<rect x="14" y="166" width="100" height="90" fill="#fff" stroke="#451a03" stroke-width="2"/>` +
+  `<rect x="14" y="166" width="100" height="14" fill="#16a34a"/>` +
+  `<rect x="14" y="166" width="100" height="3" fill="#15803d"/>` +
+  `<text x="64" y="178" font-family="serif" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">LÉGUMES</text>` +
+  // vegetables in stall 1
+  `<circle cx="36" cy="210" r="14" fill="#dc2626"/>` +
+  `<circle cx="36" cy="204" r="7" fill="#f87171"/>` +
+  `<path d="M34 195 L36 190 L38 195" stroke="#15803d" stroke-width="2" fill="none"/>` +
+  `<circle cx="64" cy="218" r="12" fill="#fb923c"/>` +
+  `<circle cx="64" cy="213" r="6" fill="#fed7aa"/>` +
+  `<path d="M62 206 L64 201 L66 206" stroke="#15803d" stroke-width="2" fill="none"/>` +
+  `<ellipse cx="92" cy="218" rx="10" ry="14" fill="#7c3aed"/>` +
+  `<ellipse cx="92" cy="216" rx="6" ry="10" fill="#a78bfa"/>` +
+  `<path d="M89 204 L92 199 L95 204" stroke="#15803d" stroke-width="2" fill="none"/>` +
+  `<ellipse cx="36" cy="244" rx="14" ry="6" fill="#86efac"/>` +
+  `<ellipse cx="64" cy="248" rx="12" ry="5" fill="#84cc16"/>` +
+  `<ellipse cx="92" cy="244" rx="14" ry="5" fill="#facc15"/>` +
+  // stall 2 - Fromage
+  `<rect x="124" y="166" width="100" height="90" fill="#fff" stroke="#451a03" stroke-width="2"/>` +
+  `<rect x="124" y="166" width="100" height="14" fill="#ca8a04"/>` +
+  `<rect x="124" y="166" width="100" height="3" fill="#92400e"/>` +
+  `<text x="174" y="178" font-family="serif" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">FROMAGE</text>` +
+  `<ellipse cx="150" cy="210" rx="22" ry="10" fill="#fde047"/>` +
+  `<ellipse cx="150" cy="205" rx="22" ry="10" fill="#fef08a"/>` +
+  `<ellipse cx="150" cy="205" rx="10" ry="4" fill="#fbbf24"/>` +
+  `<ellipse cx="200" cy="218" rx="18" ry="8" fill="#facc15"/>` +
+  `<ellipse cx="200" cy="214" rx="18" ry="8" fill="#fef08a"/>` +
+  `<circle cx="194" cy="214" r="2" fill="#92400e"/>` +
+  `<circle cx="200" cy="213" r="2" fill="#92400e"/>` +
+  `<circle cx="206" cy="214" r="2" fill="#92400e"/>` +
+  `<ellipse cx="160" cy="246" rx="16" ry="7" fill="#facc15"/>` +
+  `<ellipse cx="190" cy="248" rx="14" ry="6" fill="#fde047"/>` +
+  // stall 3 - Pain
+  `<rect x="234" y="166" width="100" height="90" fill="#fff" stroke="#451a03" stroke-width="2"/>` +
+  `<rect x="234" y="166" width="100" height="14" fill="#a16207"/>` +
+  `<rect x="234" y="166" width="100" height="3" fill="#78350f"/>` +
+  `<text x="284" y="178" font-family="serif" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">PAIN</text>` +
+  `<ellipse cx="260" cy="208" rx="20" ry="8" fill="#92400e"/>` +
+  `<ellipse cx="260" cy="203" rx="20" ry="8" fill="#d97706"/>` +
+  `<line x1="246" y1="203" x2="274" y2="203" stroke="#92400e" stroke-width="1.5"/>` +
+  `<line x1="250" y1="201" x2="250" y2="207" stroke="#92400e" stroke-width="1"/>` +
+  `<line x1="260" y1="201" x2="260" y2="207" stroke="#92400e" stroke-width="1"/>` +
+  `<line x1="270" y1="201" x2="270" y2="207" stroke="#92400e" stroke-width="1"/>` +
+  `<ellipse cx="310" cy="220" rx="22" ry="9" fill="#a16207"/>` +
+  `<ellipse cx="310" cy="215" rx="22" ry="9" fill="#d97706"/>` +
+  `<line x1="296" y1="215" x2="324" y2="215" stroke="#92400e" stroke-width="1.5"/>` +
+  `<line x1="302" y1="213" x2="302" y2="219" stroke="#92400e" stroke-width="1"/>` +
+  `<line x1="312" y1="213" x2="312" y2="219" stroke="#92400e" stroke-width="1"/>` +
+  `<line x1="322" y1="213" x2="322" y2="219" stroke="#92400e" stroke-width="1"/>` +
+  `<ellipse cx="270" cy="244" rx="18" ry="6" fill="#92400e"/>` +
+  `<ellipse cx="305" cy="246" rx="16" ry="5" fill="#a16207"/>` +
+  // stall 4 - Olives
+  `<rect x="14" y="266" width="86" height="68" fill="#fff" stroke="#451a03" stroke-width="2"/>` +
+  `<rect x="14" y="266" width="86" height="12" fill="#7c3aed"/>` +
+  `<text x="57" y="276" font-family="serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">OLIVES</text>` +
+  `<ellipse cx="34" cy="296" rx="10" ry="6" fill="#65a30d"/>` +
+  `<ellipse cx="58" cy="300" rx="10" ry="6" fill="#84cc16"/>` +
+  `<ellipse cx="82" cy="296" rx="10" ry="6" fill="#451a03"/>` +
+  `<ellipse cx="34" cy="316" rx="10" ry="6" fill="#a3e635"/>` +
+  `<ellipse cx="58" cy="320" rx="10" ry="6" fill="#7c2d12"/>` +
+  `<ellipse cx="82" cy="316" rx="10" ry="6" fill="#65a30d"/>` +
+  // stall 5 - Fruits
+  `<rect x="110" y="266" width="86" height="68" fill="#fff" stroke="#451a03" stroke-width="2"/>` +
+  `<rect x="110" y="266" width="86" height="12" fill="#dc2626"/>` +
+  `<text x="153" y="276" font-family="serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">FRUITS</text>` +
+  `<circle cx="132" cy="298" r="11" fill="#dc2626"/>` +
+  `<circle cx="132" cy="294" r="6" fill="#f87171"/>` +
+  `<path d="M130 287 L132 283 L134 287" stroke="#15803d" stroke-width="2" fill="none"/>` +
+  `<circle cx="160" cy="300" r="10" fill="#facc15"/>` +
+  `<circle cx="160" cy="296" r="5" fill="#fde68a"/>` +
+  `<ellipse cx="184" cy="302" rx="10" ry="8" fill="#a3e635"/>` +
+  `<circle cx="132" cy="320" r="9" fill="#f97316"/>` +
+  `<circle cx="160" cy="322" r="8" fill="#dc2626"/>` +
+  `<ellipse cx="184" cy="320" rx="8" ry="6" fill="#a3e635"/>` +
+  // stall 6 - Poisson
+  `<rect x="206" y="266" width="100" height="68" fill="#fff" stroke="#451a03" stroke-width="2"/>` +
+  `<rect x="206" y="266" width="100" height="12" fill="#0284c7"/>` +
+  `<text x="256" y="276" font-family="serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">POISSON</text>` +
+  `<ellipse cx="232" cy="298" rx="14" ry="6" fill="#94a3b8"/>` +
+  `<path d="M246 298 L256 294 L256 302 Z" fill="#94a3b8"/>` +
+  `<circle cx="227" cy="298" r="2" fill="#1e293b"/>` +
+  `<ellipse cx="278" cy="300" rx="14" ry="6" fill="#cbd5e1"/>` +
+  `<path d="M292 300 L302 296 L302 304 Z" fill="#cbd5e1"/>` +
+  `<circle cx="273" cy="300" r="2" fill="#1e293b"/>` +
+  `<ellipse cx="232" cy="320" rx="12" ry="5" fill="#7dd3fc"/>` +
+  `<path d="M244 320 L252 317 L252 323 Z" fill="#7dd3fc"/>` +
+  `<ellipse cx="278" cy="322" rx="12" ry="5" fill="#fb923c"/>` +
+  `<path d="M290 322 L298 319 L298 325 Z" fill="#fb923c"/>` +
+  // stall 7 - Fleurs
+  `<rect x="316" y="266" width="68" height="68" fill="#fff" stroke="#451a03" stroke-width="2"/>` +
+  `<rect x="316" y="266" width="68" height="12" fill="#ec4899"/>` +
+  `<text x="350" y="276" font-family="serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">FLEURS</text>` +
+  `<circle cx="336" cy="300" r="8" fill="#fb7185"/>` +
+  `<circle cx="336" cy="298" r="4" fill="#fda4af"/>` +
+  `<circle cx="362" cy="302" r="8" fill="#a855f7"/>` +
+  `<circle cx="362" cy="300" r="4" fill="#c084fc"/>` +
+  `<circle cx="336" cy="320" r="7" fill="#facc15"/>` +
+  `<circle cx="336" cy="318" r="3" fill="#fde68a"/>` +
+  `<circle cx="362" cy="322" r="7" fill="#fb7185"/>` +
+  // customer 1 (left, with basket)
+  `<ellipse cx="40" cy="370" rx="14" ry="4" fill="#451a03" opacity="0.4"/>` +
+  `<circle cx="40" cy="320" r="14" fill="#fbbf24"/>` +
+  `<circle cx="40" cy="313" r="8" fill="#fde68a"/>` +
+  `<rect x="32" y="328" width="16" height="26" fill="#dc2626"/>` +
+  `<rect x="26" y="354" width="6" height="14" fill="#1e293b"/>` +
+  `<rect x="48" y="354" width="6" height="14" fill="#1e293b"/>` +
+  // basket
+  `<path d="M50 348 L70 348 L66 372 L54 372 Z" fill="#92400e"/>` +
+  `<path d="M50 348 Q60 340 70 348" stroke="#451a03" stroke-width="2" fill="none"/>` +
+  // customer 2 (right)
+  `<ellipse cx="320" cy="370" rx="14" ry="4" fill="#451a03" opacity="0.4"/>` +
+  `<circle cx="320" cy="320" r="14" fill="#fda4af"/>` +
+  `<circle cx="320" cy="313" r="8" fill="#fecdd3"/>` +
+  `<rect x="312" y="328" width="16" height="26" fill="#0ea5e9"/>` +
+  `<rect x="306" y="354" width="6" height="14" fill="#1e293b"/>` +
+  `<rect x="328" y="354" width="6" height="14" fill="#1e293b"/>` +
+  // vendor (center, behind counter)
+  `<circle cx="280" cy="318" r="12" fill="#fde68a"/>` +
+  `<circle cx="280" cy="312" r="7" fill="#fef3c7"/>` +
+  `<rect x="274" y="324" width="12" height="20" fill="#16a34a"/>` +
+  // vendor's apron
+  `<rect x="272" y="332" width="16" height="14" fill="#fef3c7"/>`,
+  '#fde68a'
 )
 
 const parcHero = wrap(
   `<defs>
     <linearGradient id="prh-sky" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0" stop-color="#7dd3fc"/>
+      <stop offset="0" stop-color="#0ea5e9"/>
+      <stop offset="0.3" stop-color="#7dd3fc"/>
       <stop offset="0.6" stop-color="#bae6fd"/>
-      <stop offset="1" stop-color="#bbf7d0"/>
+      <stop offset="1" stop-color="#d9f99d"/>
     </linearGradient>
     <radialGradient id="prh-sun" cx="0.5" cy="0.5">
-      <stop offset="0" stop-color="#fef3c7"/>
+      <stop offset="0" stop-color="#fef9c3"/>
       <stop offset="0.5" stop-color="#fde68a"/>
-      <stop offset="1" stop-color="#fbbf24"/>
+      <stop offset="1" stop-color="#fbbf24" stop-opacity="0"/>
     </radialGradient>
+    <linearGradient id="prh-ground" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#22c55e"/>
+      <stop offset="0.5" stop-color="#16a34a"/>
+      <stop offset="1" stop-color="#15803d"/>
+    </linearGradient>
+    <linearGradient id="prh-path" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#a16207"/>
+      <stop offset="1" stop-color="#78350f"/>
+    </linearGradient>
   </defs>` +
+  // sky
   `<rect width="400" height="400" fill="url(#prh-sky)"/>` +
-  `<circle cx="320" cy="80" r="40" fill="url(#prh-sun)"/>` +
-  `<ellipse cx="100" cy="60" rx="40" ry="8" fill="#fff" opacity="0.6"/>` +
-  `<ellipse cx="240" cy="100" rx="50" ry="10" fill="#fff" opacity="0.5"/>` +
-  `<path d="M0 280 Q100 240 200 270 T400 260 L400 400 L0 400 Z" fill="#22c55e"/>` +
-  `<path d="M0 320 Q120 290 240 310 T400 300 L400 400 L0 400 Z" fill="#16a34a"/>` +
-  `<path d="M180 280 Q200 270 220 280 L260 400 L140 400 Z" fill="#a16207" opacity="0.6"/>` +
-  `<path d="M80 250 L100 200 L120 250 Z" fill="#15803d"/>` +
-  `<circle cx="100" cy="220" r="40" fill="#16a34a"/>` +
-  `<circle cx="100" cy="210" r="28" fill="#22c55e"/>` +
-  `<circle cx="80" cy="200" r="20" fill="#22c55e"/>` +
-  `<circle cx="120" cy="200" r="20" fill="#22c55e"/>` +
-  `<rect x="92" y="240" width="16" height="60" fill="#78350f"/>` +
-  `<path d="M280 240 L310 170 L340 240 Z" fill="#15803d"/>` +
-  `<circle cx="310" cy="200" r="50" fill="#16a34a"/>` +
-  `<circle cx="310" cy="186" r="36" fill="#22c55e"/>` +
-  `<circle cx="285" cy="178" r="24" fill="#22c55e"/>` +
-  `<circle cx="335" cy="178" r="24" fill="#22c55e"/>` +
-  `<rect x="302" y="240" width="16" height="70" fill="#78350f"/>` +
-  `<path d="M40 350 Q60 320 80 340 Q100 320 120 350 L130 400 L30 400 Z" fill="#facc15" opacity="0.5"/>` +
-  `<ellipse cx="80" cy="320" rx="20" ry="6" fill="#a16207"/>` +
-  `<rect x="70" y="310" width="20" height="14" fill="#92400e"/>` +
-  `<rect x="76" y="298" width="8" height="14" fill="#92400e"/>` +
-  `<circle cx="80" cy="296" r="6" fill="#92400e"/>` +
-  `<path d="M260 320 Q290 280 330 300 Q360 280 380 320 L390 400 L240 400 Z" fill="#7dd3fc" opacity="0.6"/>` +
-  `<path d="M260 320 Q310 290 380 320" stroke="#bae6fd" stroke-width="2" fill="none" opacity="0.7"/>` +
-  `<ellipse cx="320" cy="335" rx="14" ry="4" fill="#fff" opacity="0.8"/>` +
-  `<path d="M170 290 Q190 270 210 280 L230 350 L150 350 Z" fill="#dc2626" opacity="0.85"/>` +
-  `<ellipse cx="190" cy="285" rx="20" ry="8" fill="#fbbf24"/>` +
-  `<rect x="180" y="280" width="20" height="10" fill="#dc2626"/>` +
-  `<circle cx="190" cy="282" r="6" fill="#fff"/>` +
-  `<circle cx="190" cy="282" r="3" fill="#1e293b"/>` +
-  `<path d="M40 350 Q200 340 400 360 L400 400 L0 400 Z" fill="#a16207" opacity="0.3"/>` +
-  `<circle cx="50" cy="380" r="4" fill="#fff"/>` +
-  `<circle cx="70" cy="385" r="4" fill="#fff"/>` +
-  `<circle cx="100" cy="378" r="4" fill="#fff"/>` +
-  `<circle cx="60" cy="370" r="3" fill="#fff"/>` +
-  `<circle cx="140" cy="370" r="20" fill="#fbbf24"/>` +
-  `<circle cx="140" cy="362" r="10" fill="#fde68a"/>` +
-  `<rect x="128" y="378" width="24" height="34" fill="#0ea5e9"/>` +
-  `<rect x="120" y="410" width="10" height="14" fill="#1e293b"/>` +
-  `<rect x="150" y="410" width="10" height="14" fill="#1e293b"/>` +
-  `<circle cx="240" cy="370" r="20" fill="#fda4af"/>` +
-  `<circle cx="240" cy="362" r="10" fill="#fecdd3"/>` +
-  `<rect x="228" y="378" width="24" height="34" fill="#dc2626"/>` +
-  `<rect x="220" y="410" width="10" height="14" fill="#1e293b"/>` +
-  `<rect x="250" y="410" width="10" height="14" fill="#1e293b"/>` +
-  `<path d="M168 360 L162 348 L172 354" stroke="#fde68a" stroke-width="5" fill="none" stroke-linecap="round"/>` +
-  `<path d="M212 360 L218 348 L208 354" stroke="#fecdd3" stroke-width="5" fill="none" stroke-linecap="round"/>` +
-  `<path d="M180 350 Q200 340 220 350" stroke="#fff" stroke-width="2" fill="none" opacity="0.9"/>`,
-  '#bbf7d0'
+  // sun
+  `<circle cx="320" cy="80" r="60" fill="url(#prh-sun)" opacity="0.6"/>` +
+  `<circle cx="320" cy="80" r="32" fill="#fef3c7"/>` +
+  `<circle cx="320" cy="80" r="32" fill="#fde68a"/>` +
+  // clouds
+  `<ellipse cx="60" cy="80" rx="40" ry="10" fill="#fff" opacity="0.7"/>` +
+  `<ellipse cx="70" cy="76" rx="22" ry="10" fill="#fff" opacity="0.6"/>` +
+  `<ellipse cx="200" cy="50" rx="36" ry="8" fill="#fff" opacity="0.6"/>` +
+  `<ellipse cx="220" cy="46" rx="20" ry="9" fill="#fff" opacity="0.5"/>` +
+  `<ellipse cx="180" cy="120" rx="30" ry="6" fill="#fff" opacity="0.5"/>` +
+  // birds
+  `<path d="M100 60 q3 -5 6 0 q3 -5 6 0" stroke="#1e293b" stroke-width="1.5" fill="none"/>` +
+  `<path d="M130 70 q2 -4 4 0 q2 -4 4 0" stroke="#1e293b" stroke-width="1.5" fill="none"/>` +
+  // distant tree line
+  `<path d="M0 240 L20 215 L40 240 L60 210 L80 240 L100 218 L120 240 L140 215 L160 240 L180 220 L200 240 L220 215 L240 240 L260 218 L280 240 L300 215 L320 240 L340 220 L360 240 L380 218 L400 240 L400 250 L0 250 Z" fill="#15803d" opacity="0.5"/>` +
+  // ground / grass
+  `<path d="M0 240 L0 400 L400 400 L400 240 Q300 220 200 235 Q100 250 0 240 Z" fill="url(#prh-ground)"/>` +
+  // grass blades detail
+  `<path d="M30 280 l3 -10 l3 10 z" fill="#16a34a" opacity="0.6"/>` +
+  `<path d="M80 290 l3 -8 l3 8 z" fill="#16a34a" opacity="0.6"/>` +
+  `<path d="M350 285 l3 -10 l3 10 z" fill="#16a34a" opacity="0.6"/>` +
+  // winding path
+  `<path d="M180 400 Q160 350 200 320 Q250 290 220 250 Q190 230 200 200" stroke="url(#prh-path)" stroke-width="60" fill="none" stroke-linecap="round" opacity="0.85"/>` +
+  `<path d="M180 400 Q160 350 200 320 Q250 290 220 250 Q190 230 200 200" stroke="#92400e" stroke-width="62" fill="none" stroke-linecap="round" opacity="0.4"/>` +
+  // left tree (large)
+  `<rect x="36" y="220" width="14" height="80" fill="#78350f"/>` +
+  `<rect x="34" y="220" width="18" height="6" fill="#451a03"/>` +
+  `<circle cx="44" cy="180" r="36" fill="#15803d"/>` +
+  `<circle cx="44" cy="172" r="26" fill="#16a34a"/>` +
+  `<circle cx="28" cy="172" r="18" fill="#22c55e"/>` +
+  `<circle cx="62" cy="172" r="18" fill="#22c55e"/>` +
+  `<circle cx="44" cy="156" r="16" fill="#22c55e"/>` +
+  // highlight on tree
+  `<circle cx="36" cy="168" r="8" fill="#4ade80" opacity="0.6"/>` +
+  // right tree (large)
+  `<rect x="328" y="220" width="14" height="80" fill="#78350f"/>` +
+  `<rect x="326" y="220" width="18" height="6" fill="#451a03"/>` +
+  `<circle cx="336" cy="180" r="38" fill="#15803d"/>` +
+  `<circle cx="336" cy="170" r="28" fill="#16a34a"/>` +
+  `<circle cx="316" cy="170" r="20" fill="#22c55e"/>` +
+  `<circle cx="354" cy="170" r="20" fill="#22c55e"/>` +
+  `<circle cx="336" cy="152" r="18" fill="#22c55e"/>` +
+  `<circle cx="328" cy="166" r="8" fill="#4ade80" opacity="0.6"/>` +
+  // middle tree (smaller, distant)
+  `<rect x="194" y="245" width="10" height="50" fill="#78350f"/>` +
+  `<circle cx="200" cy="232" r="24" fill="#15803d"/>` +
+  `<circle cx="200" cy="226" r="18" fill="#16a34a"/>` +
+  `<circle cx="190" cy="226" r="12" fill="#22c55e"/>` +
+  `<circle cx="210" cy="226" r="12" fill="#22c55e"/>` +
+  // flowers along path
+  `<circle cx="120" cy="380" r="4" fill="#ec4899"/>` +
+  `<circle cx="116" cy="376" r="2" fill="#fda4af"/>` +
+  `<rect x="119" y="380" width="2" height="6" fill="#16a34a"/>` +
+  `<circle cx="100" cy="370" r="3" fill="#fbbf24"/>` +
+  `<rect x="99" y="370" width="2" height="6" fill="#16a34a"/>` +
+  `<circle cx="270" cy="370" r="4" fill="#a855f7"/>` +
+  `<circle cx="266" cy="366" r="2" fill="#c084fc"/>` +
+  `<rect x="269" y="370" width="2" height="6" fill="#16a34a"/>` +
+  `<circle cx="290" cy="385" r="3" fill="#fb7185"/>` +
+  `<rect x="289" y="385" width="2" height="6" fill="#16a34a"/>` +
+  // pond (left)
+  `<ellipse cx="80" cy="350" rx="40" ry="14" fill="#7dd3fc"/>` +
+  `<ellipse cx="80" cy="350" rx="36" ry="11" fill="#0ea5e9" opacity="0.7"/>` +
+  `<path d="M50 348 Q70 345 90 350" stroke="#bae6fd" stroke-width="1.5" fill="none" opacity="0.8"/>` +
+  `<path d="M60 354 Q80 352 100 356" stroke="#bae6fd" stroke-width="1.5" fill="none" opacity="0.6"/>` +
+  // bench (right)
+  `<rect x="320" y="320" width="50" height="6" fill="#92400e"/>` +
+  `<rect x="324" y="312" width="42" height="10" fill="#a16207"/>` +
+  `<rect x="320" y="326" width="4" height="14" fill="#78350f"/>` +
+  `<rect x="366" y="326" width="4" height="14" fill="#78350f"/>` +
+  `<rect x="324" y="312" width="4" height="10" fill="#78350f"/>` +
+  `<rect x="362" y="312" width="4" height="10" fill="#78350f"/>` +
+  // shadow under bench
+  `<ellipse cx="345" cy="342" rx="28" ry="3" fill="#15803d" opacity="0.4"/>` +
+  // lamp post (left)
+  `<rect x="124" y="240" width="3" height="80" fill="#1e293b"/>` +
+  `<rect x="118" y="234" width="14" height="6" fill="#1e293b"/>` +
+  `<circle cx="125" cy="232" r="5" fill="#fde68a"/>` +
+  `<rect x="123" y="237" width="4" height="3" fill="#fde68a"/>` +
+  // lamp glow
+  `<circle cx="125" cy="232" r="14" fill="#fde68a" opacity="0.3"/>` +
+  // dog (between the two people)
+  `<ellipse cx="200" cy="346" rx="12" ry="6" fill="#a16207"/>` +
+  `<circle cx="186" cy="342" r="6" fill="#92400e"/>` +
+  `<path d="M180 340 L176 332" stroke="#92400e" stroke-width="3" stroke-linecap="round"/>` +
+  `<rect x="194" y="350" width="3" height="8" fill="#92400e"/>` +
+  `<rect x="200" y="350" width="3" height="8" fill="#92400e"/>` +
+  `<rect x="206" y="350" width="3" height="8" fill="#92400e"/>` +
+  `<rect x="212" y="350" width="3" height="8" fill="#92400e"/>` +
+  `<path d="M212 340 q4 -2 5 -6" stroke="#92400e" stroke-width="2" fill="none" stroke-linecap="round"/>` +
+  // person 1 (left)
+  `<ellipse cx="140" cy="370" rx="14" ry="4" fill="#15803d" opacity="0.3"/>` +
+  `<circle cx="140" cy="320" r="14" fill="#fbbf24"/>` +
+  `<circle cx="140" cy="314" r="9" fill="#fde68a"/>` +
+  `<rect x="130" y="328" width="20" height="28" fill="#0ea5e9"/>` +
+  `<rect x="124" y="356" width="6" height="14" fill="#1e293b"/>` +
+  `<rect x="150" y="356" width="6" height="14" fill="#1e293b"/>` +
+  `<path d="M158 332 q8 0 12 -8" stroke="#fde68a" stroke-width="5" fill="none" stroke-linecap="round"/>` +
+  // person 2 (right)
+  `<ellipse cx="240" cy="370" rx="14" ry="4" fill="#15803d" opacity="0.3"/>` +
+  `<circle cx="240" cy="320" r="14" fill="#fda4af"/>` +
+  `<circle cx="240" cy="314" r="9" fill="#fecdd3"/>` +
+  `<rect x="230" y="328" width="20" height="28" fill="#dc2626"/>` +
+  `<rect x="224" y="356" width="6" height="14" fill="#1e293b"/>` +
+  `<rect x="250" y="356" width="6" height="14" fill="#1e293b"/>` +
+  `<path d="M222 332 q-8 0 -12 -8" stroke="#fecdd3" stroke-width="5" fill="none" stroke-linecap="round"/>` +
+  // balloons above (between people)
+  `<line x1="190" y1="285" x2="190" y2="265" stroke="#1e293b" stroke-width="1"/>` +
+  `<ellipse cx="190" cy="260" rx="9" ry="11" fill="#ec4899"/>` +
+  `<ellipse cx="190" cy="258" rx="4" ry="5" fill="#fda4af" opacity="0.7"/>` +
+  `<polygon points="190,271 187,275 193,275" fill="#ec4899"/>` +
+  // butterfly
+  `<ellipse cx="280" cy="280" rx="4" ry="6" fill="#a855f7"/>` +
+  `<ellipse cx="276" cy="276" rx="5" ry="4" fill="#c084fc" transform="rotate(-30 276 276)"/>` +
+  `<ellipse cx="284" cy="276" rx="5" ry="4" fill="#c084fc" transform="rotate(30 284 276)"/>` +
+  `<line x1="280" y1="282" x2="280" y2="288" stroke="#1e293b" stroke-width="1"/>`,
+  '#d9f99d'
 )
 
 const pharmacieHero = wrap(
@@ -872,53 +1119,152 @@ const pharmacieHero = wrap(
       <stop offset="0" stop-color="#bae6fd"/>
       <stop offset="1" stop-color="#dbeafe"/>
     </linearGradient>
+    <linearGradient id="phh-street" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#64748b"/>
+      <stop offset="1" stop-color="#334155"/>
+    </linearGradient>
+    <radialGradient id="phh-cross" cx="0.5" cy="0.5">
+      <stop offset="0" stop-color="#bbf7d0"/>
+      <stop offset="0.7" stop-color="#22c55e"/>
+      <stop offset="1" stop-color="#15803d"/>
+    </radialGradient>
   </defs>` +
+  // sky
   `<rect width="400" height="280" fill="url(#phh-sky)"/>` +
-  `<rect y="280" width="400" height="120" fill="#64748b"/>` +
-  `<rect y="280" width="400" height="6" fill="#334155"/>` +
-  `<rect y="286" width="400" height="3" fill="#fbbf24" stroke-dasharray="14 14"/>` +
+  // sun
+  `<circle cx="80" cy="60" r="40" fill="#fef3c7" opacity="0.7"/>` +
+  `<circle cx="80" cy="60" r="24" fill="#fde68a"/>` +
+  // clouds
+  `<ellipse cx="240" cy="60" rx="36" ry="8" fill="#fff" opacity="0.7"/>` +
+  `<ellipse cx="250" cy="56" rx="20" ry="8" fill="#fff" opacity="0.6"/>` +
+  `<ellipse cx="340" cy="100" rx="30" ry="6" fill="#fff" opacity="0.5"/>` +
+  // building left (Haussmann-style)
   `<rect x="0" y="120" width="120" height="180" fill="#94a3b8" stroke="#1e293b" stroke-width="2"/>` +
-  `<rect x="0" y="120" width="120" height="20" fill="#475569"/>` +
-  `<rect x="20" y="160" width="20" height="30" fill="#bae6fd"/>` +
-  `<rect x="50" y="160" width="20" height="30" fill="#bae6fd"/>` +
-  `<rect x="80" y="160" width="20" height="30" fill="#bae6fd"/>` +
-  `<rect x="20" y="200" width="20" height="30" fill="#bae6fd"/>` +
-  `<rect x="50" y="200" width="20" height="30" fill="#bae6fd"/>` +
-  `<rect x="80" y="200" width="20" height="30" fill="#bae6fd"/>` +
-  `<rect x="20" y="240" width="20" height="30" fill="#bae6fd"/>` +
-  `<rect x="50" y="240" width="20" height="30" fill="#bae6fd"/>` +
-  `<rect x="80" y="240" width="20" height="30" fill="#bae6fd"/>` +
-  `<polygon points="0,120 60,90 120,120" fill="#334155"/>` +
-  `<rect x="240" y="100" width="160" height="200" fill="#fff" stroke="#1e293b" stroke-width="3"/>` +
-  `<rect x="240" y="100" width="160" height="30" fill="#22c55e"/>` +
-  `<text x="320" y="120" font-family="serif" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">PHARMACIE</text>` +
-  `<rect x="310" y="60" width="60" height="50" fill="#22c55e"/>` +
-  `<rect x="332" y="60" width="16" height="50" fill="#fff"/>` +
-  `<rect x="310" y="78" width="60" height="14" fill="#fff"/>` +
-  `<text x="340" y="91" font-family="sans-serif" font-size="20" font-weight="900" fill="#22c55e" text-anchor="middle">+</text>` +
-  `<rect x="260" y="145" width="55" height="80" fill="#bae6fd" stroke="#22c55e" stroke-width="2"/>` +
-  `<rect x="325" y="145" width="55" height="80" fill="#bae6fd" stroke="#22c55e" stroke-width="2"/>` +
-  `<rect x="260" y="235" width="120" height="50" fill="#dc2626"/>` +
-  `<text x="320" y="265" font-family="sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">OUVERT 8h-20h</text>` +
-  `<rect x="260" y="295" width="120" height="5" fill="#22c55e"/>` +
-  `<text x="320" y="335" font-family="serif" font-size="13" font-style="italic" font-weight="700" fill="#22c55e" text-anchor="middle">de la santé</text>` +
-  `<circle cx="120" cy="320" r="22" fill="#fbbf24"/>` +
-  `<circle cx="120" cy="312" r="12" fill="#fde68a"/>` +
-  `<rect x="106" y="328" width="28" height="36" fill="#dc2626"/>` +
-  `<rect x="98" y="362" width="10" height="22" fill="#1e293b"/>` +
-  `<rect x="132" y="362" width="10" height="22" fill="#1e293b"/>` +
-  `<path d="M100 308 Q90 296 100 288" stroke="#fde68a" stroke-width="6" fill="none" stroke-linecap="round"/>` +
-  `<circle cx="114" cy="312" r="2" fill="#1e293b"/>` +
-  `<circle cx="126" cy="312" r="2" fill="#1e293b"/>` +
-  `<path d="M114 320 Q120 318 126 320" stroke="#1e293b" stroke-width="2" fill="none"/>` +
-  `<rect x="150" y="320" width="36" height="32" rx="4" fill="#fff" stroke="#dc2626" stroke-width="2"/>` +
-  `<rect x="156" y="316" width="24" height="6" fill="#dc2626"/>` +
-  `<path d="M154 330 L182 330 M154 336 L172 336 M154 342 L178 342" stroke="#dc2626" stroke-width="2"/>` +
-  `<circle cx="380" cy="320" r="6" fill="#fbbf24"/>` +
-  `<circle cx="370" cy="280" r="5" fill="#fbbf24"/>` +
-  `<circle cx="385" cy="240" r="4" fill="#fbbf24"/>` +
-  `<circle cx="350" cy="260" r="4" fill="#fbbf24"/>` +
-  `<circle cx="395" cy="180" r="3" fill="#fbbf24"/>`,
+  `<polygon points="-5,120 60,80 125,120" fill="#334155"/>` +
+  `<rect x="-5" y="120" width="130" height="14" fill="#1e293b"/>` +
+  // roof detail
+  `<rect x="40" y="92" width="6" height="20" fill="#1e293b"/>` +
+  `<rect x="78" y="92" width="6" height="20" fill="#1e293b"/>` +
+  // windows with shutters (Haussmann style)
+  `<g stroke="#1e293b" stroke-width="1.5">` +
+  `<rect x="18" y="148" width="22" height="32" fill="#bae6fd"/>` +
+  `<rect x="14" y="146" width="4" height="36" fill="#dc2626"/>` +
+  `<rect x="40" y="146" width="4" height="36" fill="#dc2626"/>` +
+  `<rect x="50" y="148" width="22" height="32" fill="#bae6fd"/>` +
+  `<rect x="46" y="146" width="4" height="36" fill="#dc2626"/>` +
+  `<rect x="72" y="146" width="4" height="36" fill="#dc2626"/>` +
+  `<rect x="82" y="148" width="22" height="32" fill="#bae6fd"/>` +
+  `<rect x="78" y="146" width="4" height="36" fill="#dc2626"/>` +
+  `<rect x="104" y="146" width="4" height="36" fill="#dc2626"/>` +
+  // second row
+  `<rect x="18" y="194" width="22" height="32" fill="#bae6fd"/>` +
+  `<rect x="14" y="192" width="4" height="36" fill="#dc2626"/>` +
+  `<rect x="40" y="192" width="4" height="36" fill="#dc2626"/>` +
+  `<rect x="50" y="194" width="22" height="32" fill="#bae6fd"/>` +
+  `<rect x="46" y="192" width="4" height="36" fill="#dc2626"/>` +
+  `<rect x="72" y="192" width="4" height="36" fill="#dc2626"/>` +
+  `<rect x="82" y="194" width="22" height="32" fill="#bae6fd"/>` +
+  `<rect x="78" y="192" width="4" height="36" fill="#dc2626"/>` +
+  `<rect x="104" y="192" width="4" height="36" fill="#dc2626"/>` +
+  // third row
+  `<rect x="18" y="240" width="22" height="32" fill="#bae6fd"/>` +
+  `<rect x="14" y="238" width="4" height="36" fill="#dc2626"/>` +
+  `<rect x="40" y="238" width="4" height="36" fill="#dc2626"/>` +
+  `<rect x="50" y="240" width="22" height="32" fill="#bae6fd"/>` +
+  `<rect x="46" y="238" width="4" height="36" fill="#dc2626"/>` +
+  `<rect x="72" y="238" width="4" height="36" fill="#dc2626"/>` +
+  `<rect x="82" y="240" width="22" height="32" fill="#bae6fd"/>` +
+  `<rect x="78" y="238" width="4" height="36" fill="#dc2626"/>` +
+  `<rect x="104" y="238" width="4" height="36" fill="#dc2626"/>` +
+  `</g>` +
+  // pharmacy building
+  `<rect x="180" y="100" width="220" height="200" fill="#fff" stroke="#1e293b" stroke-width="3"/>` +
+  `<polygon points="180,100 290,60 400,100" fill="#fef3c7" stroke="#1e293b" stroke-width="2"/>` +
+  // green cross sign (large, illuminated)
+  `<rect x="270" y="40" width="80" height="70" fill="url(#phh-cross)" stroke="#15803d" stroke-width="2" rx="4"/>` +
+  `<rect x="298" y="40" width="24" height="70" fill="#fff"/>` +
+  `<rect x="270" y="62" width="80" height="24" fill="#fff"/>` +
+  `<rect x="270" y="40" width="80" height="70" fill="none" stroke="#15803d" stroke-width="3" rx="4"/>` +
+  // glow around cross
+  `<rect x="266" y="36" width="88" height="78" fill="#86efac" opacity="0.3" rx="6"/>` +
+  // pharmacy sign banner
+  `<rect x="180" y="118" width="220" height="40" fill="#22c55e"/>` +
+  `<rect x="180" y="118" width="220" height="6" fill="#15803d"/>` +
+  `<rect x="180" y="152" width="220" height="6" fill="#15803d"/>` +
+  `<text x="290" y="146" font-family="serif" font-size="18" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="2">PHARMACIE</text>` +
+  // display windows
+  `<rect x="200" y="170" width="80" height="80" fill="#dbeafe" stroke="#22c55e" stroke-width="2"/>` +
+  `<rect x="300" y="170" width="80" height="80" fill="#dbeafe" stroke="#22c55e" stroke-width="2"/>` +
+  // medicine boxes in windows
+  `<rect x="210" y="195" width="20" height="30" fill="#dc2626"/>` +
+  `<rect x="210" y="200" width="20" height="6" fill="#fff"/>` +
+  `<rect x="234" y="195" width="20" height="30" fill="#0ea5e9"/>` +
+  `<rect x="258" y="195" width="20" height="30" fill="#16a34a"/>` +
+  `<rect x="210" y="230" width="20" height="20" fill="#facc15"/>` +
+  `<rect x="234" y="230" width="20" height="20" fill="#a855f7"/>` +
+  `<rect x="258" y="230" width="20" height="20" fill="#fb923c"/>` +
+  // right window
+  `<rect x="310" y="195" width="20" height="30" fill="#dc2626"/>` +
+  `<rect x="334" y="195" width="20" height="30" fill="#0ea5e9"/>` +
+  `<rect x="358" y="195" width="20" height="30" fill="#16a34a"/>` +
+  `<rect x="310" y="230" width="20" height="20" fill="#facc15"/>` +
+  `<rect x="334" y="230" width="20" height="20" fill="#a855f7"/>` +
+  `<rect x="358" y="230" width="20" height="20" fill="#fb923c"/>` +
+  // door (center)
+  `<rect x="270" y="170" width="40" height="130" fill="#86efac" stroke="#15803d" stroke-width="2"/>` +
+  `<rect x="270" y="170" width="40" height="6" fill="#15803d"/>` +
+  `<rect x="278" y="180" width="24" height="50" fill="#dbeafe"/>` +
+  `<rect x="278" y="240" width="24" height="50" fill="#dbeafe"/>` +
+  `<circle cx="298" cy="240" r="2" fill="#1e293b"/>` +
+  // hours sign
+  `<rect x="200" y="260" width="180" height="22" fill="#dc2626"/>` +
+  `<rect x="200" y="260" width="180" height="4" fill="#991b1b"/>` +
+  `<text x="290" y="276" font-family="sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">OUVERT 8h–20h · 7j/7</text>` +
+  // moto / pharmacy logo
+  `<rect x="220" y="290" width="14" height="14" fill="#22c55e"/>` +
+  `<text x="227" y="300" font-family="sans-serif" font-size="10" font-weight="900" fill="#fff" text-anchor="middle">Rx</text>` +
+  `<text x="290" y="302" font-family="serif" font-size="11" font-style="italic" font-weight="700" fill="#15803d" text-anchor="middle">votre santé, notre priorité</text>` +
+  `<rect x="350" y="290" width="14" height="14" fill="#22c55e"/>` +
+  `<text x="357" y="300" font-family="sans-serif" font-size="10" font-weight="900" fill="#fff" text-anchor="middle">+</text>` +
+  // street
+  `<rect y="300" width="400" height="100" fill="url(#phh-street)"/>` +
+  `<rect y="300" width="400" height="6" fill="#1e293b"/>` +
+  `<rect y="306" width="400" height="2" fill="#fbbf24" stroke-dasharray="20 20"/>` +
+  // sidewalk
+  `<rect y="300" width="400" height="6" fill="#cbd5e1"/>` +
+  // person walking toward pharmacy (with medicine bag)
+  `<ellipse cx="160" cy="395" rx="22" ry="5" fill="#0f172a" opacity="0.5"/>` +
+  `<circle cx="160" cy="320" r="16" fill="#fbbf24"/>` +
+  `<circle cx="160" cy="313" r="10" fill="#fde68a"/>` +
+  `<path d="M148 312 q-8 -6 -10 -16" stroke="#92400e" stroke-width="6" fill="none" stroke-linecap="round"/>` +
+  // hair tuft
+  `<path d="M154 304 q6 -6 12 0" stroke="#92400e" stroke-width="3" fill="none"/>` +
+  `<circle cx="154" cy="312" r="2" fill="#1e293b"/>` +
+  `<circle cx="166" cy="312" r="2" fill="#1e293b"/>` +
+  `<path d="M154 320 Q160 316 166 320" stroke="#1e293b" stroke-width="2" fill="none"/>` +
+  `<rect x="148" y="328" width="24" height="40" fill="#dc2626"/>` +
+  `<rect x="148" y="328" width="24" height="6" fill="#7f1d1d"/>` +
+  `<rect x="140" y="368" width="8" height="22" fill="#1e293b"/>` +
+  `<rect x="172" y="368" width="8" height="22" fill="#1e293b"/>` +
+  // arm holding bag
+  `<path d="M170 350 q14 0 16 12" stroke="#fde68a" stroke-width="6" fill="none" stroke-linecap="round"/>` +
+  // paper bag with medicine
+  `<rect x="180" y="358" width="22" height="26" fill="#fef3c7" stroke="#92400e" stroke-width="1.5"/>` +
+  `<path d="M180 358 L202 358 L196 350 L186 350 Z" fill="#a16207"/>` +
+  `<rect x="184" y="362" width="14" height="8" fill="#dc2626"/>` +
+  `<rect x="186" y="364" width="10" height="3" fill="#fff"/>` +
+  // second person (passer-by)
+  `<ellipse cx="60" cy="395" rx="18" ry="4" fill="#0f172a" opacity="0.5"/>` +
+  `<circle cx="60" cy="340" r="14" fill="#fda4af"/>` +
+  `<circle cx="60" cy="334" r="8" fill="#fecdd3"/>` +
+  `<rect x="52" y="346" width="16" height="32" fill="#0ea5e9"/>` +
+  `<rect x="46" y="378" width="6" height="18" fill="#1e293b"/>` +
+  `<rect x="68" y="378" width="6" height="18" fill="#1e293b"/>` +
+  // trash bin (right)
+  `<rect x="370" y="324" width="22" height="36" fill="#1e293b" rx="2"/>` +
+  `<rect x="370" y="320" width="22" height="6" fill="#475569"/>` +
+  `<rect x="372" y="328" width="4" height="20" fill="#475569"/>` +
+  `<rect x="386" y="328" width="4" height="20" fill="#475569"/>`,
   '#dbeafe'
 )
 

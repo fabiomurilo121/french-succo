@@ -80,6 +80,22 @@ export const api = {
     return request('/stats')
   },
 
+  async getStories() {
+    return request('/stories')
+  },
+
+  async getStory(slug) {
+    return request(`/stories/${slug}`)
+  },
+
+  async getWords() {
+    return request('/words')
+  },
+
+  async getDatabaseStats() {
+    return request('/database/stats')
+  },
+
   getAudioUrl(text, voice, speed, region = 'fr') {
     const params = new URLSearchParams({ text, voice, speed, region })
     return `${BASE_URL}/audio?${params.toString()}`

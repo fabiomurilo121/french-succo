@@ -2,9 +2,13 @@
 import { ref, watch, onMounted, nextTick } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import icons from '@/assets/icons'
+import { api } from '@/services/api'
+import { useToastStore } from '@/stores/toast'
+import AppIcon from '@/components/AppIcon.vue'
 import { APP_VERSION, APP_BUILD } from '@/version'
 
 const settings = useSettingsStore()
+const toast = useToastStore()
 
 const reminderTimes = ['08:00', '12:00', '14:00', '18:00', '20:00', '21:00']
 const regions = ['França (Padrão)', 'Québec', 'Bélgica']
@@ -13,7 +17,8 @@ const sections = [
   { id: 'audio',     label: 'Áudio',                icon: 'volume'  },
   { id: 'interface', label: 'Interface & Estudo',   icon: 'zap'     },
   { id: 'notify',    label: 'Notificações',         icon: 'bell'    },
-  { id: 'account',   label: 'Conta & Segurança',    icon: 'user'    }
+  { id: 'account',   label: 'Conta & Segurança',    icon: 'user'    },
+  { id: 'data',      label: 'Banco de Dados',       icon: 'layers'  }
 ]
 
 const activeSection = ref('audio')
@@ -25,6 +30,7 @@ onMounted(() => {
   settings.load()
   snapshot()
   setTimeout(() => (hasChanges.value = false), 0)
+  loadDatabaseStats()
 })
 
 function snapshot() {
@@ -61,6 +67,36 @@ function scrollTo(id) {
   if (el) {
     el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
+}
+
+/* ── Database stats ── */
+const dbStats = ref(null)
+const dbLoading = ref(false)
+const dbError = ref('')
+
+async function loadDatabaseStats() {
+  dbLoading.value = true
+  dbError.value = ''
+  try {
+    dbStats.value = await api.getDatabaseStats()
+  } catch (err) {
+    dbError.value = err.message || 'Não foi possível carregar as estatísticas.'
+    toast.error(dbError.value)
+  } finally {
+    dbLoading.value = false
+  }
+}
+
+function formatBytes(bytes) {
+  if (!bytes && bytes !== 0) return '—'
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`
+}
+
+function formatNumber(n) {
+  return new Intl.NumberFormat('pt-BR').format(n)
 }
 </script>
 
@@ -335,6 +371,132 @@ function scrollTo(id) {
           </svg>
         </button>
       </div>
+    </section>
+
+    <!-- Banco de Dados -->
+    <section id="cs-data" class="cs__section">
+      <header class="cs__section-head">
+        <div class="cs__section-icon cs__section-icon--violet">
+          <AppIcon name="layers" :size="20" />
+        </div>
+        <div>
+          <h2>Banco de Dados</h2>
+          <p>
+            Volume de conteúdo educacional e dados pessoais armazenados localmente no servidor.
+          </p>
+        </div>
+        <button
+          type="button"
+          class="cs__refresh"
+          :disabled="dbLoading"
+          @click="loadDatabaseStats"
+          aria-label="Atualizar estatísticas"
+          title="Atualizar"
+        >
+          <AppIcon name="refresh" :size="14" :class="{ 'is-spinning': dbLoading }" />
+        </button>
+      </header>
+
+      <div v-if="dbLoading && !dbStats" class="cs__db-skeleton">
+        <div class="cs__db-spinner"></div>
+        <p>Carregando estatísticas do banco…</p>
+      </div>
+
+      <div v-else-if="dbError && !dbStats" class="cs__db-error">
+        <AppIcon name="warning" :size="20" />
+        <span>{{ dbError }}</span>
+      </div>
+
+      <template v-else-if="dbStats">
+        <div class="cs__db-grid">
+          <div class="cs__db-card cs__db-card--hero">
+            <div class="cs__db-card-icon">
+              <AppIcon name="layers" :size="22" />
+            </div>
+            <div class="cs__db-card-body">
+              <strong class="cs__db-card-value">{{ formatBytes(dbStats.databaseTotalBytes) }}</strong>
+              <small>Tamanho total do banco</small>
+            </div>
+          </div>
+
+          <div class="cs__db-card">
+            <div class="cs__db-card-icon cs__db-card-icon--blue">
+              <AppIcon name="book" :size="18" />
+            </div>
+            <div class="cs__db-card-body">
+              <strong class="cs__db-card-value">{{ formatNumber(dbStats.wordCount) }}</strong>
+              <small>Palavras no dicionário</small>
+            </div>
+          </div>
+
+          <div class="cs__db-card">
+            <div class="cs__db-card-icon cs__db-card-icon--orange">
+              <AppIcon name="book" :size="18" />
+            </div>
+            <div class="cs__db-card-body">
+              <strong class="cs__db-card-value">{{ formatNumber(dbStats.storyCount) }}</strong>
+              <small>Histórias cadastradas</small>
+            </div>
+          </div>
+
+          <div class="cs__db-card">
+            <div class="cs__db-card-icon cs__db-card-icon--green">
+              <AppIcon name="cards" :size="18" />
+            </div>
+            <div class="cs__db-card-body">
+              <strong class="cs__db-card-value">{{ formatNumber(dbStats.phraseCount) }}</strong>
+              <small>Frases em histórias</small>
+            </div>
+          </div>
+
+          <div class="cs__db-card">
+            <div class="cs__db-card-icon cs__db-card-icon--violet">
+              <AppIcon name="sparkles" :size="18" />
+            </div>
+            <div class="cs__db-card-body">
+              <strong class="cs__db-card-value">{{ formatNumber(dbStats.vocabularyCount) }}</strong>
+              <small>Vocabulário-chave</small>
+            </div>
+          </div>
+
+          <div class="cs__db-card">
+            <div class="cs__db-card-icon cs__db-card-icon--gray">
+              <AppIcon name="history" :size="18" />
+            </div>
+            <div class="cs__db-card-body">
+              <strong class="cs__db-card-value">{{ formatNumber(dbStats.historyCount) }}</strong>
+              <small>Traduções no histórico</small>
+            </div>
+          </div>
+
+          <div class="cs__db-card">
+            <div class="cs__db-card-icon cs__db-card-icon--yellow">
+              <AppIcon name="starFilled" :size="18" />
+            </div>
+            <div class="cs__db-card-body">
+              <strong class="cs__db-card-value">{{ formatNumber(dbStats.favoriteCount) }}</strong>
+              <small>Frases favoritadas</small>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="dbStats.tables.length" class="cs__db-tables">
+          <h3 class="cs__db-tables-title">
+            <AppIcon name="chartBar" :size="14" />
+            Detalhes por tabela
+          </h3>
+          <div class="cs__db-tables-grid">
+            <div
+              v-for="t in dbStats.tables"
+              :key="t.tableName"
+              class="cs__db-table-row"
+            >
+              <span class="cs__db-table-name">{{ t.tableName }}</span>
+              <span class="cs__db-table-size">{{ formatBytes(t.totalBytes) }}</span>
+            </div>
+          </div>
+        </div>
+      </template>
     </section>
 
     <!-- Footer -->
@@ -844,6 +1006,191 @@ function scrollTo(id) {
 .cs__account-avatar--blue {
   background: #c5dbff;
   padding: 10px;
+}
+
+/* ─── Database stats ─── */
+.cs__refresh {
+  margin-left: auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--motion-fast), color var(--motion-fast), transform var(--motion-fast);
+  cursor: pointer;
+}
+.cs__refresh:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+.cs__refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.cs__refresh :deep(.is-spinning) {
+  animation: cs-spin 0.8s linear infinite;
+}
+@keyframes cs-spin { to { transform: rotate(360deg); } }
+
+.cs__db-skeleton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 24px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  color: var(--text-muted);
+}
+.cs__db-skeleton p { margin: 0; font-size: 13px; }
+.cs__db-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid var(--color-primary-soft);
+  border-top-color: var(--color-primary);
+  animation: cs-spin 0.8s linear infinite;
+}
+
+.cs__db-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  background: var(--color-danger-soft, rgba(239, 68, 68, 0.1));
+  border: 1px solid var(--color-danger, #ef4444);
+  border-radius: 12px;
+  color: var(--color-danger, #ef4444);
+  font-size: 13px;
+}
+
+.cs__db-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.cs__db-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  transition: border-color var(--motion-fast), transform var(--motion-fast);
+}
+.cs__db-card:hover {
+  border-color: var(--color-primary-soft);
+  transform: translateY(-1px);
+}
+
+.cs__db-card--hero {
+  grid-column: span 2;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-deep) 100%);
+  border-color: var(--color-primary-deep);
+  color: #fff;
+}
+.cs__db-card--hero .cs__db-card-icon { background: rgba(255, 255, 255, 0.22); color: #fff; }
+.cs__db-card--hero .cs__db-card-value { color: #fff; }
+.cs__db-card--hero small { color: rgba(255, 255, 255, 0.85); }
+.cs__db-card--hero:hover { border-color: var(--color-primary-deep); }
+
+@media (max-width: 540px) {
+  .cs__db-card--hero { grid-column: span 1; }
+}
+
+.cs__db-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.cs__db-card-icon--blue { background: var(--color-primary-soft); color: var(--color-primary); }
+.cs__db-card-icon--orange { background: rgba(249, 115, 22, 0.14); color: #f97316; }
+.cs__db-card-icon--green { background: rgba(34, 197, 94, 0.14); color: #16a34a; }
+.cs__db-card-icon--violet { background: rgba(168, 85, 247, 0.14); color: #a855f7; }
+.cs__db-card-icon--gray { background: rgba(100, 116, 139, 0.16); color: #475569; }
+.cs__db-card-icon--yellow { background: rgba(234, 179, 8, 0.16); color: #ca8a04; }
+
+.cs__db-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.cs__db-card-value {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.cs__db-card-body small {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.cs__db-tables {
+  margin-top: 18px;
+  background: var(--surface-sunken);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+.cs__db-tables-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 10px;
+  font-family: var(--font-nav);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+.cs__db-tables-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 6px 12px;
+}
+.cs__db-table-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--surface-card);
+  border-radius: 8px;
+  font-size: 12px;
+}
+.cs__db-table-name {
+  font-family: var(--font-nav);
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+.cs__db-table-size {
+  font-family: var(--font-nav);
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Footer */

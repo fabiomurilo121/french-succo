@@ -72,3 +72,65 @@ public record StatsDto(
     int StreakDays,
     int Accuracy
 );
+
+public record StoryPhraseDto(
+    long Id,
+    int OrderIndex,
+    string Fr,
+    string Pt,
+    string SceneId
+);
+
+public record StoryVocabularyDto(
+    long Id,
+    int OrderIndex,
+    string Fr,
+    string Pt
+);
+
+public record StoryDto(
+    long Id,
+    string Slug,
+    string Title,
+    string Subtitle,
+    string Icon,
+    string Cover,
+    string HeroId,
+    string Narrative,
+    int OrderIndex,
+    List<StoryPhraseDto> Phrases,
+    List<StoryVocabularyDto> Vocabulary
+);
+
+public record StorySummaryDto(
+    long Id,
+    string Slug,
+    string Title,
+    string Subtitle,
+    string Icon,
+    string Cover,
+    string HeroId,
+    int OrderIndex,
+    int PhraseCount
+);
+
+public record WordLookupDto(
+    string Word,
+    string Translation
+);
+
+public record TableSizeDto(
+    string TableName,
+    long TotalBytes
+);
+
+public record DatabaseStatsDto(
+    long DatabaseTotalBytes,
+    int StoryCount,
+    int PhraseCount,
+    int VocabularyCount,
+    int WordCount,
+    int HistoryCount,
+    int FavoriteCount,
+    List<TableSizeDto> Tables
+);
