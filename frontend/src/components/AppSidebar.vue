@@ -14,6 +14,7 @@ const navItems = [
   { name: 'Início', to: '/dashboard', icon: 'home' },
   { name: 'Flashcards', to: '/flashcards', icon: 'cards' },
   { name: 'Completar Frases', to: '/complete', icon: 'puzzle' },
+  { name: 'Histórias', to: '/historias', icon: 'book' },
   { name: 'Detalhes', to: '/detalhes', icon: 'chartBar' },
   { name: 'Configurações', to: '/configuracoes', icon: 'settings' }
 ]

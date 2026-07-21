@@ -15,7 +15,7 @@ const history = useHistoryStore()
 const favorites = useFavoritesStore()
 const toast = useToastStore()
 
-const inputText = ref('Olá, como você está hoje?')
+const inputText = ref('')
 const detectedLang = ref('auto')
 const mode = ref('translate')
 const result = ref(null)
@@ -23,6 +23,7 @@ const loading = ref(false)
 const errorMsg = ref('')
 const audioEl = ref(null)
 const audioLoading = ref(false)
+const grammarOriginal = ref('')
 let audioLoadingTimer = null
 
 const overlayOpen = computed(() => loading.value || audioLoading.value)
@@ -100,7 +101,15 @@ const studySuggestions = [
   { id: 'greetings', label: 'Cumprimentos básicos', icon: 'user', phrases: ['Bom dia, como você está?', 'Prazer em conhecê-lo', 'Como você se chama?'] },
   { id: 'restaurant', label: 'No restaurante', icon: 'utensils', phrases: ['A conta, por favor.', 'Qual é o prato do dia?', 'Está delicioso, obrigado!'] },
   { id: 'directions', label: 'Pedindo direções', icon: 'map', phrases: ['Onde fica a estação de metrô?', 'Estou perdido, pode me ajudar?'] },
-  { id: 'numbers', label: 'Números & Cores', icon: 'hash', phrases: ['Quanto custa isso?', 'Qual é o seu número de telefone?'] }
+  { id: 'numbers', label: 'Números & Cores', icon: 'hash', phrases: ['Quanto custa isso?', 'Qual é o seu número de telefone?'] },
+  { id: 'airport', label: 'No aeroporto', icon: 'flag', phrases: ['Onde fica o portão de embarque?', 'Perdi meu voo, o que faço?', 'Posso despachar essa mala?'] },
+  { id: 'shopping', label: 'Compras & Lojas', icon: 'cards', phrases: ['Quanto custa essa camiseta?', 'Tem em outro tamanho?', 'Posso pagar com cartão?'] },
+  { id: 'doctor', label: 'No médico', icon: 'shield', phrases: ['Estou com dor de cabeça.', 'Preciso marcar uma consulta.', 'Onde fica a farmácia mais próxima?'] },
+  { id: 'work', label: 'Trabalho & Negócios', icon: 'layout', phrases: ['Vamos agendar uma reunião.', 'Vou enviar o relatório por e-mail.', 'Podemos discutir o contrato?'] },
+  { id: 'weather', label: 'Tempo & Clima', icon: 'contrast', phrases: ['Vai chover amanhã?', 'Está muito frio hoje.', 'Qual a previsão para o fim de semana?'] },
+  { id: 'hotel', label: 'Hotel & Hospedagem', icon: 'home', phrases: ['Tem um quarto disponível?', 'O café da manhã está incluído?', 'Qual o horário do check-out?'] },
+  { id: 'emergency', label: 'Emergências', icon: 'warning', phrases: ['Preciso de ajuda, por favor.', 'Onde fica o hospital mais próximo?', 'Chame a polícia, por favor!'] },
+  { id: 'social', label: 'Festas & Eventos', icon: 'sparkles', phrases: ['Vamos sair para comemorar!', 'Você vem à festa sábado?', 'Foi uma noite incrível!'] }
 ]
 
 const suggestionIndex = ref({})
@@ -164,15 +173,19 @@ async function processText() {
         category: response.category || 'Comum'
       }
     } else {
+      const originalText = inputText.value.trim()
       const response = await api.correct({
-        text: inputText.value.trim(),
+        text: originalText,
         region
       })
+      const correctedText = response.corrected || originalText
+      inputText.value = correctedText
+      grammarOriginal.value = response.original || originalText
       result.value = {
         type: 'grammar',
-        frText: response.corrected || inputText.value.trim(),
-        corrected: response.corrected || inputText.value.trim(),
-        originalWithErrors: response.original || inputText.value.trim(),
+        frText: correctedText,
+        corrected: correctedText,
+        originalWithErrors: response.original || originalText,
         errors: response.corrections || [],
         phonetic: response.phonetic || '',
         culturalTip: response.culturalTip
@@ -211,6 +224,11 @@ function clearAll() {
   inputText.value = ''
   result.value = null
   errorMsg.value = ''
+  grammarOriginal.value = ''
+}
+
+function dismissGrammarOriginal() {
+  grammarOriginal.value = ''
 }
 
 function toggleMode() {
@@ -519,6 +537,24 @@ function seedSampleHistory() {
             <span class="db__counter">{{ charCount }} / {{ MAX_CHARS }}</span>
           </div>
         </div>
+
+        <Transition name="grammar-card">
+          <div v-if="grammarOriginal" class="db__grammar-original card">
+            <div class="db__grammar-original-body">
+              <span class="db__grammar-original-label">Frase original (com erros)</span>
+              <p class="db__grammar-original-text">{{ grammarOriginal }}</p>
+            </div>
+            <button
+              class="db__grammar-original-close"
+              type="button"
+              @click="dismissGrammarOriginal"
+              aria-label="Fechar frase original"
+              title="Fechar"
+            >
+              <AppIcon name="cross" :size="14" />
+            </button>
+          </div>
+        </Transition>
 
         <div class="db__primary-actions">
           <button
@@ -1125,6 +1161,79 @@ function seedSampleHistory() {
   color: var(--text-muted);
 }
 
+/* Grammar original (comparison card) */
+.db__grammar-original {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(249, 115, 22, 0.06);
+  border: 1px dashed rgba(249, 115, 22, 0.45);
+  border-radius: var(--radius-md);
+  position: relative;
+}
+
+.db__grammar-original-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-right: 8px;
+}
+
+.db__grammar-original-label {
+  font-family: var(--font-nav);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.db__grammar-original-text {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  text-decoration: line-through;
+  text-decoration-color: rgba(249, 115, 22, 0.55);
+  text-decoration-thickness: 1.5px;
+  word-break: break-word;
+}
+
+.db__grammar-original-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(249, 115, 22, 0.1);
+  color: var(--color-accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--motion-fast), color var(--motion-fast), transform var(--motion-fast);
+}
+
+.db__grammar-original-close:hover {
+  background: var(--color-accent);
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+.grammar-card-enter-active,
+.grammar-card-leave-active {
+  transition: opacity var(--motion-base) var(--ease-out),
+    transform var(--motion-base) var(--ease-out);
+}
+
+.grammar-card-enter-from,
+.grammar-card-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
 /* Primary action buttons */
 .db__primary-actions {
   display: grid;
@@ -1232,7 +1341,8 @@ function seedSampleHistory() {
   transition: background var(--motion-fast), transform var(--motion-fast);
 }
 .chip:hover {
-  background: #c5dbff;
+  background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+  color: var(--color-primary-deep);
 }
 .chip.is-active {
   background: var(--color-primary);

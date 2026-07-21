@@ -16,6 +16,7 @@ const breadcrumb = computed(() => {
     favoritos: 'Favoritos',
     flashcards: 'Flashcards',
     complete: 'Completar Frases',
+    historias: 'Histórias',
     detalhes: 'Detalhes & Estatísticas',
     configuracoes: 'Configurações'
   }
@@ -26,6 +27,62 @@ const isDark = computed(() => settings.resolvedTheme === 'dark')
 
 function toggleTheme() {
   settings.setTheme(isDark.value ? 'light' : 'dark')
+}
+
+/* ── Study timer ── */
+const TIMER_STORAGE_KEY = 'french-succo:study-elapsed-seconds'
+
+const elapsedSeconds = ref(0)
+const showTimerTime = ref(true)
+const timerRunning = ref(false)
+let timerInterval = null
+
+function formatElapsed(totalSeconds) {
+  const h = Math.floor(totalSeconds / 3600)
+  const m = Math.floor((totalSeconds % 3600) / 60)
+  const s = totalSeconds % 60
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
+
+const timerDisplay = computed(() => formatElapsed(elapsedSeconds.value))
+
+function toggleTimerTime() {
+  showTimerTime.value = !showTimerTime.value
+}
+
+function persistElapsed() {
+  try {
+    localStorage.setItem(TIMER_STORAGE_KEY, String(elapsedSeconds.value))
+  } catch {}
+}
+
+function startTimer() {
+  if (timerInterval) return
+  timerInterval = setInterval(() => {
+    elapsedSeconds.value++
+    persistElapsed()
+  }, 1000)
+  timerRunning.value = true
+}
+
+function pauseTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval)
+    timerInterval = null
+  }
+  persistElapsed()
+  timerRunning.value = false
+}
+
+function toggleTimerRun() {
+  if (timerRunning.value) pauseTimer()
+  else startTimer()
+}
+
+function resetTimer() {
+  pauseTimer()
+  elapsedSeconds.value = 0
+  persistElapsed()
 }
 
 /* ── Notifications dropdown ── */
@@ -97,6 +154,16 @@ onMounted(() => {
   cleanupWatcher = settings.watchSystemTheme()
   document.addEventListener('click', onDocClick)
   document.addEventListener('keydown', onDocKey)
+
+  try {
+    const saved = localStorage.getItem(TIMER_STORAGE_KEY)
+    if (saved) {
+      const parsed = parseInt(saved, 10)
+      if (Number.isFinite(parsed) && parsed >= 0) {
+        elapsedSeconds.value = parsed
+      }
+    }
+  } catch {}
 })
 
 let cleanupWatcher = null
@@ -105,6 +172,7 @@ onUnmounted(() => {
   if (cleanupWatcher) cleanupWatcher()
   document.removeEventListener('click', onDocClick)
   document.removeEventListener('keydown', onDocKey)
+  if (timerInterval) clearInterval(timerInterval)
 })
 </script>
 
@@ -131,6 +199,42 @@ onUnmounted(() => {
     </div>
 
     <div class="tb__actions">
+      <button
+        class="tb__timer"
+        type="button"
+        :class="{ 'is-active': showTimerTime, 'is-paused': !timerRunning }"
+        :aria-pressed="showTimerTime"
+        :aria-label="showTimerTime ? 'Ocultar tempo de estudo' : 'Mostrar tempo de estudo'"
+        :title="showTimerTime ? 'Ocultar tempo decorrido' : 'Mostrar tempo decorrido'"
+        @click="toggleTimerTime"
+      >
+        <AppIcon name="clock" :size="16" />
+        <Transition name="timer-text">
+          <span v-if="showTimerTime" class="tb__timer-text">{{ timerDisplay }}</span>
+        </Transition>
+      </button>
+
+      <button
+        class="tb__timer-toggle"
+        type="button"
+        :class="{ 'is-running': timerRunning }"
+        :aria-label="timerRunning ? 'Pausar cronômetro' : 'Iniciar cronômetro'"
+        :title="timerRunning ? 'Pausar' : 'Iniciar'"
+        @click="toggleTimerRun"
+      >
+        <AppIcon :name="timerRunning ? 'pause' : 'play'" :size="14" />
+      </button>
+
+      <button
+        class="tb__timer-reset"
+        type="button"
+        aria-label="Zerar cronômetro"
+        title="Zerar"
+        @click="resetTimer"
+      >
+        <AppIcon name="refresh" :size="14" />
+      </button>
+
       <div ref="rootRef" class="tb__bell-wrap">
         <button
           class="tb__bell"
@@ -345,6 +449,113 @@ onUnmounted(() => {
 
 .tb__bell-wrap {
   position: relative;
+}
+
+/* Study timer */
+.tb__timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-nav);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  transition: background var(--motion-fast), color var(--motion-fast);
+  flex-shrink: 0;
+}
+
+.tb__timer:hover {
+  background: var(--surface-sunken);
+  color: var(--color-primary);
+}
+
+.tb__timer.is-active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+}
+
+.tb__timer.is-paused {
+  color: var(--text-faint);
+}
+
+.tb__timer.is-paused.is-active {
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
+}
+
+.tb__timer-text {
+  display: inline-block;
+  line-height: 1;
+}
+
+.tb__timer-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--motion-fast), color var(--motion-fast);
+}
+
+.tb__timer-toggle:hover {
+  background: var(--surface-sunken);
+  color: var(--color-primary);
+}
+
+.tb__timer-toggle.is-running {
+  color: var(--color-primary);
+}
+
+.tb__timer-toggle.is-running:hover {
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--color-accent, #f97316);
+}
+
+.tb__timer-reset {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--motion-fast), color var(--motion-fast), transform var(--motion-fast);
+}
+
+.tb__timer-reset:hover {
+  background: var(--color-danger-soft, rgba(239, 68, 68, 0.12));
+  color: var(--color-danger, #ef4444);
+  transform: rotate(-90deg);
+}
+
+.timer-text-enter-active,
+.timer-text-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease, max-width 0.2s ease;
+  overflow: hidden;
+}
+.timer-text-enter-from,
+.timer-text-leave-to {
+  opacity: 0;
+  transform: translateX(-6px);
+  max-width: 0;
+}
+.timer-text-enter-to,
+.timer-text-leave-from {
+  opacity: 1;
+  transform: translateX(0);
+  max-width: 120px;
 }
 
 .tb__bell {
