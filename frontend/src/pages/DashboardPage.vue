@@ -591,7 +591,7 @@ function seedSampleHistory() {
             </div>
             <div class="db__pronunciation-line">
               <button class="db__speaker" @click="playAudio('normal')" type="button" aria-label="Ouvir pronúncia">
-                <img :src="icons['IMG_14']" alt="" />
+                <AppIcon name="speaker" :size="18" />
               </button>
               <div class="db__phonetic-display">
                 <div class="db__phonetic-words">
@@ -624,11 +624,11 @@ function seedSampleHistory() {
             <strong>Ações de áudio</strong>
             <div class="db__audio-actions">
               <button class="db__audio-btn" @click="playAudio('slow')" type="button">
-                <img :src="icons['IMG_15']" alt="" />
+                <AppIcon name="play" :size="14" />
                 Ouvir Lento
               </button>
               <button class="db__audio-btn db__audio-btn--primary" @click="playAudio('normal')" type="button">
-                <img :src="icons['IMG_14']" alt="" />
+                <AppIcon name="speaker" :size="16" />
                 Ouvir Normal
               </button>
             </div>
@@ -1359,11 +1359,15 @@ function seedSampleHistory() {
   justify-content: center;
   flex-shrink: 0;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+  transition: background var(--motion-fast), transform var(--motion-fast);
 }
-.db__speaker img {
+.db__speaker:hover {
+  background: var(--color-primary-hover, #2563eb);
+  transform: translateY(-1px);
+}
+.db__speaker :deep(svg) {
   width: 18px;
   height: 18px;
-  filter: brightness(0) invert(1);
 }
 
 .db__phonetic-display {
@@ -1478,11 +1482,12 @@ function seedSampleHistory() {
   justify-content: center;
   gap: 8px;
   border: 1px solid transparent;
+  transition: background var(--motion-fast), transform var(--motion-fast);
 }
 .db__audio-btn:hover {
   background: rgba(59, 130, 246, 0.18);
 }
-.db__audio-btn img {
+.db__audio-btn :deep(svg) {
   width: 14px;
   height: 14px;
 }
@@ -1492,10 +1497,12 @@ function seedSampleHistory() {
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
 }
 .db__audio-btn--primary:hover {
-  background: #2563eb;
+  background: var(--color-primary-hover, #2563eb);
+  transform: translateY(-1px);
 }
-.db__audio-btn--primary img {
-  filter: brightness(0) invert(1);
+.db__audio-btn--primary :deep(svg) {
+  width: 16px;
+  height: 16px;
 }
 
 /* Cultural Tip — movido para Help Panel */
