@@ -479,7 +479,7 @@ onUnmounted(() => {
 /* ── Narrative mode ── */
 .st__narrative {
   display: grid;
-  grid-template-columns: 360px 1fr;
+  grid-template-columns: 360px minmax(0, 1fr);
   gap: 0;
   padding: 0;
   background: var(--surface-card);
@@ -493,9 +493,12 @@ onUnmounted(() => {
   position: relative;
   background: var(--color-primary-softer);
   min-height: 280px;
+  min-width: 0;
+  overflow: hidden;
 }
 .st__narrative-hero :deep(svg) {
   width: 100%; height: 100%; display: block;
+  max-width: 100%;
 }
 
 .st__narrative-body {
@@ -547,6 +550,8 @@ onUnmounted(() => {
   border-radius: var(--radius-md);
   text-align: justify;
   hyphens: auto;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .st__word-space { white-space: pre; }
@@ -608,7 +613,7 @@ onUnmounted(() => {
 /* ── Phrase-by-phrase mode ── */
 .st__scene {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 280px minmax(0, 1fr);
   gap: 24px;
   padding: 24px;
   background: var(--surface-card);
@@ -785,13 +790,14 @@ onUnmounted(() => {
 @keyframes st-spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 880px) {
-  .st__narrative { grid-template-columns: 1fr; }
-  .st__narrative-hero { aspect-ratio: 16/9; }
+  .st__narrative { grid-template-columns: minmax(0, 1fr); }
+  .st__narrative-hero { aspect-ratio: 16/9; min-height: 0; }
   .st__narrative-text { font-size: 16px; }
+  .st__narrative-body { padding: 20px 20px 24px; }
 }
 @media (max-width: 720px) {
-  .st__scene { grid-template-columns: 1fr; }
-  .st__scene-illu { max-width: 280px; }
+  .st__scene { grid-template-columns: minmax(0, 1fr); }
+  .st__scene-illu { max-width: 280px; margin: 0 auto; }
   .st__frase { font-size: 16px; }
 }
 </style>

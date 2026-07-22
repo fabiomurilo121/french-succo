@@ -545,6 +545,11 @@ function formatNumber(n) {
 }
 
 @media (min-width: 768px) {
+  .cs__hero {
+    flex-direction: row;
+  }
+}
+
 /* ─── Sub-navigation (quick access) ─── */
 .cs__subnav {
   display: flex;
@@ -591,8 +596,16 @@ function formatNumber(n) {
   flex-shrink: 0;
 }
 
-.cs__hero {
-    flex-direction: row;
+@media (max-width: 540px) {
+  .cs__subnav {
+    position: static;
+    border-radius: 18px;
+    padding: 8px;
+    align-self: stretch;
+  }
+  .cs__subnav-btn {
+    font-size: 11px;
+    padding: 7px 10px;
   }
 }
 

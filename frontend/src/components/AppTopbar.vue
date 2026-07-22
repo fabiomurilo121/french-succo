@@ -387,7 +387,7 @@ onUnmounted(() => {
   font-family: var(--font-nav);
   font-size: 14px;
   color: var(--text-muted);
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
 }
@@ -445,6 +445,61 @@ onUnmounted(() => {
   gap: 8px;
   flex: 0 0 auto;
   margin-left: auto;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .tb {
+    gap: 10px;
+    padding: 0 12px;
+  }
+  .tb__bread {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .tb__actions {
+    gap: 4px;
+  }
+  .tb__timer {
+    padding: 0 8px;
+    height: 36px;
+  }
+  .tb__timer-toggle,
+  .tb__timer-reset {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+  .tb__bell {
+    width: 36px;
+    height: 36px;
+  }
+  .tb__theme {
+    width: 44px;
+    height: 26px;
+  }
+  .tb__theme-thumb {
+    width: 18px;
+    height: 18px;
+    top: 3px;
+    left: 3px;
+  }
+  .tb__theme.is-dark .tb__theme-thumb,
+  :root[data-theme='dark'] .tb__theme .tb__theme-thumb {
+    transform: translateX(18px);
+  }
+}
+
+@media (max-width: 380px) {
+  .tb__timer-text,
+  .tb__timer-reset {
+    display: none;
+  }
+  .tb__timer {
+    padding: 0;
+    width: 36px;
+    justify-content: center;
+  }
 }
 
 .tb__bell-wrap {
