@@ -23,6 +23,11 @@ const routes = [
     component: () => import('@/pages/StoriesPage.vue')
   },
   {
+    path: '/conjugacao',
+    name: 'conjugacao',
+    component: () => import('@/pages/ConjugacaoPage.vue')
+  },
+  {
     path: '/detalhes',
     name: 'detalhes',
     component: () => import('@/pages/DetalhesPage.vue')

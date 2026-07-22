@@ -17,6 +17,7 @@ const breadcrumb = computed(() => {
     flashcards: 'Flashcards',
     complete: 'Completar Frases',
     historias: 'Histórias',
+    conjugacao: 'Conjugação',
     detalhes: 'Detalhes & Estatísticas',
     configuracoes: 'Configurações'
   }
