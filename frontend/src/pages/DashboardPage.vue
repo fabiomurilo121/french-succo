@@ -577,76 +577,82 @@ function formatPhoneticBR(ipa) {
       </div>
 
       <div class="db__translator-col db__translator-col--result">
-        <article class="db__result card">
-          <header v-if="result" class="db__result-head">
-            <div class="db__result-lang">
-              <div class="db__flag fr"></div>
-              <span>Francês</span>
-            </div>
-            <div class="db__result-tools">
-              <button class="icon-btn" :class="{ 'is-fav': isFav() }" @click="favoriteResult" aria-label="Favoritar">
-                <AppIcon :name="isFav() ? 'starFilled' : 'star'" :size="16" />
-              </button>
-              <button class="icon-btn" @click="copyResult" aria-label="Copiar">
-                <img :src="icons['IMG_12']" alt="" />
-              </button>
-              <button class="icon-btn" aria-label="Compartilhar">
-                <img :src="icons['IMG_13']" alt="" />
-              </button>
-            </div>
-          </header>
+        <article class="db__result card" :class="{ 'is-empty': !result }">
+          <template v-if="result">
+            <header class="db__result-head">
+              <div class="db__result-lang">
+                <div class="db__flag fr"></div>
+                <span>Francês</span>
+              </div>
+              <div class="db__result-tools">
+                <button class="icon-btn" :class="{ 'is-fav': isFav() }" @click="favoriteResult" aria-label="Favoritar">
+                  <AppIcon :name="isFav() ? 'starFilled' : 'star'" :size="16" />
+                </button>
+                <button class="icon-btn" @click="copyResult" aria-label="Copiar">
+                  <img :src="icons['IMG_12']" alt="" />
+                </button>
+                <button class="icon-btn" aria-label="Compartilhar">
+                  <img :src="icons['IMG_13']" alt="" />
+                </button>
+              </div>
+            </header>
 
-          <h2 v-if="result" class="db__result-phrase">{{ result.frText }}</h2>
-          <h2 v-else class="db__result-phrase">Bonjour, comment allez-vous aujourd'hui ?</h2>
+            <h2 class="db__result-phrase">{{ result.frText }}</h2>
 
-          <div v-if="settings.showPhonetic" class="db__pronunciation">
-            <div class="db__pronunciation-head">
-              <span class="db__pronunciation-label">PRONÚNCIA</span>
-              <span class="db__pronunciation-tag">🇧🇷 pt-BR</span>
-            </div>
-            <div class="db__pronunciation-line">
-              <button class="db__speaker" @click="playAudio('normal')" type="button" aria-label="Ouvir pronúncia">
-                <AppIcon name="speaker" :size="18" />
-              </button>
-              <div class="db__phonetic-display">
-                <div class="db__phonetic-words">
-                  <span
-                    v-for="(word, wi) in phoneticWords"
-                    :key="wi"
-                    class="db__phonetic-word"
-                  >
+            <div v-if="settings.showPhonetic" class="db__pronunciation">
+              <div class="db__pronunciation-head">
+                <span class="db__pronunciation-label">PRONÚNCIA</span>
+                <span class="db__pronunciation-tag">🇧🇷 pt-BR</span>
+              </div>
+              <div class="db__pronunciation-line">
+                <button class="db__speaker" @click="playAudio('normal')" type="button" aria-label="Ouvir pronúncia">
+                  <AppIcon name="speaker" :size="18" />
+                </button>
+                <div class="db__phonetic-display">
+                  <div class="db__phonetic-words">
                     <span
-                      v-for="(syl, si) in word.syllables"
-                      :key="si"
-                      :class="['db__syl', { 'is-stressed': si === word.syllables.length - 1 }]"
-                    >{{ syl }}</span>
-                  </span>
+                      v-for="(word, wi) in phoneticWords"
+                      :key="wi"
+                      class="db__phonetic-word"
+                    >
+                      <span
+                        v-for="(syl, si) in word.syllables"
+                        :key="si"
+                        :class="['db__syl', { 'is-stressed': si === word.syllables.length - 1 }]"
+                      >{{ syl }}</span>
+                    </span>
+                  </div>
+                  <p class="db__pronunciation-flow" :title="continuousFlow">
+                    <span class="db__pronunciation-flow-label">leitura:</span>
+                    {{ continuousFlow }}
+                  </p>
+                  <p class="db__pronunciation-hint">
+                    <em>↳ Cada bloco é uma sílaba — as <strong>MAIÚSCULAS</strong> são as tônicas (mais força). Fale em voz alta.</em>
+                  </p>
                 </div>
-                <p class="db__pronunciation-flow" :title="continuousFlow">
-                  <span class="db__pronunciation-flow-label">leitura:</span>
-                  {{ continuousFlow }}
-                </p>
-                <p class="db__pronunciation-hint">
-                  <em>↳ Cada bloco é uma sílaba — as <strong>MAIÚSCULAS</strong> são as tônicas (mais força). Fale em voz alta.</em>
-                </p>
               </div>
             </div>
-          </div>
 
-          <hr class="db__divider" />
+            <hr class="db__divider" />
 
-          <div class="db__audio">
-            <strong>Ações de áudio</strong>
-            <div class="db__audio-actions">
-              <button class="db__audio-btn" @click="playAudio('slow')" type="button">
-                <AppIcon name="play" :size="14" />
-                Ouvir Lento
-              </button>
-              <button class="db__audio-btn db__audio-btn--primary" @click="playAudio('normal')" type="button">
-                <AppIcon name="speaker" :size="16" />
-                Ouvir Normal
-              </button>
+            <div class="db__audio">
+              <strong>Ações de áudio</strong>
+              <div class="db__audio-actions">
+                <button class="db__audio-btn" @click="playAudio('slow')" type="button">
+                  <AppIcon name="play" :size="14" />
+                  Ouvir Lento
+                </button>
+                <button class="db__audio-btn db__audio-btn--primary" @click="playAudio('normal')" type="button">
+                  <AppIcon name="speaker" :size="16" />
+                  Ouvir Normal
+                </button>
+              </div>
             </div>
+          </template>
+
+          <div v-else class="db__result-empty">
+            <AppIcon name="translate" :size="28" />
+            <p>Sua tradução aparecerá aqui.</p>
           </div>
         </article>
       </div>
@@ -1337,6 +1343,31 @@ function formatPhoneticBR(ipa) {
   display: flex;
   flex-direction: column;
   gap: 18px;
+  min-height: 360px;
+}
+.db__result.is-empty {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.db__result-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  padding: 40px 20px;
+}
+.db__result-empty :deep(svg) {
+  color: var(--color-primary);
+  opacity: 0.7;
+}
+.db__result-empty p {
+  margin: 0;
+  font-family: var(--font-nav);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 .db__result-head {

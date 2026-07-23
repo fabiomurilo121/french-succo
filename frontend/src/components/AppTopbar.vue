@@ -10,21 +10,6 @@ const emit = defineEmits(['toggle-menu', 'toggle-help'])
 const route = useRoute()
 const settings = useSettingsStore()
 
-const breadcrumb = computed(() => {
-  const map = {
-    dashboard: 'Painel de Tradução',
-    favoritos: 'Favoritos',
-    flashcards: 'Flashcards',
-    complete: 'Completar Frases',
-    historias: 'Histórias',
-    conjugacao: 'Conjugação',
-    pronuncia: 'Pronúncia',
-    detalhes: 'Detalhes & Estatísticas',
-    configuracoes: 'Configurações'
-  }
-  return map[route.name] || 'Painel'
-})
-
 const isDark = computed(() => settings.resolvedTheme === 'dark')
 
 function toggleTheme() {
@@ -189,12 +174,6 @@ onUnmounted(() => {
     >
       <AppIcon name="menu" :size="22" />
     </button>
-
-    <div class="tb__bread">
-      <span class="tb__home">Início</span>
-      <span class="tb__sep">/</span>
-      <strong>{{ breadcrumb }}</strong>
-    </div>
 
     <div class="tb__actions">
       <button
@@ -376,32 +355,6 @@ onUnmounted(() => {
   }
 }
 
-.tb__bread {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-nav);
-  font-size: 14px;
-  color: var(--text-muted);
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-}
-.tb__home {
-  display: none;
-}
-.tb__sep {
-  color: rgba(105, 109, 114, 0.5);
-}
-.tb__bread strong {
-  font-family: var(--font-nav);
-  color: var(--text-primary);
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .tb__actions {
   display: flex;
   align-items: center;
@@ -415,10 +368,6 @@ onUnmounted(() => {
   .tb {
     gap: 10px;
     padding: 0 12px;
-  }
-  .tb__bread {
-    flex: 1 1 auto;
-    min-width: 0;
   }
   .tb__actions {
     gap: 4px;
