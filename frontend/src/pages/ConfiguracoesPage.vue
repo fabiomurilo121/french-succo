@@ -127,7 +127,7 @@ function formatNumber(n) {
         </p>
       </div>
       <div class="cs__hero-art">
-        <img :src="icons['IMG_10.webp']" alt="" />
+        <img :src="icons['IMG_10']" alt="" />
       </div>
     </section>
 

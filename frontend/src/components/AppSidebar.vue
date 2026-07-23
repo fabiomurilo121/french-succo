@@ -13,7 +13,7 @@ const route = useRoute()
 const navItems = [
   { name: 'Início', to: '/dashboard', icon: 'home' },
   { name: 'Flashcards', to: '/flashcards', icon: 'cards' },
-  { name: 'Completar Frases', to: '/complete', icon: 'puzzle' },
+  { name: 'Completar Frases', to: '/complete', icon: 'fillBlank' },
   { name: 'Histórias', to: '/historias', icon: 'book' },
   { name: 'Conjugação', to: '/conjugacao', icon: 'grammar' },
   { name: 'Pronúncia', to: '/pronuncia', icon: 'speaker' },

@@ -16,6 +16,8 @@ const icons = {
   share: 'M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v13',
   trash: 'M9 3h6v2.5H9V3zM4 7h16a1 1 0 0 1 0 2h-1v11a2.5 2.5 0 0 1-2.5 2.5H7.5A2.5 2.5 0 0 1 5 20V9H4a1 1 0 0 1 0-2zM10 11v6M14 11v6',
   more: 'M12 5h.01M12 12h.01M12 19h.01',
+  menu: 'M3 6h18M3 12h18M3 18h18',
+  fillBlank: 'M4 6h11M4 10h11M4 14h8M4 18h13',
   calendar: 'M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM16 2v4M8 2v4M3 10h18',
   filter: 'M3 5h18l-7 8v6l-4-2v-4z',
   book: 'M4 4a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2zM6 4v16',

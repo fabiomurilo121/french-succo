@@ -184,9 +184,10 @@ onUnmounted(() => {
       class="tb__hamburger"
       type="button"
       aria-label="Abrir menu"
+      title="Abrir menu"
       @click="emit('toggle-menu')"
     >
-      <AppIcon name="arrow" :size="22" />
+      <AppIcon name="menu" :size="22" />
     </button>
 
     <div class="tb__bread">
@@ -362,13 +363,11 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: background var(--motion-fast), color var(--motion-fast);
 }
 .tb__hamburger:hover {
   background: var(--surface-sunken);
   color: var(--color-primary);
-}
-.tb__hamburger :deep(svg) {
-  transform: rotate(180deg);
 }
 
 @media (min-width: 960px) {

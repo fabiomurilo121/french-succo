@@ -461,7 +461,7 @@ function formatPhoneticBR(ipa) {
           </div>
         </div>
         <div class="db__hero-illustration">
-          <img :src="icons['IMG_10.webp']" alt="" />
+          <img :src="icons['IMG_10']" alt="" />
         </div>
       </section>
     </Transition>

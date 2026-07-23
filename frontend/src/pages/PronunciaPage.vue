@@ -95,33 +95,43 @@ function voiceOptions() {
   }
 }
 
+function stopAll() {
+  for (const g of groups) g.playing = false
+  playingKey.value = null
+  if (audioEl.value) {
+    audioEl.value.pause()
+    audioEl.value.currentTime = 0
+  }
+}
+
 function play(fr, key) {
   if (!fr || !audioEl.value) return
   if (playingKey.value === key) {
-    audioEl.value.pause()
-    audioEl.value.currentTime = 0
-    playingKey.value = null
+    stopAll()
     return
   }
+  // stop any group currently playing
+  for (const g of groups) g.playing = false
   playingKey.value = key
   try {
     const { url } = getAudioUrl(fr, voiceOptions())
     audioEl.value.src = url
     audioEl.value.load()
-    audioEl.value.play()?.catch(() => {
-      playingKey.value = null
-    })
+    const p = audioEl.value.play()
+    if (p && typeof p.catch === 'function') {
+      p.catch(() => stopAll())
+    }
   } catch (e) {
-    playingKey.value = null
+    stopAll()
   }
 }
 
 function playGroup(group) {
   if (group.playing) {
-    audioEl.value?.pause()
-    group.playing = false
+    stopAll()
     return
   }
+  for (const g of groups) g.playing = false
   group.playing = true
   group.cursor = 0
   playNextInGroup(group)
@@ -130,22 +140,27 @@ function playGroup(group) {
 function playNextInGroup(group) {
   if (!group.playing || group.cursor >= group.examples.length) {
     group.playing = false
+    playingKey.value = null
     return
   }
   const ex = group.examples[group.cursor]
   playingKey.value = `${group.combo}-${group.cursor}`
   if (!audioEl.value) {
     group.playing = false
+    playingKey.value = null
     return
   }
   try {
     const { url } = getAudioUrl(ex.fr, voiceOptions())
     audioEl.value.src = url
     audioEl.value.load()
-    audioEl.value.play()?.catch(() => {
-      group.playing = false
-      playingKey.value = null
-    })
+    const p = audioEl.value.play()
+    if (p && typeof p.catch === 'function') {
+      p.catch(() => {
+        group.playing = false
+        playingKey.value = null
+      })
+    }
   } catch (e) {
     group.playing = false
     playingKey.value = null
@@ -163,9 +178,22 @@ function onAudioEnded() {
   playingKey.value = null
 }
 
+function onAudioPause() {
+  // If paused without reaching the end (e.g., the user paused externally)
+  // the `ended` event may not fire — clear visual state on the next tick
+  // unless `playNextInGroup` immediately resumed.
+  setTimeout(() => {
+    if (audioEl.value && audioEl.value.ended) {
+      playingKey.value = null
+    } else if (audioEl.value && audioEl.value.paused && audioEl.value.currentTime === 0) {
+      playingKey.value = null
+      for (const g of groups) g.playing = false
+    }
+  }, 50)
+}
+
 function onAudioError() {
-  for (const g of groups) g.playing = false
-  playingKey.value = null
+  stopAll()
 }
 
 groups.forEach((g) => {
@@ -278,6 +306,7 @@ onMounted(() => {})
     <audio
       ref="audioEl"
       @ended="onAudioEnded"
+      @pause="onAudioPause"
       @error="onAudioError"
       style="display: none"
     ></audio>

@@ -447,6 +447,326 @@ export const VERBS = [
       "plus-que-parfait":   { il: 'avait fallu'},
       "futur-anterieur":   { il: 'aura fallu' }
     })
+  },
+  {
+    id: 'manger',
+    infinitive: 'manger',
+    translation: 'comer',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'mange',     tu: 'manges',      il: 'mange',     nous: 'mangeons',  vous: 'mangez',   ils: 'mangent' },
+      imparfait:        { je: 'mangeais',  tu: 'mangeais',    il: 'mangeait',  nous: 'mangions',  vous: 'mangiez',  ils: 'mangeaient'},
+      "passe-compose":     { je: 'ai mangé',  tu: 'as mangé',    il: 'a mangé',   nous: 'avons mangé',vous: 'avez mangé',ils: 'ont mangé'},
+      "futur-simple":      { je: 'mangerai',  tu: 'mangeras',    il: 'mangera',   nous: 'mangerons', vous: 'mangerez', ils: 'mangeront'},
+      conditionnel:     { je: 'mangerais', tu: 'mangerais',   il: 'mangerait', nous: 'mangerions',vous: 'mangeriez',ils: 'mangeraient'},
+      subjonctif:       { je: 'mange',     tu: 'manges',      il: 'mange',     nous: 'mangions',  vous: 'mangiez',  ils: 'mangent' },
+      "plus-que-parfait":   { je: 'avais mangé',tu:'avais mangé', il: 'avait mangé',nous:'avions mangé',vous:'aviez mangé',ils:'avaient mangé'},
+      "futur-anterieur":   { je: 'aurai mangé',tu:'auras mangé', il: 'aura mangé',nous:'aurons mangé',vous:'aurez mangé',ils:'auront mangé'}
+    })
+  },
+  {
+    id: 'travailler',
+    infinitive: 'travailler',
+    translation: 'trabalhar',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'travaille', tu: 'travailles',  il: 'travaille', nous: 'travaillons',vous: 'travaillez',ils: 'travaillent'},
+      imparfait:        { je: 'travaillais',tu:'travaillais', il: 'travaillait',nous: 'travaillions',vous:'travailliez',ils: 'travaillaient'},
+      "passe-compose":     { je: 'ai travaillé',tu:'as travaillé',il: 'a travaillé',nous:'avons travaillé',vous:'avez travaillé',ils:'ont travaillé'},
+      "futur-simple":      { je: 'travaillerai',tu:'travailleras',il:'travaillera',nous:'travaillerons',vous:'travaillerez',ils:'travailleront'},
+      conditionnel:     { je: 'travaillerais',tu:'travaillerais',il:'travaillerait',nous:'travaillerions',vous:'travailleriez',ils:'travailleraient'},
+      subjonctif:       { je: 'travaille', tu: 'travailles',  il: 'travaille', nous: 'travaillions',vous: 'travailliez',ils: 'travaillent'},
+      "plus-que-parfait":   { je: 'avais travaillé',tu:'avais travaillé',il:'avait travaillé',nous:'avions travaillé',vous:'aviez travaillé',ils:'avaient travaillé'},
+      "futur-anterieur":   { je: 'aurai travaillé',tu:'auras travaillé',il:'aura travaillé',nous:'aurons travaillé',vous:'aurez travaillé',ils:'auront travaillé'}
+    })
+  },
+  {
+    id: 'ecouter',
+    infinitive: 'écouter',
+    translation: 'escutar / ouvir',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'écoute',    tu: 'écoutes',     il: 'écoute',    nous: 'écoutons',  vous: 'écoutez',  ils: 'écoutent' },
+      imparfait:        { je: 'écoutais',  tu: 'écoutais',    il: 'écoutait',  nous: 'écoutions', vous: 'écoutiez', ils: 'écoutaient'},
+      "passe-compose":     { je: 'ai écouté', tu: 'as écouté',   il: 'a écouté',  nous: 'avons écouté',vous:'avez écouté',ils:'ont écouté'},
+      "futur-simple":      { je: 'écouterai', tu: 'écouteras',   il: 'écoutera',  nous: 'écouterons',vous: 'écouterez',ils: 'écouteront'},
+      conditionnel:     { je: 'écouterais',tu: 'écouterais',  il: 'écouterait',nous: 'écouterions',vous:'écouteriez',ils:'écouteraient'},
+      subjonctif:       { je: 'écoute',    tu: 'écoutes',     il: 'écoute',    nous: 'écoutions', vous: 'écoutiez', ils: 'écoutent' },
+      "plus-que-parfait":   { je: 'avais écouté',tu:'avais écouté',il:'avait écouté',nous:'avions écouté',vous:'aviez écouté',ils:'avaient écouté'},
+      "futur-anterieur":   { je: 'aurai écouté',tu:'auras écouté',il:'aura écouté',nous:'aurons écouté',vous:'aurez écouté',ils:'auront écouté'}
+    })
+  },
+  {
+    id: 'chercher',
+    infinitive: 'chercher',
+    translation: 'procurar / buscar',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'cherche',   tu: 'cherches',    il: 'cherche',   nous: 'cherchons', vous: 'cherchez',  ils: 'cherchent' },
+      imparfait:        { je: 'cherchais', tu: 'cherchais',   il: 'cherchait', nous: 'cherchions',vous: 'cherchiez', ils: 'cherchaient'},
+      "passe-compose":     { je: 'ai cherché',tu: 'as cherché',  il: 'a cherché', nous: 'avons cherché',vous:'avez cherché',ils:'ont cherché'},
+      "futur-simple":      { je: 'chercherai',tu: 'chercheras',  il: 'cherchera', nous: 'chercherons',vous: 'chercherez',ils: 'chercheront'},
+      conditionnel:     { je: 'chercherais',tu:'chercherais', il: 'chercherait',nous:'chercherions',vous:'chercheriez',ils:'chercheraient'},
+      subjonctif:       { je: 'cherche',   tu: 'cherches',    il: 'cherche',   nous: 'cherchions',vous: 'cherchiez', ils: 'cherchent' },
+      "plus-que-parfait":   { je: 'avais cherché',tu:'avais cherché',il:'avait cherché',nous:'avions cherché',vous:'aviez cherché',ils:'avaient cherché'},
+      "futur-anterieur":   { je: 'aurai cherché',tu:'auras cherché',il:'aura cherché',nous:'aurons cherché',vous:'aurez cherché',ils:'auront cherché'}
+    })
+  },
+  {
+    id: 'donner',
+    infinitive: 'donner',
+    translation: 'dar',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'donne',     tu: 'donnes',      il: 'donne',     nous: 'donnons',   vous: 'donnez',   ils: 'donnent' },
+      imparfait:        { je: 'donnais',   tu: 'donnais',     il: 'donnait',   nous: 'donnions',  vous: 'donniez',  ils: 'donnaient'},
+      "passe-compose":     { je: 'ai donné',  tu: 'as donné',    il: 'a donné',    nous: 'avons donné',vous: 'avez donné',ils: 'ont donné'},
+      "futur-simple":      { je: 'donnerai',  tu: 'donneras',    il: 'donnera',   nous: 'donnerons', vous: 'donnerez', ils: 'donneront'},
+      conditionnel:     { je: 'donnerais', tu: 'donnerais',   il: 'donnerait', nous: 'donnerions',vous: 'donneriez',ils: 'donneraient'},
+      subjonctif:       { je: 'donne',     tu: 'donnes',      il: 'donne',     nous: 'donnions',  vous: 'donniez',  ils: 'donnent' },
+      "plus-que-parfait":   { je: 'avais donné',tu:'avais donné', il: 'avait donné',nous:'avions donné',vous:'aviez donné',ils:'avaient donné'},
+      "futur-anterieur":   { je: 'aurai donné',tu:'auras donné', il: 'aura donné',nous:'aurons donné',vous:'aurez donné',ils:'auront donné'}
+    })
+  },
+  {
+    id: 'oublier',
+    infinitive: 'oublier',
+    translation: 'esquecer',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'oublie',    tu: 'oublies',     il: 'oublie',    nous: 'oublions',  vous: 'oubliez',  ils: 'oublient' },
+      imparfait:        { je: 'oubliais',  tu: 'oubliais',    il: 'oubliait',  nous: 'oubliions', vous: 'oubliiez', ils: 'oubliaient'},
+      "passe-compose":     { je: 'ai oublié', tu: 'as oublié',   il: 'a oublié',  nous: 'avons oublié',vous:'avez oublié',ils:'ont oublié'},
+      "futur-simple":      { je: 'oublierai', tu: 'oublieras',   il: 'oubliera',  nous: 'oublierons',vous: 'oublierez',ils: 'oublieront'},
+      conditionnel:     { je: 'oublierais',tu: 'oublierais',  il: 'oublierait',nous: 'oublierions',vous:'oublieriez',ils:'oublieraient'},
+      subjonctif:       { je: 'oublie',    tu: 'oublies',     il: 'oublie',    nous: 'oubliions', vous: 'oubliiez', ils: 'oublient' },
+      "plus-que-parfait":   { je: 'avais oublié',tu:'avais oublié',il:'avait oublié',nous:'avions oublié',vous:'aviez oublié',ils:'avaient oublié'},
+      "futur-anterieur":   { je: 'aurai oublié',tu:'auras oublié',il:'aura oublié',nous:'aurons oublié',vous:'aurez oublié',ils:'auront oublié'}
+    })
+  },
+  {
+    id: 'rester',
+    infinitive: 'rester',
+    translation: 'ficar / permanecer',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'reste',     tu: 'restes',      il: 'reste',     nous: 'restons',   vous: 'restez',   ils: 'restent' },
+      imparfait:        { je: 'restais',   tu: 'restais',     il: 'restait',   nous: 'restions',  vous: 'restiez',  ils: 'restaient'},
+      "passe-compose":     { je: 'ai resté',  tu: 'as resté',    il: 'a resté',    nous: 'avons resté',vous: 'avez resté',ils: 'ont resté'},
+      "futur-simple":      { je: 'resterai',  tu: 'resteras',    il: 'restera',   nous: 'resterons', vous: 'resterez', ils: 'resteront'},
+      conditionnel:     { je: 'resterais', tu: 'resterais',   il: 'resterait', nous: 'resterions',vous: 'resteriez',ils: 'resteraient'},
+      subjonctif:       { je: 'reste',     tu: 'restes',      il: 'reste',     nous: 'restions',  vous: 'restiez',  ils: 'restent' },
+      "plus-que-parfait":   { je: 'avais resté',tu:'avais resté', il: 'avait resté',nous:'avions resté',vous:'aviez resté',ils:'avaient resté'},
+      "futur-anterieur":   { je: 'aurai resté',tu:'auras resté', il: 'aura resté',nous:'aurons resté',vous:'aurez resté',ils:'auront resté'}
+    })
+  },
+  {
+    id: 'presenter',
+    infinitive: 'présenter',
+    translation: 'apresentar',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'présente',  tu: 'présentes',   il: 'présente',  nous: 'présentons',vous: 'présentez',ils: 'présentent' },
+      imparfait:        { je: 'présentais',tu: 'présentais',  il: 'présentait',nous: 'présentions',vous:'présentiez',ils: 'présentaient'},
+      "passe-compose":     { je: 'ai présenté',tu:'as présenté', il: 'a présenté',nous:'avons présenté',vous:'avez présenté',ils:'ont présenté'},
+      "futur-simple":      { je: 'présenterai',tu:'présenteras',il:'présentera',nous:'présenterons',vous:'présenterez',ils:'présenteront'},
+      conditionnel:     { je: 'présenterais',tu:'présenterais',il:'présenterait',nous:'présenterions',vous:'présenteriez',ils:'présenteraient'},
+      subjonctif:       { je: 'présente',  tu: 'présentes',   il: 'présente',  nous: 'présentions',vous: 'présentiez',ils: 'présentent' },
+      "plus-que-parfait":   { je: 'avais présenté',tu:'avais présenté',il:'avait présenté',nous:'avions présenté',vous:'aviez présenté',ils:'avaient présenté'},
+      "futur-anterieur":   { je: 'aurai présenté',tu:'auras présenté',il:'aura présenté',nous:'aurons présenté',vous:'aurez présenté',ils:'auront présenté'}
+    })
+  },
+  {
+    id: 'inviter',
+    infinitive: 'inviter',
+    translation: 'convidar',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'invite',    tu: 'invites',     il: 'invite',    nous: 'invitons',  vous: 'invitez',  ils: 'invitent' },
+      imparfait:        { je: 'invitais',  tu: 'invitais',    il: 'invitait',  nous: 'invitions', vous: 'invitiez', ils: 'invitaient'},
+      "passe-compose":     { je: 'ai invité', tu: 'as invité',   il: 'a invité',  nous: 'avons invité',vous:'avez invité',ils:'ont invité'},
+      "futur-simple":      { je: 'inviterai', tu: 'inviteras',   il: 'invitera',  nous: 'inviterons',vous: 'inviterez',ils: 'inviteront'},
+      conditionnel:     { je: 'inviterais',tu: 'inviterais',  il: 'inviterait',nous: 'inviterions',vous:'inviteriez',ils:'inviteraient'},
+      subjonctif:       { je: 'invite',    tu: 'invites',     il: 'invite',    nous: 'invitions', vous: 'invitiez', ils: 'invitent' },
+      "plus-que-parfait":   { je: 'avais invité',tu:'avais invité',il:'avait invité',nous:'avions invité',vous:'aviez invité',ils:'avaient invité'},
+      "futur-anterieur":   { je: 'aurai invité',tu:'auras invité',il:'aura invité',nous:'aurons invité',vous:'aurez invité',ils:'auront invité'}
+    })
+  },
+  {
+    id: 'utiliser',
+    infinitive: 'utiliser',
+    translation: 'usar / utilizar',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'utilise',   tu: 'utilises',    il: 'utilise',   nous: 'utilisons', vous: 'utilisez',  ils: 'utilisent' },
+      imparfait:        { je: 'utilisais', tu: 'utilisais',   il: 'utilisait', nous: 'utilisions',vous: 'utilisiez', ils: 'utilisaient'},
+      "passe-compose":     { je: 'ai utilisé',tu: 'as utilisé',  il: 'a utilisé', nous: 'avons utilisé',vous:'avez utilisé',ils:'ont utilisé'},
+      "futur-simple":      { je: 'utiliserai',tu: 'utiliseras',  il: 'utilisera', nous: 'utiliserons',vous: 'utiliserez',ils: 'utiliseront'},
+      conditionnel:     { je: 'utiliserais',tu:'utiliserais', il: 'utiliserait',nous:'utiliserions',vous:'utiliseriez',ils:'utiliseraient'},
+      subjonctif:       { je: 'utilise',   tu: 'utilises',    il: 'utilise',   nous: 'utilisions',vous: 'utilisiez', ils: 'utilisent' },
+      "plus-que-parfait":   { je: 'avais utilisé',tu:'avais utilisé',il:'avait utilisé',nous:'avions utilisé',vous:'aviez utilisé',ils:'avaient utilisé'},
+      "futur-anterieur":   { je: 'aurai utilisé',tu:'auras utilisé',il:'aura utilisé',nous:'aurons utilisé',vous:'aurez utilisé',ils:'auront utilisé'}
+    })
+  },
+  {
+    id: 'danser',
+    infinitive: 'danser',
+    translation: 'dançar',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'danse',     tu: 'danses',      il: 'danse',     nous: 'dansons',   vous: 'dansez',   ils: 'dansent' },
+      imparfait:        { je: 'dansais',   tu: 'dansais',     il: 'dansait',   nous: 'densions',  vous: 'densiez',  ils: 'dansaient'},
+      "passe-compose":     { je: 'ai dansé',  tu: 'as dansé',    il: 'a dansé',   nous: 'avons dansé',vous: 'avez dansé',ils: 'ont dansé'},
+      "futur-simple":      { je: 'danserai',  tu: 'danseras',    il: 'dansera',   nous: 'danserons', vous: 'danserez', ils: 'danseront'},
+      conditionnel:     { je: 'danserais', tu: 'danserais',   il: 'danserait', nous: 'danserions',vous: 'danseriez',ils: 'danseraient'},
+      subjonctif:       { je: 'danse',     tu: 'danses',      il: 'danse',     nous: 'densions',  vous: 'densiez',  ils: 'dansent' },
+      "plus-que-parfait":   { je: 'avais dansé',tu:'avais dansé', il: 'avait dansé',nous:'avions dansé',vous:'aviez dansé',ils:'avaient dansé'},
+      "futur-anterieur":   { je: 'aurai dansé',tu:'auras dansé', il: 'aura dansé',nous:'aurons dansé',vous:'aurez dansé',ils:'auront dansé'}
+    })
+  },
+  {
+    id: 'chanter',
+    infinitive: 'chanter',
+    translation: 'cantar',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'chante',    tu: 'chantes',     il: 'chante',    nous: 'chantons',  vous: 'chantez',  ils: 'chantent' },
+      imparfait:        { je: 'chantais',  tu: 'chantais',    il: 'chantait',  nous: 'chantions', vous: 'chantiez', ils: 'chantaient'},
+      "passe-compose":     { je: 'ai chanté', tu: 'as chanté',   il: 'a chanté',  nous: 'avons chanté',vous:'avez chanté',ils:'ont chanté'},
+      "futur-simple":      { je: 'chanterai', tu: 'chanteras',   il: 'chantera',  nous: 'chanterons',vous: 'chanterez',ils: 'chanteront'},
+      conditionnel:     { je: 'chanterais',tu: 'chanterais',  il: 'chanterait',nous: 'chanterions',vous:'chanteriez',ils:'chanteraient'},
+      subjonctif:       { je: 'chante',    tu: 'chantes',     il: 'chante',    nous: 'chantions', vous: 'chantiez', ils: 'chantent' },
+      "plus-que-parfait":   { je: 'avais chanté',tu:'avais chanté',il:'avait chanté',nous:'avions chanté',vous:'aviez chanté',ils:'avaient chanté'},
+      "futur-anterieur":   { je: 'aurai chanté',tu:'auras chanté',il:'aura chanté',nous:'aurons chanté',vous:'aurez chanté',ils:'auront chanté'}
+    })
+  },
+  {
+    id: 'finir',
+    infinitive: 'finir',
+    translation: 'terminar / acabar',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'finis',     tu: 'finis',       il: 'finit',     nous: 'finissons', vous: 'finissez', ils: 'finissent' },
+      imparfait:        { je: 'finissais', tu: 'finissais',   il: 'finissait', nous: 'finissions',vous: 'finissiez', ils: 'finissaient'},
+      "passe-compose":     { je: 'ai fini',   tu: 'as fini',     il: 'a fini',    nous: 'avons fini', vous: 'avez fini',ils: 'ont fini' },
+      "futur-simple":      { je: 'finirai',   tu: 'finiras',     il: 'finira',    nous: 'finirons',  vous: 'finirez',  ils: 'finiront' },
+      conditionnel:     { je: 'finirais',  tu: 'finirais',    il: 'finirait',  nous: 'finirions', vous: 'finiriez', ils: 'finiraient'},
+      subjonctif:       { je: 'finisse',   tu: 'finisses',    il: 'finisse',   nous: 'finissions',vous: 'finissiez', ils: 'finissent' },
+      "plus-que-parfait":   { je: 'avais fini',tu: 'avais fini',  il: 'avait fini',nous: 'avions fini',vous: 'aviez fini',ils:'avaient fini'},
+      "futur-anterieur":   { je: 'aurai fini',tu: 'auras fini',  il: 'aura fini', nous: 'aurons fini',vous: 'aurez fini',ils: 'auront fini'}
+    })
+  },
+  {
+    id: 'choisir',
+    infinitive: 'choisir',
+    translation: 'escolher',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'choisis',   tu: 'choisis',     il: 'choisit',   nous: 'choisissons',vous: 'choisissez',ils: 'choisissent' },
+      imparfait:        { je: 'choisissais',tu:'choisissais', il: 'choisissait',nous: 'choisissions',vous:'choisissiez',ils: 'choisissaient'},
+      "passe-compose":     { je: 'ai choisi', tu: 'as choisi',   il: 'a choisi',  nous: 'avons choisi',vous:'avez choisi',ils:'ont choisi'},
+      "futur-simple":      { je: 'choisirai', tu: 'choisiras',   il: 'choisira',  nous: 'choisirons', vous: 'choisirez',ils: 'choisiront'},
+      conditionnel:     { je: 'choisirais',tu: 'choisirais',  il: 'choisirait',nous: 'choisirions',vous:'choisiriez',ils:'choisiraient'},
+      subjonctif:       { je: 'choisisse', tu: 'choisisses',  il: 'choisisse', nous: 'choisissions',vous:'choisissiez',ils: 'choisissent' },
+      "plus-que-parfait":   { je: 'avais choisi',tu:'avais choisi',il:'avait choisi',nous:'avions choisi',vous:'aviez choisi',ils:'avaient choisi'},
+      "futur-anterieur":   { je: 'aurai choisi',tu:'auras choisi',il:'aura choisi',nous:'aurons choisi',vous:'aurez choisi',ils:'auront choisi'}
+    })
+  },
+  {
+    id: 'grandir',
+    infinitive: 'grandir',
+    translation: 'crescer',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'grandis',   tu: 'grandis',     il: 'grandit',   nous: 'grandissons',vous: 'grandissez',ils: 'grandissent' },
+      imparfait:        { je: 'grandissais',tu:'grandissais', il: 'grandissait',nous: 'grandissions',vous:'grandissiez',ils: 'grandissaient'},
+      "passe-compose":     { je: 'ai grandi', tu: 'as grandi',   il: 'a grandi',  nous: 'avons grandi',vous:'avez grandi',ils:'ont grandi'},
+      "futur-simple":      { je: 'grandirai', tu: 'grandiras',   il: 'grandira',  nous: 'grandirons', vous: 'grandirez',ils: 'grandiront'},
+      conditionnel:     { je: 'grandirais',tu: 'grandirais',  il: 'grandirait',nous: 'grandirions',vous:'grandiriez',ils:'grandiraient'},
+      subjonctif:       { je: 'grandisse', tu: 'grandisses',  il: 'grandisse', nous: 'grandissions',vous:'grandissiez',ils: 'grandissent' },
+      "plus-que-parfait":   { je: 'avais grandi',tu:'avais grandi',il:'avait grandi',nous:'avions grandi',vous:'aviez grandi',ils:'avaient grandi'},
+      "futur-anterieur":   { je: 'aurai grandi',tu:'auras grandi',il:'aura grandi',nous:'aurons grandi',vous:'aurez grandi',ils:'auront grandi'}
+    })
+  },
+  {
+    id: 'reflechir',
+    infinitive: 'réfléchir',
+    translation: 'refletir / pensar',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'réfléchis', tu: 'réfléchis',   il: 'réfléchit', nous: 'réfléchissons',vous: 'réfléchissez',ils: 'réfléchissent' },
+      imparfait:        { je: 'réfléchissais',tu:'réfléchissais',il:'réfléchissait',nous:'réfléchissions',vous:'réfléchissiez',ils:'réfléchissaient'},
+      "passe-compose":     { je: 'ai réfléchi',tu:'as réfléchi', il: 'a réfléchi',nous:'avons réfléchi',vous:'avez réfléchi',ils:'ont réfléchi'},
+      "futur-simple":      { je: 'réfléchirai',tu:'réfléchiras', il: 'réfléchira',nous:'réfléchirons',vous:'réfléchirez',ils:'réfléchiront'},
+      conditionnel:     { je: 'réfléchirais',tu:'réfléchirais',il:'réfléchirait',nous:'réfléchirions',vous:'réfléchiriez',ils:'réfléchiraient'},
+      subjonctif:       { je: 'réfléchisse',tu: 'réfléchisses',il: 'réfléchisse',nous:'réfléchissions',vous:'réfléchissiez',ils:'réfléchissent' },
+      "plus-que-parfait":   { je: 'avais réfléchi',tu:'avais réfléchi',il:'avait réfléchi',nous:'avions réfléchi',vous:'aviez réfléchi',ils:'avaient réfléchi'},
+      "futur-anterieur":   { je: 'aurai réfléchi',tu:'auras réfléchi',il:'aura réfléchi',nous:'aurons réfléchi',vous:'aurez réfléchi',ils:'auront réfléchi'}
+    })
+  },
+  {
+    id: 'attendre',
+    infinitive: 'attendre',
+    translation: 'esperar',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'attends',   tu: 'attends',     il: 'attend',    nous: 'attendons', vous: 'attendez',  ils: 'attendent' },
+      imparfait:        { je: 'attendais', tu: 'attendais',   il: 'attendait', nous: 'attendions',vous: 'attendiez', ils: 'attendaient'},
+      "passe-compose":     { je: 'ai attendu',tu: 'as attendu',  il: 'a attendu', nous: 'avons attendu',vous:'avez attendu',ils:'ont attendu'},
+      "futur-simple":      { je: 'attendrai', tu: 'attendras',   il: 'attendra',  nous: 'attendrons', vous: 'attendrez',ils: 'attendront'},
+      conditionnel:     { je: 'attendrais',tu: 'attendrais',  il: 'attendrait',nous: 'attendrions',vous:'attendriez',ils:'attendraient'},
+      subjonctif:       { je: 'attende',   tu: 'attendes',    il: 'attende',   nous: 'attendions',vous: 'attendiez', ils: 'attendent' },
+      "plus-que-parfait":   { je: 'avais attendu',tu:'avais attendu',il:'avait attendu',nous:'avions attendu',vous:'aviez attendu',ils:'avaient attendu'},
+      "futur-anterieur":   { je: 'aurai attendu',tu:'auras attendu',il:'aura attendu',nous:'aurons attendu',vous:'aurez attendu',ils:'auront attendu'}
+    })
+  },
+  {
+    id: 'perdre',
+    infinitive: 'perdre',
+    translation: 'perder',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'perds',     tu: 'perds',       il: 'perd',      nous: 'perdons',   vous: 'perdez',    ils: 'perdent' },
+      imparfait:        { je: 'perdais',   tu: 'perdais',     il: 'perdait',   nous: 'perdions',  vous: 'perdiez',   ils: 'perdaient'},
+      "passe-compose":     { je: 'ai perdu',  tu: 'as perdu',    il: 'a perdu',   nous: 'avons perdu',vous: 'avez perdu',ils: 'ont perdu'},
+      "futur-simple":      { je: 'perdrai',   tu: 'perdras',     il: 'perdra',    nous: 'perdrons',  vous: 'perdrez',   ils: 'perdront' },
+      conditionnel:     { je: 'perdrais',  tu: 'perdrais',    il: 'perdrait',  nous: 'perdrions', vous: 'perdriez',  ils: 'perdraient'},
+      subjonctif:       { je: 'perde',     tu: 'perdes',      il: 'perde',     nous: 'perdions',  vous: 'perdiez',   ils: 'perdent' },
+      "plus-que-parfait":   { je: 'avais perdu',tu: 'avais perdu', il: 'avait perdu',nous: 'avions perdu',vous:'aviez perdu',ils:'avaient perdu'},
+      "futur-anterieur":   { je: 'aurai perdu',tu: 'auras perdu', il: 'aura perdu',nous: 'aurons perdu',vous:'aurez perdu',ils:'auront perdu'}
+    })
+  },
+  {
+    id: 'vendre',
+    infinitive: 'vendre',
+    translation: 'vender',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'vends',     tu: 'vends',       il: 'vend',      nous: 'vendons',   vous: 'vendez',    ils: 'vendent' },
+      imparfait:        { je: 'vendais',   tu: 'vendais',     il: 'vendait',   nous: 'vendions',  vous: 'vendiez',   ils: 'vendaient'},
+      "passe-compose":     { je: 'ai vendu',  tu: 'as vendu',    il: 'a vendu',   nous: 'avons vendu',vous: 'avez vendu',ils: 'ont vendu'},
+      "futur-simple":      { je: 'vendrai',   tu: 'vendras',     il: 'vendra',    nous: 'vendrons',  vous: 'vendrez',   ils: 'vendront' },
+      conditionnel:     { je: 'vendrais',  tu: 'vendrais',    il: 'vendrait',  nous: 'vendrions', vous: 'vendriez',  ils: 'vendraient'},
+      subjonctif:       { je: 'vende',     tu: 'vendes',      il: 'vende',     nous: 'vendions',  vous: 'vendiez',   ils: 'vendent' },
+      "plus-que-parfait":   { je: 'avais vendu',tu: 'avais vendu', il: 'avait vendu',nous: 'avions vendu',vous:'aviez vendu',ils:'avaient vendu'},
+      "futur-anterieur":   { je: 'aurai vendu',tu: 'auras vendu', il: 'aura vendu',nous: 'aurons vendu',vous:'aurez vendu',ils:'auront vendu'}
+    })
+  },
+  {
+    id: 'repondre',
+    infinitive: 'répondre',
+    translation: 'responder',
+    regular: true,
+    tenses: buildTenses({
+      present:          { je: 'réponds',   tu: 'réponds',     il: 'répond',    nous: 'répondons', vous: 'répondez',  ils: 'répondent' },
+      imparfait:        { je: 'répondais', tu: 'répondais',   il: 'répondait', nous: 'répondions',vous: 'répondiez', ils: 'répondaient'},
+      "passe-compose":     { je: 'ai répondu',tu: 'as répondu',  il: 'a répondu', nous: 'avons répondu',vous:'avez répondu',ils:'ont répondu'},
+      "futur-simple":      { je: 'répondrai', tu: 'répondras',   il: 'répondra',  nous: 'répondrons',vous: 'répondrez', ils: 'répondront'},
+      conditionnel:     { je: 'répondrais',tu: 'répondrais',  il: 'répondrait',nous: 'répondrions',vous:'répondriez',ils:'répondraient'},
+      subjonctif:       { je: 'réponde',   tu: 'répondes',    il: 'réponde',   nous: 'répondions',vous: 'répondiez', ils: 'répondent' },
+      "plus-que-parfait":   { je: 'avais répondu',tu:'avais répondu',il:'avait répondu',nous:'avions répondu',vous:'aviez répondu',ils:'avaient répondu'},
+      "futur-anterieur":   { je: 'aurai répondu',tu:'auras répondu',il:'aura répondu',nous:'aurons répondu',vous:'aurez répondu',ils:'auront répondu'}
+    })
   }
 ]
 
