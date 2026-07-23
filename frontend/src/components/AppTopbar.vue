@@ -18,6 +18,7 @@ const breadcrumb = computed(() => {
     complete: 'Completar Frases',
     historias: 'Histórias',
     conjugacao: 'Conjugação',
+    pronuncia: 'Pronúncia',
     detalhes: 'Detalhes & Estatísticas',
     configuracoes: 'Configurações'
   }

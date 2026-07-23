@@ -16,6 +16,7 @@ const navItems = [
   { name: 'Completar Frases', to: '/complete', icon: 'puzzle' },
   { name: 'Histórias', to: '/historias', icon: 'book' },
   { name: 'Conjugação', to: '/conjugacao', icon: 'grammar' },
+  { name: 'Pronúncia', to: '/pronuncia', icon: 'speaker' },
   { name: 'Detalhes', to: '/detalhes', icon: 'chartBar' },
   { name: 'Configurações', to: '/configuracoes', icon: 'settings' }
 ]

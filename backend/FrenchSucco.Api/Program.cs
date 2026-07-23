@@ -44,7 +44,36 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     db.Database.EnsureCreated();
+    await EnsureAudioCacheTable(db, logger);
     await DataSeeder.SeedAsync(db, logger);
+}
+
+static async Task EnsureAudioCacheTable(AppDbContext db, ILogger logger)
+{
+    try
+    {
+        await db.Database.ExecuteSqlRawAsync(@"
+            CREATE TABLE IF NOT EXISTS audio_cache (
+                id BIGSERIAL PRIMARY KEY,
+                hash VARCHAR(64) NOT NULL UNIQUE,
+                text TEXT NOT NULL,
+                voice VARCHAR(20) NOT NULL DEFAULT 'female',
+                speed DOUBLE PRECISION NOT NULL DEFAULT 1.0,
+                region VARCHAR(10) NOT NULL DEFAULT 'fr',
+                audio_bytes BYTEA NOT NULL,
+                bytes_size INTEGER NOT NULL DEFAULT 0,
+                created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                last_used_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                use_count INTEGER NOT NULL DEFAULT 1
+            );
+            CREATE INDEX IF NOT EXISTS ix_audio_cache_last_used_at ON audio_cache (last_used_at);
+        ");
+        logger.LogInformation("audio_cache table ready.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Failed to ensure audio_cache table");
+    }
 }
 
 if (app.Environment.IsDevelopment())

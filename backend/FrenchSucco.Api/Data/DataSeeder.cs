@@ -27,6 +27,20 @@ public static class DataSeeder
             db.Words.AddRange(BuildWordDictionary());
             await db.SaveChangesAsync();
         }
+        else
+        {
+            var existing = await db.Words.Select(w => w.Word).ToListAsync();
+            var existingSet = new HashSet<string>(existing, StringComparer.OrdinalIgnoreCase);
+            var toAdd = BuildWordDictionary()
+                .Where(w => !existingSet.Contains(w.Word))
+                .ToList();
+            if (toAdd.Count > 0)
+            {
+                logger.LogInformation("Adding {Count} new word dictionary entries...", toAdd.Count);
+                db.Words.AddRange(toAdd);
+                await db.SaveChangesAsync();
+            }
+        }
     }
 
     private static List<Story> BuildStories() => new()
@@ -990,7 +1004,75 @@ public static class DataSeeder
             ["sens"] = "cheira",
             ["voir"] = "ver",
             ["apercevoir"] = "perceber",
-            ["aperçois"] = "percebo"
+            ["aperçois"] = "percebo",
+            // Vocabulário das histórias
+            ["allez-vous"] = "vai (você)",
+            ["anglais"] = "inglês",
+            ["antoine"] = "Antoine",
+            ["approche"] = "se aproxima",
+            ["asseyons"] = "sentamos",
+            ["beaux"] = "belos",
+            ["belles"] = "bonitas",
+            ["bondé"] = "lotado",
+            ["bonnes"] = "boas",
+            ["bâtiments"] = "prédios",
+            ["ces"] = "estes / estas",
+            ["cette"] = "esta",
+            ["chauffeur"] = "motorista",
+            ["chèvre"] = "cabra",
+            ["ciel"] = "céu",
+            ["claire"] = "Claire",
+            ["coloré"] = "colorido",
+            ["conseils"] = "conselhos",
+            ["d'aller"] = "de ir",
+            ["d'olives"] = "de azeitonas",
+            ["d'un"] = "de um",
+            ["d'étals"] = "de barracas",
+            ["devant"] = "na frente de",
+            ["dis"] = "digo",
+            ["dis-je"] = "digo eu",
+            ["disons"] = "digamos",
+            ["dit-elle"] = "diz ela",
+            ["dois"] = "devo",
+            ["détail"] = "detalhe",
+            ["en"] = "em / disso",
+            ["instructions"] = "instruções",
+            ["j'achète"] = "eu compro",
+            ["l'aéroport"] = "o aeroporto",
+            ["l'hôtel"] = "o hotel",
+            ["loin"] = "longe",
+            ["m'accueille"] = "me recebe",
+            ["m'appelle"] = "me chamo",
+            ["m'arrête"] = "paro",
+            ["machine"] = "máquina",
+            ["main"] = "mão",
+            ["martin"] = "Martin",
+            ["me"] = "me / mim",
+            ["mieux"] = "melhor",
+            ["minutes"] = "minutos",
+            ["n'est-ce"] = "não é",
+            ["ne"] = "não",
+            ["nom"] = "nome",
+            ["note"] = "anota",
+            ["oh"] = "oh",
+            ["paris"] = "Paris",
+            ["promenons"] = "passeamos",
+            ["provence"] = "Provença",
+            ["près"] = "perto",
+            ["puis"] = "depois",
+            ["puis-je"] = "posso",
+            ["rentrons"] = "voltamos",
+            ["roissy"] = "Roissy",
+            ["répond-elle"] = "responde ela",
+            ["se"] = "se",
+            ["serrons"] = "apertamos",
+            ["sortons"] = "saímos",
+            ["sourions"] = "sorrimos",
+            ["tickets"] = "bilhetes",
+            ["tiens"] = "ora",
+            ["voulez-vous"] = "quer (você)",
+            ["y"] = "lá",
+            ["échanger"] = "trocar"
         };
 
         return entries

@@ -28,6 +28,11 @@ const routes = [
     component: () => import('@/pages/ConjugacaoPage.vue')
   },
   {
+    path: '/pronuncia',
+    name: 'pronuncia',
+    component: () => import('@/pages/PronunciaPage.vue')
+  },
+  {
     path: '/detalhes',
     name: 'detalhes',
     component: () => import('@/pages/DetalhesPage.vue')

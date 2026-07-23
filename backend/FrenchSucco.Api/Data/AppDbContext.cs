@@ -14,6 +14,7 @@ public class AppDbContext : DbContext
     public DbSet<StoryPhrase> StoryPhrases => Set<StoryPhrase>();
     public DbSet<StoryVocabulary> StoryVocabulary => Set<StoryVocabulary>();
     public DbSet<WordDictionary> Words => Set<WordDictionary>();
+    public DbSet<AudioCacheEntry> AudioCache => Set<AudioCacheEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -122,6 +123,25 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Word).HasColumnName("word").HasMaxLength(60).IsRequired();
             entity.Property(e => e.Translation).HasColumnName("translation").IsRequired();
             entity.HasIndex(e => e.Word).IsUnique();
+        });
+
+        modelBuilder.Entity<AudioCacheEntry>(entity =>
+        {
+            entity.ToTable("audio_cache");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Hash).HasColumnName("hash").HasMaxLength(64).IsRequired();
+            entity.Property(e => e.Text).HasColumnName("text").IsRequired();
+            entity.Property(e => e.Voice).HasColumnName("voice").HasMaxLength(20);
+            entity.Property(e => e.Speed).HasColumnName("speed");
+            entity.Property(e => e.Region).HasColumnName("region").HasMaxLength(10);
+            entity.Property(e => e.AudioBytes).HasColumnName("audio_bytes").IsRequired();
+            entity.Property(e => e.BytesSize).HasColumnName("bytes_size");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.LastUsedAt).HasColumnName("last_used_at");
+            entity.Property(e => e.UseCount).HasColumnName("use_count");
+            entity.HasIndex(e => e.Hash).IsUnique();
+            entity.HasIndex(e => e.LastUsedAt);
         });
     }
 }

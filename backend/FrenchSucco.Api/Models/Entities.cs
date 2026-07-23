@@ -79,3 +79,18 @@ public class WordDictionary
     public string Word { get; set; } = string.Empty;
     public string Translation { get; set; } = string.Empty;
 }
+
+public class AudioCacheEntry
+{
+    public long Id { get; set; }
+    public string Hash { get; set; } = string.Empty;
+    public string Text { get; set; } = string.Empty;
+    public string Voice { get; set; } = "female";
+    public double Speed { get; set; } = 1.0;
+    public string Region { get; set; } = "fr";
+    public byte[] AudioBytes { get; set; } = Array.Empty<byte>();
+    public int BytesSize { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime LastUsedAt { get; set; } = DateTime.UtcNow;
+    public int UseCount { get; set; } = 1;
+}

@@ -1,6 +1,8 @@
+using FrenchSucco.Api.Data;
 using FrenchSucco.Api.Dtos;
 using FrenchSucco.Api.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace FrenchSucco.Api.Controllers;
 
@@ -93,10 +95,12 @@ public class CorrectController : ControllerBase
 public class AudioController : ControllerBase
 {
     private readonly ITtsService _tts;
+    private readonly AppDbContext _db;
 
-    public AudioController(ITtsService tts)
+    public AudioController(ITtsService tts, AppDbContext db)
     {
         _tts = tts;
+        _db = db;
     }
 
     [HttpGet]
@@ -119,5 +123,19 @@ public class AudioController : ControllerBase
         {
             return StatusCode(StatusCodes.Status502BadGateway, new { message = ex.Message });
         }
+    }
+
+    [HttpGet("cache-stats")]
+    public async Task<IActionResult> CacheStats(CancellationToken ct)
+    {
+        var entries = await _db.AudioCache.CountAsync(ct);
+        var totalBytes = await _db.AudioCache.SumAsync(a => (long?)a.BytesSize, ct) ?? 0L;
+        var lastUsed = await _db.AudioCache.MaxAsync(a => (DateTime?)a.LastUsedAt, ct);
+        return Ok(new
+        {
+            entries,
+            totalBytes,
+            lastUsedAt = lastUsed
+        });
     }
 }
