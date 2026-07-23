@@ -35,6 +35,7 @@ export const VERBS = [
     id: 'etre',
     infinitive: 'être',
     translation: 'ser / estar',
+    regular: false,
     tenses: buildTenses({
       present:          { je: 'suis',      tu: 'es',          il: 'est',       nous: 'sommes',    vous: 'êtes',    ils: 'sont'    },
       imparfait:        { je: 'étais',     tu: 'étais',       il: 'était',     nous: 'étions',    vous: 'étiez',   ils: 'étaient' },
@@ -50,6 +51,7 @@ export const VERBS = [
     id: 'avoir',
     infinitive: 'avoir',
     translation: 'ter',
+    regular: false,
     tenses: buildTenses({
       present:          { je: 'ai',        tu: 'as',          il: 'a',         nous: 'avons',     vous: 'avez',    ils: 'ont'     },
       imparfait:        { je: 'avais',     tu: 'avais',       il: 'avait',     nous: 'avions',    vous: 'aviez',   ils: 'avaient' },
@@ -65,6 +67,7 @@ export const VERBS = [
     id: 'faire',
     infinitive: 'faire',
     translation: 'fazer',
+    regular: false,
     tenses: buildTenses({
       present:          { je: 'fais',      tu: 'fais',        il: 'fait',      nous: 'faisons',   vous: 'faites',  ils: 'font'    },
       imparfait:        { je: 'faisais',   tu: 'faisais',     il: 'faisait',   nous: 'faisions',  vous: 'faisiez', ils: 'faisaient'},
@@ -80,6 +83,7 @@ export const VERBS = [
     id: 'aller',
     infinitive: 'aller',
     translation: 'ir',
+    regular: false,
     tenses: buildTenses({
       present:          { je: 'vais',      tu: 'vas',         il: 'va',        nous: 'allons',    vous: 'allez',   ils: 'vont'    },
       imparfait:        { je: 'allais',    tu: 'allais',      il: 'allait',    nous: 'allions',   vous: 'alliez',  ils: 'allaient'},
@@ -95,6 +99,7 @@ export const VERBS = [
     id: 'sortir',
     infinitive: 'sortir',
     translation: 'sair',
+    regular: false,
     tenses: buildTenses({
       present:          { je: 'sors',      tu: 'sors',        il: 'sort',      nous: 'sortons',   vous: 'sortez',  ils: 'sortent' },
       imparfait:        { je: 'sortais',   tu: 'sortais',     il: 'sortait',   nous: 'sortions',  vous: 'sortiez', ils: 'sortaient'},
@@ -110,6 +115,7 @@ export const VERBS = [
     id: 'venir',
     infinitive: 'venir',
     translation: 'vir',
+    regular: false,
     tenses: buildTenses({
       present:          { je: 'viens',     tu: 'viens',       il: 'vient',     nous: 'venons',    vous: 'venez',   ils: 'viennent'},
       imparfait:        { je: 'venais',    tu: 'venais',      il: 'venait',    nous: 'venions',   vous: 'veniez',  ils: 'venaient'},
@@ -125,6 +131,7 @@ export const VERBS = [
     id: 'prendre',
     infinitive: 'prendre',
     translation: 'pegar / tomar',
+    regular: false,
     tenses: buildTenses({
       present:          { je: 'prends',    tu: 'prends',      il: 'prend',     nous: 'prenons',   vous: 'prenez',  ils: 'prennent'},
       imparfait:        { je: 'prenais',   tu: 'prenais',     il: 'prenait',   nous: 'prenions',  vous: 'preniez', ils: 'prenaient'},
@@ -140,6 +147,7 @@ export const VERBS = [
     id: 'mettre',
     infinitive: 'mettre',
     translation: 'pôr / colocar',
+    regular: false,
     tenses: buildTenses({
       present:          { je: 'mets',      tu: 'mets',        il: 'met',       nous: 'mettons',   vous: 'mettez',  ils: 'mettent' },
       imparfait:        { je: 'mettais',   tu: 'mettais',     il: 'mettait',   nous: 'mettions',  vous: 'mettiez', ils: 'mettaient'},
@@ -155,6 +163,7 @@ export const VERBS = [
     id: 'arriver',
     infinitive: 'arriver',
     translation: 'chegar',
+    regular: true,
     tenses: buildTenses({
       present:          { je: 'arrive',    tu: 'arrives',     il: 'arrive',    nous: 'arrivons',  vous: 'arrivez', ils: 'arrivent'},
       imparfait:        { je: 'arrivais',  tu: 'arrivais',    il: 'arrivait',  nous: 'arrivions', vous: 'arriviez',ils: 'arrivaient'},
@@ -170,6 +179,7 @@ export const VERBS = [
     id: 'trouver',
     infinitive: 'trouver',
     translation: 'encontrar / achar',
+    regular: true,
     tenses: buildTenses({
       present:          { je: 'trouve',    tu: 'trouves',     il: 'trouve',    nous: 'trouvons',  vous: 'trouvez', ils: 'trouvent'},
       imparfait:        { je: 'trouvais',  tu: 'trouvais',    il: 'trouvait',  nous: 'trouvions', vous: 'trouviez',ils: 'trouvaient'},
@@ -185,6 +195,7 @@ export const VERBS = [
     id: 'tenir',
     infinitive: 'tenir',
     translation: 'segurar / manter',
+    regular: false,
     tenses: buildTenses({
       present:          { je: 'tiens',     tu: 'tiens',       il: 'tient',     nous: 'tenons',    vous: 'tenez',   ils: 'tiennent'},
       imparfait:        { je: 'tenais',    tu: 'tenais',      il: 'tenait',    nous: 'tenions',   vous: 'teniez',  ils: 'tenaient'},
@@ -200,6 +211,7 @@ export const VERBS = [
     id: 'rendre',
     infinitive: 'rendre',
     translation: 'devolver / entregar',
+    regular: true,
     tenses: buildTenses({
       present:          { je: 'rends',     tu: 'rends',       il: 'rend',      nous: 'rendons',   vous: 'rendez',  ils: 'rendent' },
       imparfait:        { je: 'rendais',   tu: 'rendais',     il: 'rendait',   nous: 'rendions',  vous: 'rendiez', ils: 'rendaient'},
@@ -215,6 +227,7 @@ export const VERBS = [
     id: 'dire',
     infinitive: 'dire',
     translation: 'dizer',
+    regular: false,
     tenses: buildTenses({
       present:          { je: 'dis',       tu: 'dis',         il: 'dit',       nous: 'disons',    vous: 'dites',   ils: 'disent'  },
       imparfait:        { je: 'disais',    tu: 'disais',      il: 'disait',    nous: 'disions',   vous: 'disiez',  ils: 'disaient'},
@@ -230,6 +243,7 @@ export const VERBS = [
     id: 'parler',
     infinitive: 'parler',
     translation: 'falar',
+    regular: true,
     tenses: buildTenses({
       present:          { je: 'parle',     tu: 'parles',      il: 'parle',     nous: 'parlons',   vous: 'parlez',  ils: 'parlent' },
       imparfait:        { je: 'parlais',   tu: 'parlais',     il: 'parlait',   nous: 'parlions',  vous: 'parliez', ils: 'parlaient'},
@@ -245,6 +259,7 @@ export const VERBS = [
     id: 'savoir',
     infinitive: 'savoir',
     translation: 'saber',
+    regular: false,
     tenses: buildTenses({
       present:          { je: 'sais',      tu: 'sais',        il: 'sait',      nous: 'savons',    vous: 'savez',   ils: 'savent'  },
       imparfait:        { je: 'savais',    tu: 'savais',      il: 'savait',    nous: 'savions',   vous: 'saviez',  ils: 'savaient'},
@@ -260,6 +275,7 @@ export const VERBS = [
     id: 'croire',
     infinitive: 'croire',
     translation: 'acreditar',
+    regular: false,
     tenses: buildTenses({
       present:          { je: 'crois',     tu: 'crois',       il: 'croit',     nous: 'croyons',   vous: 'croyez',  ils: 'croient' },
       imparfait:        { je: 'croyais',   tu: 'croyais',     il: 'croyait',   nous: 'croyions',  vous: 'croyiez', ils: 'croyaient'},
@@ -275,6 +291,7 @@ export const VERBS = [
     id: 'demander',
     infinitive: 'demander',
     translation: 'pedir / perguntar',
+    regular: true,
     tenses: buildTenses({
       present:          { je: 'demande',   tu: 'demandes',    il: 'demande',   nous: 'demandons', vous: 'demandez',ils: 'demandent'},
       imparfait:        { je: 'demandais', tu: 'demandais',   il: 'demandait', nous: 'demandions',vous:'demandiez',ils: 'demandaient'},
@@ -290,6 +307,7 @@ export const VERBS = [
     id: 'comprendre',
     infinitive: 'comprendre',
     translation: 'entender / compreender',
+    regular: false,
     tenses: buildTenses({
       present:          { je: 'comprends', tu: 'comprends',   il: 'comprend',  nous: 'comprenons',vous: 'comprenez',ils: 'comprennent'},
       imparfait:        { je: 'comprenais',tu: 'comprenais',  il: 'comprenait',nous: 'comprenions',vous:'compreniez',ils: 'comprenaient'},
@@ -305,6 +323,7 @@ export const VERBS = [
     id: 'entendre',
     infinitive: 'entendre',
     translation: 'ouvir',
+    regular: true,
     tenses: buildTenses({
       present:          { je: 'entends',   tu: 'entends',     il: 'entend',    nous: 'entendons', vous: 'entendez',ils: 'entendent'},
       imparfait:        { je: 'entendais', tu: 'entendais',   il: 'entendait', nous: 'entendions',vous:'entendiez',ils: 'entendaient'},
@@ -320,6 +339,7 @@ export const VERBS = [
     id: 'regarder',
     infinitive: 'regarder',
     translation: 'assistir / olhar',
+    regular: true,
     tenses: buildTenses({
       present:          { je: 'regarde',   tu: 'regardes',    il: 'regarde',   nous: 'regardons', vous: 'regardez',ils: 'regardent'},
       imparfait:        { je: 'regardais', tu: 'regardais',   il: 'regardait', nous: 'regardions',vous:'regardiez',ils: 'regardaient'},
@@ -335,6 +355,7 @@ export const VERBS = [
     id: 'sentir',
     infinitive: 'sentir',
     translation: 'sentir',
+    regular: false,
     tenses: buildTenses({
       present:          { je: 'sens',      tu: 'sens',        il: 'sent',      nous: 'sentons',   vous: 'sentez',   ils: 'sentent' },
       imparfait:        { je: 'sentais',   tu: 'sentais',     il: 'sentait',   nous: 'sentions',  vous: 'sentiez',  ils: 'sentaient'},
@@ -350,6 +371,7 @@ export const VERBS = [
     id: 'vouloir',
     infinitive: 'vouloir',
     translation: 'querer',
+    regular: false,
     tenses: buildTenses({
       present:          { je: 'veux',      tu: 'veux',        il: 'veut',      nous: 'voulons',   vous: 'voulez',   ils: 'veulent' },
       imparfait:        { je: 'voulais',   tu: 'voulais',     il: 'voulait',   nous: 'voulions',  vous: 'vouliez',  ils: 'voulaient'},
@@ -365,6 +387,7 @@ export const VERBS = [
     id: 'pouvoir',
     infinitive: 'pouvoir',
     translation: 'poder',
+    regular: false,
     tenses: buildTenses({
       present:          { je: 'peux',      tu: 'peux',        il: 'peut',      nous: 'pouvons',   vous: 'pouvez',   ils: 'peuvent' },
       imparfait:        { je: 'pouvais',   tu: 'pouvais',     il: 'pouvait',   nous: 'pouvions',  vous: 'pouviez',  ils: 'pouvaient'},
@@ -380,6 +403,7 @@ export const VERBS = [
     id: 'devoir',
     infinitive: 'devoir',
     translation: 'dever',
+    regular: false,
     tenses: buildTenses({
       present:          { je: 'dois',      tu: 'dois',        il: 'doit',      nous: 'devons',    vous: 'devez',    ils: 'doivent' },
       imparfait:        { je: 'devais',    tu: 'devais',      il: 'devait',    nous: 'devions',   vous: 'deviez',   ils: 'devaient'},
@@ -395,6 +419,7 @@ export const VERBS = [
     id: 'aimer',
     infinitive: 'aimer',
     translation: 'amar / gostar',
+    regular: true,
     tenses: buildTenses({
       present:          { je: 'aime',      tu: 'aimes',       il: 'aime',      nous: 'aimons',    vous: 'aimez',    ils: 'aiment'  },
       imparfait:        { je: 'aimais',    tu: 'aimais',      il: 'aimait',    nous: 'aimions',   vous: 'aimiez',   ils: 'aimaient'},
@@ -411,6 +436,7 @@ export const VERBS = [
     infinitive: 'falloir',
     translation: 'ser necessário (impessoal)',
     impersonal: true,
+    regular: false,
     tenses: buildTenses({
       present:          { il: 'faut'       },
       imparfait:        { il: 'fallait'    },

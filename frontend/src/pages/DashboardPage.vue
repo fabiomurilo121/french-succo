@@ -139,7 +139,6 @@ watch(inputText, (v) => {
 onMounted(() => {
   history.fetchAll()
   favorites.fetchAll()
-  if (history.items.length === 0) seedSampleHistory()
 })
 
 onUnmounted(() => {
@@ -437,26 +436,6 @@ function formatPhoneticBR(ipa) {
     .filter((w) => w.syllables.length)
 }
 
-function seedSampleHistory() {
-  const now = Date.now()
-  const samples = [
-    { minutesAgo: 5, source: 'Olá, como você está hoje?', fr: 'Bonjour, comment allez-vous aujourd\'hui ?', phonetic: 'bõʒuʁ kɔmɑ̃tale', category: 'Comum' },
-    { minutesAgo: 60, source: 'Eu gostaria de pedir um café com leite, por favor.', fr: 'Je voudrais commander un café au lait, s\'il vous plaît.', phonetic: 'ʒə.vudʁɛ kɔmɑ̃.de', category: 'Viagem' },
-    { minutesAgo: 180, source: 'Onde fica a estação de metrô?', fr: 'Où se trouve la station de métro ?', phonetic: 'u sə tʁuv', category: 'Viagem' },
-    { minutesAgo: 60 * 24, source: 'É um prazer conhecer você.', fr: 'C\'est un plaisir de vous rencontrer.', phonetic: 'sɛst œ̃ plɛ.ziʁ', category: 'Comum' }
-  ]
-  samples.forEach((s) => {
-    history.add({
-      sourceLang: 'pt',
-      sourceText: s.source,
-      frText: s.fr,
-      phonetic: s.phonetic,
-      category: s.category,
-      mode: 'translate',
-      createdAt: new Date(now - s.minutesAgo * 60 * 1000).toISOString()
-    })
-  })
-}
 </script>
 
 <template>
@@ -599,7 +578,7 @@ function seedSampleHistory() {
 
       <div class="db__translator-col db__translator-col--result">
         <article class="db__result card">
-          <header class="db__result-head">
+          <header v-if="result" class="db__result-head">
             <div class="db__result-lang">
               <div class="db__flag fr"></div>
               <span>Francês</span>
@@ -678,7 +657,7 @@ function seedSampleHistory() {
       <div class="db__history-head">
         <div>
           <h2 class="db__section-title">
-            <img :src="icons['IMG_14']" alt="" /> Histórico &amp; Favoritos
+            <AppIcon name="history" :size="20" /> Histórico &amp; Favoritos
           </h2>
           <p class="db__history-sub">Suas últimas traduções e frases salvas.</p>
         </div>
@@ -687,7 +666,7 @@ function seedSampleHistory() {
           class="btn btn-secondary btn--sm"
           @click="clearHistory"
         >
-          <img :src="icons['IMG_10']" alt="" />
+          <AppIcon name="trash" :size="14" />
           {{ historyTab === 'favorites' ? 'Limpar Favoritos' : 'Limpar Histórico' }}
         </button>
       </div>
@@ -808,7 +787,6 @@ function seedSampleHistory() {
         </article>
 
         <div v-if="filteredHistory.length === 0" class="db__history-empty">
-          <img :src="historyTab === 'favorites' ? icons['IMG_4'] : icons['IMG_14']" alt="" />
           <p v-if="historyTab === 'favorites'">
             Nenhum favorito ainda. Clique na estrela de uma tradução para salvar aqui.
           </p>

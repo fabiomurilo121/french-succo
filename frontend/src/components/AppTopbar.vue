@@ -194,11 +194,6 @@ onUnmounted(() => {
       <strong>{{ breadcrumb }}</strong>
     </div>
 
-    <div class="tb__search">
-      <img :src="icons['IMG_8']" alt="" class="tb__search-icon" />
-      <input type="text" placeholder="Buscar frases ou palavras..." aria-label="Buscar" />
-    </div>
-
     <div class="tb__actions">
       <button
         class="tb__timer"
@@ -405,39 +400,6 @@ onUnmounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.tb__search {
-  flex: 1;
-  display: none;
-  align-items: center;
-  gap: 8px;
-  background: rgba(197, 219, 255, 0.3);
-  border-radius: 12px;
-  padding: 8px 14px;
-  height: 40px;
-  max-width: 280px;
-}
-.tb__search-icon {
-  width: 14px;
-  height: 14px;
-  opacity: 0.7;
-}
-.tb__search input {
-  flex: 1;
-  font-size: 14px;
-  background: transparent;
-  border: none;
-  outline: none;
-}
-.tb__search input::placeholder {
-  color: rgba(105, 109, 114, 0.7);
-}
-
-@media (min-width: 768px) {
-  .tb__search {
-    display: flex;
-  }
 }
 
 .tb__actions {

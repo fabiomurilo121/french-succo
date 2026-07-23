@@ -5,6 +5,19 @@ import { useToastStore } from '@/stores/toast'
 
 const toast = useToastStore()
 
+const CATEGORY_STYLES = {
+  'Cumprimentos':  { icon: 'sun',        tint: '#f59e0b' },
+  'Apresentação':  { icon: 'user',       tint: '#6366f1' },
+  'Restaurante':   { icon: 'utensils',   tint: '#ef4444' },
+  'Viagem':        { icon: 'map',        tint: '#0ea5e9' },
+  'Cortesia':      { icon: 'sparkles',   tint: '#10b981' },
+  'Conversa':      { icon: 'chat',       tint: '#8b5cf6' },
+  'Compras':       { icon: 'bag',        tint: '#ec4899' },
+  'Família':       { icon: 'home',       tint: '#f97316' },
+  'Tempo':         { icon: 'cloud',      tint: '#64748b' },
+  'Rotina':        { icon: 'clock',      tint: '#14b8a6' }
+}
+
 const exercises = [
   {
     id: 1,
@@ -94,9 +107,9 @@ const exercises = [
     category: 'Restaurante',
     sentence: "___ , s'il vous plaît",
     translation: 'A conta, por favor',
-    slots: [{ id: 'a', text: "L'addition," }],
+    slots: [{ id: 'a', text: "L'addition" }],
     pool: [
-      "L'addition,", 'Le café,', 'Merci,', 'Voilà', 'ça', 'moi'
+      "L'addition", 'Le café', 'Merci', 'Voilà', 'ça', 'moi'
     ]
   },
   {
@@ -106,8 +119,174 @@ const exercises = [
     translation: 'Você pode me ajudar?',
     slots: [{ id: 'a', text: 'aider' }],
     pool: ['aider', 'avoir', 'aller', 'venir', 'faire', 'voir']
+  },
+  {
+    id: 11,
+    category: 'Apresentação',
+    sentence: "Je ___ Pierre",
+    translation: 'Eu me chamo Pierre',
+    slots: [{ id: 'a', text: "m'appelle" }],
+    pool: ["m'appelle", 'suis', 'parle', 'suis', 'ai', 'voilà']
+  },
+  {
+    id: 12,
+    category: 'Apresentação',
+    sentence: "Comment ___ -tu ?",
+    translation: 'Como você se chama?',
+    slots: [{ id: 'a', text: "t'appelles" }],
+    pool: ["t'appelles", 'ça', 'tu', 'vas', 'vous', 'allez']
+  },
+  {
+    id: 13,
+    category: 'Cumprimentos',
+    sentence: '___ , merci',
+    translation: 'Olá, obrigado',
+    slots: [{ id: 'a', text: 'Salut' }],
+    pool: ['Salut', 'Merci', 'Voilà', 'Bon', 'voilà', 'Bonsoir']
+  },
+  {
+    id: 14,
+    category: 'Família',
+    sentence: "J'___ une sœur",
+    translation: 'Eu tenho uma irmã',
+    slots: [{ id: 'a', text: 'ai' }],
+    pool: ['ai', 'suis', 'a', 'es', 'sommes', 'voilà']
+  },
+  {
+    id: 15,
+    category: 'Família',
+    sentence: "J'___ deux frères",
+    translation: 'Eu tenho dois irmãos',
+    slots: [{ id: 'a', text: 'ai' }],
+    pool: ['ai', 'suis', 'a', 'es', 'voilà', 'sommes']
+  },
+  {
+    id: 16,
+    category: 'Conversa',
+    sentence: 'Tu ___ français ?',
+    translation: 'Você fala francês?',
+    slots: [{ id: 'a', text: 'parles' }],
+    pool: ['parles', 'parle', 'parlons', 'parlez', 'voilà', 'merci']
+  },
+  {
+    id: 17,
+    category: 'Conversa',
+    sentence: 'Je ___ étudiant',
+    translation: 'Eu sou estudante',
+    slots: [{ id: 'a', text: 'suis' }],
+    pool: ['suis', 'ai', 'es', 'parle', 'va', 'voilà']
+  },
+  {
+    id: 18,
+    category: 'Cortesia',
+    sentence: '___ vous plaît',
+    translation: 'Por favor',
+    slots: [{ id: 'a', text: "S'il" }],
+    pool: ["S'il", 'Merci', 'Voilà', 'Pardon', 'Avec', 'Pour']
+  },
+  {
+    id: 19,
+    category: 'Restaurante',
+    sentence: "Je ___ de l'eau",
+    translation: 'Eu queria água',
+    slots: [{ id: 'a', text: 'voudrais' }],
+    pool: ['voudrais', 'vais', 'pars', 'suis', 'ai', 'voilà']
+  },
+  {
+    id: 20,
+    category: 'Restaurante',
+    sentence: "C'est ___ bon",
+    translation: 'Isto é muito bom',
+    slots: [{ id: 'a', text: 'très' }],
+    pool: ['très', 'bien', 'bon', 'plus', 'trop', 'merci']
+  },
+  {
+    id: 21,
+    category: 'Compras',
+    sentence: "Je ___ cette robe",
+    translation: 'Eu levo este vestido',
+    slots: [{ id: 'a', text: 'prends' }],
+    pool: ['prends', 'vais', 'suis', 'ai', 'fais', 'voilà']
+  },
+  {
+    id: 22,
+    category: 'Compras',
+    sentence: "Vous ___ la carte ?",
+    translation: 'Vocês aceitam cartão?',
+    slots: [{ id: 'a', text: 'acceptez' }],
+    pool: ['acceptez', 'parlez', 'allez', 'avez', 'êtes', 'voilà']
+  },
+  {
+    id: 23,
+    category: 'Viagem',
+    sentence: "Je ___ à Paris",
+    translation: 'Eu vou a Paris',
+    slots: [{ id: 'a', text: 'vais' }],
+    pool: ['vais', 'suis', 'pars', 'ai', 'voilà', 'fais']
+  },
+  {
+    id: 24,
+    category: 'Viagem',
+    sentence: "L'___ est à quelle heure ?",
+    translation: 'O ônibus sai a que horas?',
+    slots: [{ id: 'a', text: 'autobus' }],
+    pool: ['autobus', 'avion', 'train', 'hôtel', 'taxi', 'voilà']
+  },
+  {
+    id: 25,
+    category: 'Tempo',
+    sentence: "Il ___ aujourd'hui",
+    translation: 'Hoje faz sol',
+    slots: [{ id: 'a', text: 'fait beau' }],
+    pool: ['fait beau', 'fait chaud', 'pleut', 'fais', 'est', 'voilà']
+  },
+  {
+    id: 26,
+    category: 'Tempo',
+    sentence: "Il ___ très froid",
+    translation: 'Está muito frio',
+    slots: [{ id: 'a', text: 'fait' }],
+    pool: ['fait', 'fais', 'suis', 'ai', 'a', 'voilà']
+  },
+  {
+    id: 27,
+    category: 'Rotina',
+    sentence: 'Je ___ à 7 heures',
+    translation: 'Eu acordo às 7 horas',
+    slots: [{ id: 'a', text: 'me réveille' }],
+    pool: ['me réveille', 'me couche', 'me lève', 'pars', 'suis', 'voilà']
+  },
+  {
+    id: 28,
+    category: 'Rotina',
+    sentence: "Je ___ le soir",
+    translation: 'Eu trabalho à noite',
+    slots: [{ id: 'a', text: 'travaille' }],
+    pool: ['travaille', 'mange', 'dors', 'parle', 'suis', 'voilà']
+  },
+  {
+    id: 29,
+    category: 'Família',
+    sentence: "C'est ___ ami",
+    translation: 'Este é meu amigo',
+    slots: [{ id: 'a', text: 'mon' }],
+    pool: ['mon', 'ma', 'mes', 'ton', 'son', 'voilà']
+  },
+  {
+    id: 30,
+    category: 'Família',
+    sentence: "C'est ___ mère",
+    translation: 'Esta é minha mãe',
+    slots: [{ id: 'a', text: 'ma' }],
+    pool: ['ma', 'mon', 'mes', 'sa', 'ta', 'voilà']
   }
 ]
+
+const currentCategory = computed(() => {
+  const ex = currentExercise.value
+  if (!ex) return null
+  return CATEGORY_STYLES[ex.category] || { icon: 'book', tint: '#64748b' }
+})
 
 const sessionDeck = ref([])
 const cardIndex = ref(0)
@@ -390,6 +569,28 @@ const errorMessage = computed(() => {
         </button>
       </header>
 
+      <div
+        class="cp__illustration"
+        :style="{
+          background: `linear-gradient(135deg, ${currentCategory.tint}1a 0%, ${currentCategory.tint}33 100%)`,
+          color: currentCategory.tint
+        }"
+      >
+        <div
+          class="cp__illustration-icon"
+          :style="{
+            background: `${currentCategory.tint}26`,
+            color: currentCategory.tint
+          }"
+        >
+          <AppIcon :name="currentCategory.icon" :size="56" />
+        </div>
+        <div class="cp__illustration-meta">
+          <small>Cenário</small>
+          <strong>{{ currentExercise.category }}</strong>
+        </div>
+      </div>
+
       <div class="cp__sentence">
         <template v-for="(slot, idx) in currentExercise.slots" :key="slot.id">
           <span class="cp__sentence-text">{{ sentenceParts[idx] }}</span>
@@ -640,6 +841,50 @@ const errorMessage = computed(() => {
   flex-direction: column;
   gap: 16px;
   padding: 24px !important;
+}
+
+.cp__illustration {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-soft);
+}
+.cp__illustration-icon {
+  width: 84px;
+  height: 84px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px -4px rgba(0, 0, 0, 0.08);
+  transition: transform var(--motion-base) var(--ease-out);
+}
+.cp__illustration:hover .cp__illustration-icon {
+  transform: scale(1.04) rotate(-3deg);
+}
+.cp__illustration-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.cp__illustration-meta small {
+  font-family: var(--font-nav);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.cp__illustration-meta strong {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 .cp__exercise-head {
@@ -1028,6 +1273,18 @@ const errorMessage = computed(() => {
     font-size: 18px;
     line-height: 2;
     padding: 14px 8px;
+  }
+  .cp__illustration {
+    padding: 14px;
+    gap: 12px;
+  }
+  .cp__illustration-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+  }
+  .cp__illustration-meta strong {
+    font-size: 17px;
   }
   .cp__slot {
     min-width: 70px;

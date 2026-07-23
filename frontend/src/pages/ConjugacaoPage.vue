@@ -7,14 +7,30 @@ import { VERBS, PRONOUNS, getVerb, getPronounsFor, normalizeAnswer } from '@/dat
 const toast = useToastStore()
 
 /* ── Sorteio do verbo ── */
+const verbTypeFilter = ref('all') // 'all' | 'regular' | 'irregular'
+
+function filteredVerbPool() {
+  if (verbTypeFilter.value === 'regular') return VERBS.filter((v) => v.regular)
+  if (verbTypeFilter.value === 'irregular') return VERBS.filter((v) => !v.regular)
+  return VERBS
+}
+
 function pickRandomVerb(excludeId = null) {
-  const pool = excludeId ? VERBS.filter((v) => v.id !== excludeId) : VERBS
+  let pool = filteredVerbPool()
+  if (excludeId) pool = pool.filter((v) => v.id !== excludeId)
+  if (!pool.length) pool = VERBS
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
 const activeVerb = ref(pickRandomVerb())
 const totalTenses = computed(() => activeVerb.value.tenses.length)
 const pronounsForVerb = computed(() => getPronounsFor(activeVerb.value))
+
+const verbTypeOptions = computed(() => [
+  { value: 'all',       label: 'Todos',       count: VERBS.length },
+  { value: 'regular',   label: 'Regulares',   count: VERBS.filter((v) => v.regular).length },
+  { value: 'irregular', label: 'Irregulares', count: VERBS.filter((v) => !v.regular).length }
+])
 
 /* ── Setup: escolha de tempos verbais ── */
 const selectedTenseIds = ref(activeVerb.value.tenses.map((t) => t.id))
@@ -51,9 +67,25 @@ function toggleTense(id) {
 }
 
 function reshuffleVerb() {
+  const previousSelection = [...selectedTenseIds.value]
   activeVerb.value = pickRandomVerb(activeVerb.value.id)
-  selectedTenseIds.value = activeVerb.value.tenses.map((t) => t.id)
+  const validTenseIds = activeVerb.value.tenses.map((t) => t.id)
+  const kept = previousSelection.filter((id) => validTenseIds.includes(id))
+  selectedTenseIds.value = kept.length ? kept : [...validTenseIds]
   phase.value = 'setup'
+}
+
+function setVerbTypeFilter(type) {
+  if (verbTypeFilter.value === type) return
+  verbTypeFilter.value = type
+  if (!activeVerb.value) return
+  const matchesFilter =
+    type === 'all' ||
+    (type === 'regular' && activeVerb.value.regular) ||
+    (type === 'irregular' && !activeVerb.value.regular)
+  if (!matchesFilter) {
+    reshuffleVerb()
+  }
 }
 
 /* ── Sessão de prática ── */
@@ -244,6 +276,21 @@ onMounted(() => {
             <span class="cj__verb-eyebrow">Verbo sorteado</span>
             <strong class="cj__verb-infinitive">{{ activeVerb.infinitive }}</strong>
             <small class="cj__verb-translation">{{ activeVerb.translation }}</small>
+          </div>
+          <div class="cj__verb-filter" role="radiogroup" aria-label="Tipo de verbo">
+            <button
+              v-for="opt in verbTypeOptions"
+              :key="opt.value"
+              type="button"
+              role="radio"
+              :aria-checked="verbTypeFilter === opt.value"
+              class="cj__verb-filter-btn"
+              :class="{ 'is-active': verbTypeFilter === opt.value }"
+              @click="setVerbTypeFilter(opt.value)"
+            >
+              {{ opt.label }}
+              <small>{{ opt.count }}</small>
+            </button>
           </div>
           <button
             type="button"
@@ -619,6 +666,52 @@ onMounted(() => {
 }
 .cj__verb-reshuffle:hover :deep(svg) {
   transform: rotate(-30deg);
+}
+
+.cj__verb-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+}
+.cj__verb-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-nav);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--motion-fast), color var(--motion-fast);
+}
+.cj__verb-filter-btn small {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-faint);
+  background: var(--surface-sunken);
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+  transition: background var(--motion-fast), color var(--motion-fast);
+}
+.cj__verb-filter-btn:hover {
+  color: var(--color-primary);
+}
+.cj__verb-filter-btn.is-active {
+  background: var(--color-primary);
+  color: #fff;
+}
+.cj__verb-filter-btn.is-active small {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
 }
 .cj__verb-eyebrow {
   font-family: var(--font-nav);
