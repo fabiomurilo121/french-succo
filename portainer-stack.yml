@@ -1,0 +1,79 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: french_succo
+      POSTGRES_USER: succo
+      POSTGRES_PASSWORD: succo_secret
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - succo-net
+
+  backend:
+    image: french-succo-backend:1.0.0-amd64
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      POSTGRES_CONNECTION: Host=postgres;Port=5432;Database=french_succo;Username=succo;Password=succo_secret
+      MiniMax__ApiKey: sk-cp-qy3W9sU8KfyAegvIW5B_1yyfNc2EnNQwLzIVtTfQLmwt5LoA7StRHJU1zy6sPuKzYhVONXKUsfjAq-K5dkRzKGzjteLJQEh5Fo0_lxJrRVqWy9J6Ix10DD0
+      MiniMax__BaseUrl: https://api.minimax.io/v1
+      MiniMax__TextModel: MiniMax-Text-01
+      MiniMax__Voice: audio_default
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - succo-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  frontend:
+    image: french-succo-frontend:1.0.0-amd64
+    restart: unless-stopped
+    networks:
+      - succo-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:80/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  nginx:
+    image: french-succo-proxy:1.0.0-amd64
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    networks:
+      - succo-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:80/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  pgdata:
+
+networks:
+  succo-net:
+    driver: bridge
