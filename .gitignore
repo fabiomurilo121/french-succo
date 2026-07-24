@@ -114,3 +114,8 @@ coverage/
 *.pem
 *.key
 *.crt
+
+# ── Build artifacts (imagens exportadas para Portainer) ──────────────────────
+dist-images/
+*.tar
+*.tar.gz

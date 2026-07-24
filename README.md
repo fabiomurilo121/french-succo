@@ -161,6 +161,25 @@ docker compose down              # para containers, mantém volumes
 docker compose down -v           # para + APAGA o banco (volume pgdata)
 ```
 
+### Deploy via Portainer (servidor remoto)
+
+```bash
+# 1) Buildar imagens para amd64 (no Mac use buildx; no servidor Intel use docker build)
+./scripts/build-images.sh
+# ou para outra arquitetura:
+# PLATFORM=linux/arm64 ./scripts/build-images.sh
+
+# 2) Importar os 3 .tar no Portainer
+#    Stack → Editor → adicionar imagens ou usar "Image > Load from file"
+
+# 3) Subir a stack usando portainer-stack.yml
+#    Stack → Add stack → Upload → portainer-stack.yml
+```
+
+> ⚠️  O sufixo `-amd64` no nome do arquivo é só convenção. O script valida
+> a arquitetura real da imagem e aborta se ela não bater com `PLATFORM`.
+> Erro típico de mismatch: `exec /usr/bin/dotnet: exec format error`.
+
 ---
 
 ## ⚙️ Variáveis de ambiente
