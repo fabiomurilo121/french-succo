@@ -169,12 +169,25 @@ docker compose down -v           # para + APAGA o banco (volume pgdata)
 # ou para outra arquitetura:
 # PLATFORM=linux/arm64 ./scripts/build-images.sh
 
-# 2) Importar os 3 .tar no Portainer
-#    Stack → Editor → adicionar imagens ou usar "Image > Load from file"
+# 2) Preparar o env file (NÃO commitar — substitua a chave real)
+cp .env.portainer.example .env.portainer
+nano .env.portainer        # preencher MINIMAX_API_KEY
 
-# 3) Subir a stack usando portainer-stack.yml
-#    Stack → Add stack → Upload → portainer-stack.yml
+# 3) No Portainer:
+#    - Add stack → Advanced mode
+#    - Upload portainer-stack.yml
+#    - Marcar "Use environment file" → upload .env.portainer
+#    - Deploy
 ```
+
+**Arquivos do fluxo Portainer:**
+
+| Arquivo                  | Onde fica      | O que tem                                      |
+|--------------------------|----------------|------------------------------------------------|
+| `portainer-stack.yml`    | repo (commit)  | compose com `${VAR}` placeholders              |
+| `.env.portainer.example` | repo (commit)  | template do env file                           |
+| `.env.portainer`         | só no servidor | env real (gitignored) — **nunca commitar**     |
+| `dist-images/*.tar`      | só no servidor | imagens exportadas (gitignored)                |
 
 > ⚠️  O sufixo `-amd64` no nome do arquivo é só convenção. O script valida
 > a arquitetura real da imagem e aborta se ela não bater com `PLATFORM`.
