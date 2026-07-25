@@ -14,6 +14,7 @@
 | **Fonética** | Transcrição fonética em PT-BR (ex: `bõ-jur kõ-mã ta-le`) |
 | **Dica cultural** | Curta observação sobre etiqueta/francês falado sempre que o modelo retorna |
 | **Áudio (TTS)** | Síntese em MP3 via MiniMax T2A com voz masculina/feminina, velocidade e região configuráveis |
+| **Conversar com IA** | Role-play em cenários (restaurante, mercado, hotel…) com mic (Web Speech API), correções e sugestões |
 | **Histórico** | Lista cronológica com busca, filtro por categoria, favoritar inline |
 | **Favoritos** | Tabela com tags de categoria, remoção por checkbox, prática dedicada |
 | **Configurações** | Voz, velocidade, região (FR/QC/BÉ), toggles de UI, lembrete diário, conta |
@@ -282,6 +283,66 @@ Lê/grava `user_settings` (chave do user é `default` no MVP).
 { "wordsLearned": 4960, "streakDays": 15, "accuracy": 92 }
 ```
 
+### `POST /api/conversation/start`
+```jsonc
+// request
+{ "scenario": "restaurant", "region": "fr" }
+
+// response
+{
+  "scenario": "restaurant",
+  "character": "Le serveur / La serveuse",
+  "setting": "Vous êtes dans un bistrot parisien …",
+  "greeting": "Bonjour ! Bienvenue, installez-vous. Que voulez-vous boire ?",
+  "greetingPhonetic": "bõ.ʒuʁ bi.və.ny ɛ̃s.ta.le.vu kə vu.le.vu bwaʁ",
+  "greetingTranslation": "Olá! Bem-vindo, sente-se. O que gostaria de beber?",
+  "culturalTip": "Ao entrar em qualquer comércio na França, diga Bonjour antes de pedir algo.",
+  "suggestedReplies": [
+    "Bonjour, je voudrais un café — Olá, eu gostaria de um café",
+    "Une carafe d'eau, s'il vous plaît — Uma jarra de água, por favor"
+  ]
+}
+```
+
+### `POST /api/conversation/reply`
+```jsonc
+// request
+{
+  "scenario": "restaurant",
+  "history": [
+    { "role": "assistant", "text": "Bonjour ! Bienvenue…" },
+    { "role": "user",      "text": "Bonjour, je veut un café" }
+  ],
+  "userText": "Bonjour, je veut un café",
+  "region": "fr"
+}
+
+// response
+{
+  "reply": "Très bien ! Vous le voulez noir ou avec du lait ?",
+  "replyPhonetic": "tʁɛ bjɛ̃ vu lə vu.le nwaʁ u a.vɛ dy lɛ",
+  "replyTranslation": "Muito bem! Você quer ele puro ou com leite?",
+  "userCorrections": [
+    {
+      "original": "je veut un café",
+      "corrected": "je voudrais un café",
+      "phonetic": "je vu.dʁɛ ɛ̃ kafe",
+      "corrections": [
+        { "from": "je veut", "to": "je voudrais", "reason": "Para pedir de modo educado, use o condicional 'voudrais'." }
+      ]
+    }
+  ],
+  "culturalTip": "Em restaurantes franceses, é comum começar com 'Bonjour' e usar o condicional para parecer educado.",
+  "suggestedReplies": [
+    { "fr": "Noir, s'il vous plaît", "pt": "Puro, por favor" },
+    { "fr": "Avec du lait, merci",   "pt": "Com leite, obrigado" }
+  ]
+}
+```
+
+Cenários disponíveis: `restaurant`, `marche`, `cafe`, `hotel`, `aeroport`, `pharmacie`, `boutique`, `taxi`.
+O frontend usa **Web Speech API** (`fr-FR`) para capturar o microfone; correção inline é mostrada após cada turno do usuário sem interromper o fluxo.
+
 ---
 
 ## 🧠 Como a integração MiniMax funciona
@@ -394,6 +455,24 @@ v-else-if="result"                → cartão com fonética, áudio, dica cultur
 - **Conta:** cards para perfil e privacidade.
 - Tudo persiste em `localStorage` + sincroniza com backend
   (`PUT /api/settings`) automaticamente via watcher.
+
+### `/conversa` — ConversaPage.vue
+
+- **Seleção de cenário:** cards para 8 situações (restaurante, mercado, café,
+  hotel, aeroporto, farmácia, loja, táxi) com descrição curta.
+- **Início da conversa:** backend pede ao MiniMax uma saudação inicial
+  autêntica no personagem, com tradução, fonética e dica cultural.
+- **Reconhecimento de voz:** Web Speech API (`fr-FR`) — o botão de mic
+  transcreve em tempo real e injeta o texto no composer.
+- **Respostas da IA:** cada turno do personagem chega em francês com tradução
+  inline + áudio TTS; o autoPlay do `settings` dispara logo após receber.
+- **Correções inline:** após cada fala do usuário, o backend dispara em
+  paralelo um corretor gramatical; o resultado aparece em um card laranja
+  com `from → to + razão`, sem interromper o role-play.
+- **Sugestões rápidas:** 3 respostas curtas em francês abaixo das bolhas
+  para o usuário clicar quando travar.
+- **Composer:** textarea + mic (pausável) + botão Enviar. O mic usa
+  animação de pulso enquanto escuta.
 
 ### Persistência
 

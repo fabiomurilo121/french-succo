@@ -23,6 +23,7 @@ builder.Services.AddScoped<IGrammarService, GrammarService>();
 builder.Services.AddScoped<IPhoneticService, PhoneticService>();
 builder.Services.AddScoped<ITtsService, TtsService>();
 builder.Services.AddScoped<IStatsService, StatsService>();
+builder.Services.AddScoped<IConversationService, ConversationService>();
 
 builder.Services.AddCors(opt =>
 {

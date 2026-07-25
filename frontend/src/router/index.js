@@ -33,6 +33,11 @@ const routes = [
     component: () => import('@/pages/PronunciaPage.vue')
   },
   {
+    path: '/conversa',
+    name: 'conversa',
+    component: () => import('@/pages/ConversaPage.vue')
+  },
+  {
     path: '/detalhes',
     name: 'detalhes',
     component: () => import('@/pages/DetalhesPage.vue')

@@ -96,6 +96,20 @@ export const api = {
     return request('/database/stats')
   },
 
+  async startConversation(payload) {
+    return request('/conversation/start', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
+  },
+
+  async replyConversation(payload) {
+    return request('/conversation/reply', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
+  },
+
   getAudioUrl(text, voice, speed, region = 'fr') {
     const params = new URLSearchParams({ text, voice, speed, region })
     return `${BASE_URL}/audio?${params.toString()}`

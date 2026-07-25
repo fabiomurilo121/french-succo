@@ -134,3 +134,52 @@ public record DatabaseStatsDto(
     int FavoriteCount,
     List<TableSizeDto> Tables
 );
+
+public record ConversationTurnDto(
+    string Role,
+    string Text
+);
+
+public record ConversationStartRequest(
+    string Scenario,
+    string? Region = "fr"
+);
+
+public record ConversationStartResponse(
+    string Scenario,
+    string Character,
+    string Setting,
+    string Greeting,
+    string GreetingPhonetic,
+    string GreetingTranslation,
+    string? CulturalTip,
+    List<string> SuggestedReplies
+);
+
+public record ConversationReplyRequest(
+    string Scenario,
+    List<ConversationTurnDto> History,
+    string UserText,
+    string? Region = "fr"
+);
+
+public record ConversationSuggestionDto(
+    string Fr,
+    string Pt
+);
+
+public record ConversationCorrectedTurnDto(
+    string Original,
+    string Corrected,
+    string Phonetic,
+    List<GrammarCorrection> Corrections
+);
+
+public record ConversationReplyResponse(
+    string Reply,
+    string ReplyPhonetic,
+    string ReplyTranslation,
+    List<ConversationCorrectedTurnDto> UserCorrections,
+    string? CulturalTip,
+    List<ConversationSuggestionDto> SuggestedReplies
+);

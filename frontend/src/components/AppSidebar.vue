@@ -17,6 +17,7 @@ const navItems = [
   { name: 'Histórias', to: '/historias', icon: 'book' },
   { name: 'Conjugação', to: '/conjugacao', icon: 'grammar' },
   { name: 'Pronúncia', to: '/pronuncia', icon: 'speaker' },
+  { name: 'Conversar', to: '/conversa', icon: 'chat' },
   { name: 'Detalhes', to: '/detalhes', icon: 'chartBar' },
   { name: 'Configurações', to: '/configuracoes', icon: 'settings' }
 ]
