@@ -1354,7 +1354,7 @@ onMounted(() => {
     <footer class="fc__footer">
       <span>© 2026 French Succo — Aprenda um card por vez.</span>
       <span class="fc__footer-version">
-        v{{ '1.0.0' }}
+        v{{ '1.0.1' }}
         <small>· flashcards</small>
       </span>
     </footer>

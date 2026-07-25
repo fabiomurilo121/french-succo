@@ -23,7 +23,7 @@ services:
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_URLS: http://0.0.0.0:8080
       POSTGRES_CONNECTION: Host=postgres;Port=5432;Database=french_succo;Username=succo;Password=succo_secret
       MiniMax__ApiKey: ${MINIMAX_API_KEY:-}
       MiniMax__BaseUrl: ${MINIMAX_BASE_URL:-https://api.minimax.io/v1}
@@ -35,10 +35,11 @@ services:
     networks:
       - succo-net
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/healthz || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/healthz || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   frontend:
     build:
@@ -63,10 +64,11 @@ services:
     networks:
       - succo-net
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:80/healthz || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:80/healthz || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 15s
 
 volumes:
   pgdata:
