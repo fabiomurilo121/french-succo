@@ -1,11 +1,14 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import AppIcon from '@/components/AppIcon.vue'
 import { useFavoritesStore } from '@/stores/library'
 import { useToastStore } from '@/stores/toast'
+import { useSettingsStore } from '@/stores/settings'
+import { getAudioUrl } from '@/services/audioCache'
 
 const favorites = useFavoritesStore()
 const toast = useToastStore()
+const settings = useSettingsStore()
 
 const defaultDeck = [
   {
@@ -775,6 +778,806 @@ const defaultDeck = [
     category: 'Cortesia',
     difficulty: 2,
     tip: 'Versão formal do brinde, com "você" (vous).'
+  },
+  {
+    frText: 'Pouvez-vous m\'aider ?',
+    ptText: 'Você pode me ajudar ?',
+    phonetic: 'pu.ve vu mɛ.de',
+    category: 'Conversa',
+    difficulty: 2,
+    tip: 'Forma educada e direta de pedir ajuda a um estranho.'
+  },
+  {
+    frText: 'Je ne sais pas',
+    ptText: 'Eu não sei',
+    phonetic: 'ʒə n(ə) sɛ pa',
+    category: 'Conversa',
+    difficulty: 1,
+    tip: 'Resposta honesta quando não sabe algo — não tenha medo de usar!'
+  },
+  {
+    frText: "Comment dit-on … en français ?",
+    ptText: 'Como se diz … em francês ?',
+    phonetic: 'kɔ.mɑ̃ di.tɔ̃ … ɑ̃ fʁɑ̃.sɛ',
+    category: 'Conversa',
+    difficulty: 3,
+    tip: 'Frase coringa para pedir a tradução de qualquer palavra.'
+  },
+  {
+    frText: 'Que veut dire ce mot ?',
+    ptText: 'O que quer dizer essa palavra ?',
+    phonetic: 'kə vø diʁ sə mo',
+    category: 'Conversa',
+    difficulty: 3,
+    tip: 'Use quando vir uma palavra escrita e quiser entender.'
+  },
+  {
+    frText: 'Je m\'appelle …',
+    ptText: 'Eu me chamo …',
+    phonetic: 'ʒə ma.pɛl …',
+    category: 'Apresentação',
+    difficulty: 1,
+    tip: 'Forma universal de dizer seu nome.'
+  },
+  {
+    frText: 'Enchanté de faire votre connaissance',
+    ptText: 'Prazer em conhecê-lo',
+    phonetic: 'ɑ̃.ʃɑ̃.te də fɛʁ vɔ.tʁə kɔ.nɛ.sɑ̃s',
+    category: 'Apresentação',
+    difficulty: 4,
+    tip: 'Versão completa e formal — use em reuniões de trabalho.'
+  },
+  {
+    frText: 'Comment vous appelez-vous ?',
+    ptText: 'Como você se chama ? (formal)',
+    phonetic: 'kɔ.mɑ̃ vu za.ple vu',
+    category: 'Apresentação',
+    difficulty: 3,
+    tip: 'Pergunta educada para alguém mais velho ou desconhecido.'
+  },
+  {
+    frText: 'Tu t\'appelles comment ?',
+    ptText: 'Como você se chama ? (informal)',
+    phonetic: 'ty ta.pɛl kɔ.mɑ̃',
+    category: 'Apresentação',
+    difficulty: 2,
+    tip: 'Versão informal com "tu". Use com crianças e amigos.'
+  },
+  {
+    frText: 'Voici, c\'est pour vous',
+    ptText: 'Aqui está, é para você',
+    phonetic: 'vwa.si, sɛ puʁ vu',
+    category: 'Apresentação',
+    difficulty: 3,
+    tip: 'Ao entregar algo para alguém, sempre diga isto.'
+  },
+  {
+    frText: 'Ravi de vous rencontrer',
+    ptText: 'Prazer em conhecê-lo',
+    phonetic: 'ʁa.vi də vu ʁɑ̃.kɔ̃.tʁe',
+    category: 'Apresentação',
+    difficulty: 4,
+    tip: 'Outra forma elegante — "ravi" é masculino.'
+  },
+  {
+    frText: 'Je viens du Brésil',
+    ptText: 'Eu venho do Brasil',
+    phonetic: 'ʒə vjɛ̃ dy bʁe.zil',
+    category: 'Apresentação',
+    difficulty: 2,
+    tip: 'Frase-chave ao se apresentar — sempre gera curiosidade!'
+  },
+  {
+    frText: 'Je suis étudiant',
+    ptText: 'Eu sou estudante',
+    phonetic: 'ʒə sɥi e.ty.djɑ̃',
+    category: 'Apresentação',
+    difficulty: 1,
+    tip: '"étudiante" se você for mulher (pronúncia quase igual).'
+  },
+  {
+    frText: 'Je parle un peu français',
+    ptText: 'Eu falo um pouco de francês',
+    phonetic: 'ʒə paʁl œ̃ pø fʁɑ̃.sɛ',
+    category: 'Apresentação',
+    difficulty: 2,
+    tip: 'Frase honesta e útil para definir o nível do diálogo.'
+  },
+  {
+    frText: 'Quel âge avez-vous ?',
+    ptText: 'Quantos anos você tem ? (formal)',
+    phonetic: 'kɛ.laːʒ a.ve vu',
+    category: 'Apresentação',
+    difficulty: 3,
+    tip: 'Pergunta um pouco invasiva — só com pessoas próximas.'
+  },
+  {
+    frText: 'Où habitez-vous ?',
+    ptText: 'Onde você mora ?',
+    phonetic: 'u a.bi.te vu',
+    category: 'Apresentação',
+    difficulty: 3,
+    tip: 'Use em conversas para conhecer melhor alguém.'
+  },
+  {
+    frText: 'Quel est votre métier ?',
+    ptText: 'Qual é a sua profissão ?',
+    phonetic: 'kɛ.lɛ vɔ.tʁə me.tje',
+    category: 'Apresentação',
+    difficulty: 4,
+    tip: 'Forma educada de perguntar o trabalho de alguém.'
+  },
+  {
+    frText: 'Je travaille dans …',
+    ptText: 'Eu trabalho em …',
+    phonetic: 'ʒə tʁa.vaj dɑ̃ …',
+    category: 'Trabalho',
+    difficulty: 3,
+    tip: 'Resposta a "qual é seu trabalho" — complete com a área.'
+  },
+  {
+    frText: 'Mon ami',
+    ptText: 'Meu amigo',
+    phonetic: 'mɔ̃ na.mi',
+    category: 'Família',
+    difficulty: 1,
+    tip: 'Forma universal e carinhosa de chamar alguém próximo.'
+  },
+  {
+    frText: 'Ma famille',
+    ptText: 'Minha família',
+    phonetic: 'ma fa.mij',
+    category: 'Família',
+    difficulty: 1,
+    tip: 'Palavra frequente em apresentações pessoais.'
+  },
+  {
+    frText: 'J\'ai deux frères',
+    ptText: 'Eu tenho dois irmãos',
+    phonetic: 'ʒe dø fʁɛʁ',
+    category: 'Família',
+    difficulty: 3,
+    tip: 'Use para falar da família. "Sœurs" para irmãs.'
+  },
+  {
+    frText: 'Je suis marié',
+    ptText: 'Eu sou casado',
+    phonetic: 'ʒə sɥi ma.ʁje',
+    category: 'Família',
+    difficulty: 3,
+    tip: '"Mariée" para casada. "Célibataire" para solteiro(a).'
+  },
+  {
+    frText: 'J\'ai un enfant',
+    ptText: 'Eu tenho um filho',
+    phonetic: 'ʒe œ̃.nɑ̃.fɑ̃',
+    category: 'Família',
+    difficulty: 2,
+    tip: '"Enfants" no plural — pronunciado "ɑ̃fɑ̃".'
+  },
+  {
+    frText: 'Ma femme / Mon mari',
+    ptText: 'Minha esposa / Meu marido',
+    phonetic: 'ma fam / mɔ̃ ma.ʁi',
+    category: 'Família',
+    difficulty: 2,
+    tip: 'Termos clássicos para cônjuge.'
+  },
+  {
+    frText: 'Mes parents',
+    ptText: 'Meus pais',
+    phonetic: 'me pa.ʁɑ̃',
+    category: 'Família',
+    difficulty: 2,
+    tip: 'Significa "pais" no sentido familiar (não o verbo parir).'
+  },
+  {
+    frText: 'Quel temps fait-il ?',
+    ptText: 'Como está o tempo ?',
+    phonetic: 'kɛl tɑ̃ fɛ.til',
+    category: 'Tempo',
+    difficulty: 3,
+    tip: 'Pergunta padrão sobre o clima do dia.'
+  },
+  {
+    frText: 'Il fait beau',
+    ptText: 'Está fazendo sol / Está bom tempo',
+    phonetic: 'il fɛ bo',
+    category: 'Tempo',
+    difficulty: 1,
+    tip: 'Frase mais comum para descrever um dia bonito.'
+  },
+  {
+    frText: 'Il pleut',
+    ptText: 'Está chovendo',
+    phonetic: 'il plø',
+    category: 'Tempo',
+    difficulty: 1,
+    tip: 'Verbo "pleuvoir" conjugado na 3ª pessoa.'
+  },
+  {
+    frText: 'Il fait froid',
+    ptText: 'Está fazendo frio',
+    phonetic: 'il fɛ fʁwa',
+    category: 'Tempo',
+    difficulty: 1,
+    tip: 'Inverno francês — combinação muito frequente!'
+  },
+  {
+    frText: 'Il fait chaud',
+    ptText: 'Está fazendo calor',
+    phonetic: 'il fɛ ʃo',
+    category: 'Tempo',
+    difficulty: 1,
+    tip: 'Verão francês pode passar de 35°C — diga sempre!'
+  },
+  {
+    frText: 'Il neige',
+    ptText: 'Está nevando',
+    phonetic: 'il nɛːʒ',
+    category: 'Tempo',
+    difficulty: 2,
+    tip: 'Verbo irregular — memorize logo!'
+  },
+  {
+    frText: 'Il y a du soleil',
+    ptText: 'Tem sol',
+    phonetic: 'i.lja dy sɔ.lɛj',
+    category: 'Tempo',
+    difficulty: 2,
+    tip: 'Alternativa ao "il fait beau" para falar de sol.'
+  },
+  {
+    frText: 'Le ciel est couvert',
+    ptText: 'O céu está nublado',
+    phonetic: 'lə sjɛ.l‿ɛ ku.vɛʁ',
+    category: 'Tempo',
+    difficulty: 4,
+    tip: 'Para descrever um dia cinza e sem sol.'
+  },
+  {
+    frText: 'Quelle est la température ?',
+    ptText: 'Qual é a temperatura ?',
+    phonetic: 'kɛ.l‿ɛ la tɑ̃.pe.ʁa.tyʁ',
+    category: 'Tempo',
+    difficulty: 4,
+    tip: 'Pergunta técnica para saber graus Celsius.'
+  },
+  {
+    frText: 'Où est la gare ?',
+    ptText: 'Onde fica a estação ?',
+    phonetic: 'u‿ɛ la gaʁ',
+    category: 'Direções',
+    difficulty: 2,
+    tip: '"Gare" pode ser de trem, metrô ou ônibus.'
+  },
+  {
+    frText: 'Où est l\'hôpital ?',
+    ptText: 'Onde fica o hospital ?',
+    phonetic: 'u‿ɛ lo.pi.tal',
+    category: 'Direções',
+    difficulty: 3,
+    tip: 'Essencial em emergências — memorize!'
+  },
+  {
+    frText: 'Où est la pharmacie ?',
+    ptText: 'Onde fica a farmácia ?',
+    phonetic: 'u‿ɛ la faʁ.ma.si',
+    category: 'Direções',
+    difficulty: 3,
+    tip: 'Cruze o "s" final — fica mudo na pronúncia.'
+  },
+  {
+    frText: 'Comment aller à … ?',
+    ptText: 'Como chegar a … ?',
+    phonetic: 'kɔ.mɑ̃ a.le a …',
+    category: 'Direções',
+    difficulty: 3,
+    tip: 'Use com o nome do lugar: "à la Tour Eiffel", "à l\'hôtel".'
+  },
+  {
+    frText: 'C\'est loin ?',
+    ptText: 'É longe ?',
+    phonetic: 'sɛ lwɛ̃',
+    category: 'Direções',
+    difficulty: 1,
+    tip: 'Pergunta curta e essencial para avaliar o trajeto.'
+  },
+  {
+    frText: 'C\'est à gauche',
+    ptText: 'É à esquerda',
+    phonetic: 'sɛ.ta goʃ',
+    category: 'Direções',
+    difficulty: 1,
+    tip: 'Oposto de "droite" (direita).'
+  },
+  {
+    frText: 'C\'est à droite',
+    ptText: 'É à direita',
+    phonetic: 'sɛ.ta dʁwat',
+    category: 'Direções',
+    difficulty: 1,
+    tip: 'Direita em francês — fácil de confundir com "droite" em PT.'
+  },
+  {
+    frText: 'Tout droit',
+    ptText: 'Sempre em frente',
+    phonetic: 'tu dʁwa',
+    category: 'Direções',
+    difficulty: 2,
+    tip: 'Use quando não precisa dobrar.'
+  },
+  {
+    frText: 'Tournez à gauche',
+    ptText: 'Vire à esquerda',
+    phonetic: 'tuʁ.ne a goʃ',
+    category: 'Direções',
+    difficulty: 3,
+    tip: 'Imperativo — para pedir uma direção a alguém.'
+  },
+  {
+    frText: 'Je suis perdu',
+    ptText: 'Estou perdido',
+    phonetic: 'ʒə sɥi pɛʁ.dy',
+    category: 'Direções',
+    difficulty: 2,
+    tip: 'Frasesita útil quando se perde. "Perdue" para feminino.'
+  },
+  {
+    frText: 'Pouvez-vous répéter ?',
+    ptText: 'Você pode repetir ?',
+    phonetic: 'pu.ve vu ʁe.pe.te',
+    category: 'Conversa',
+    difficulty: 2,
+    tip: 'Use quando não entendeu a primeira vez.'
+  },
+  {
+    frText: 'Parlez plus lentement, s\'il vous plaît',
+    ptText: 'Fale mais devagar, por favor',
+    phonetic: 'paʁ.le ply lɑ̃t.mɑ̃, sil vu plɛ',
+    category: 'Conversa',
+    difficulty: 4,
+    tip: 'Excelente pedido para melhorar a compreensão oral.'
+  },
+  {
+    frText: 'Qu\'est-ce que vous avez dit ?',
+    ptText: 'O que você disse ?',
+    phonetic: 'kɛs.kə vu za.v‿di',
+    category: 'Conversa',
+    difficulty: 3,
+    tip: 'Outra forma educada de pedir repetição.'
+  },
+  {
+    frText: 'Comment dit-on … en portugais ?',
+    ptText: 'Como se diz … em português ?',
+    phonetic: 'kɔ.mɑ̃ di.tɔ̃ … ɑ̃ pɔʁ.ty.gɛ',
+    category: 'Conversa',
+    difficulty: 3,
+    tip: 'Use com nativos franceses para aprender vocabulário novo.'
+  },
+  {
+    frText: 'Je cherche un hôtel',
+    ptText: 'Estou procurando um hotel',
+    phonetic: 'ʒə ʃɛʁʃ œ̃.n‿o.tɛl',
+    category: 'Hotel',
+    difficulty: 3,
+    tip: 'Frase útil em qualquer cidade turística.'
+  },
+  {
+    frText: 'Avez-vous une chambre libre ?',
+    ptText: 'Vocês têm um quarto disponível ?',
+    phonetic: 'a.ve vu yn ʃɑ̃bʁ libʁ',
+    category: 'Hotel',
+    difficulty: 4,
+    tip: 'Forma educada de perguntar disponibilidade.'
+  },
+  {
+    frText: 'Je voudrais réserver une chambre',
+    ptText: 'Eu gostaria de reservar um quarto',
+    phonetic: 'ʒə vu.dʁɛ ʁe.zɛʁ.ve yn ʃɑ̃bʁ',
+    category: 'Hotel',
+    difficulty: 4,
+    tip: 'Use ao ligar para um hotel. "Pour deux nuits" = por duas noites.'
+  },
+  {
+    frText: 'Le petit-déjeuner est inclus ?',
+    ptText: 'O café da manhã está incluído ?',
+    phonetic: 'lə pə.ti.de.ʒɔ̃.nɛ ɛ.t‿ɛ̃.kly',
+    category: 'Hotel',
+    difficulty: 4,
+    tip: 'Pergunta essencial — quase sempre muda o preço!'
+  },
+  {
+    frText: 'À quelle heure est le check-out ?',
+    ptText: 'A que horas é o check-out ?',
+    phonetic: 'a kɛ.l‿œʁ ɛ lə tʃɛk.aut',
+    category: 'Hotel',
+    difficulty: 4,
+    tip: 'Anglicismo absorvido pelo francês — todo mundo entende.'
+  },
+  {
+    frText: 'Quel est le prix ?',
+    ptText: 'Qual é o preço ?',
+    phonetic: 'kɛ.l‿ɛ lə pʁi',
+    category: 'Compras',
+    difficulty: 1,
+    tip: 'Frase universal — funciona em qualquer loja.'
+  },
+  {
+    frText: 'C\'est trop cher',
+    ptText: 'Está caro demais',
+    phonetic: 'sɛ tʁo ʃɛʁ',
+    category: 'Compras',
+    difficulty: 2,
+    tip: 'Diz com cuidado — pode parecer rude em algumas situações.'
+  },
+  {
+    frText: 'Vous avez une autre taille ?',
+    ptText: 'Vocês têm outro tamanho ?',
+    phonetic: 'vu za.v‿y.n‿otʁ taj',
+    category: 'Compras',
+    difficulty: 4,
+    tip: 'Use em lojas de roupa: S=P, M=M, L=L, XL=XL.'
+  },
+  {
+    frText: 'Je peux essayer ?',
+    ptText: 'Eu posso experimentar ?',
+    phonetic: 'ʒə pø e.sɛ.je',
+    category: 'Compras',
+    difficulty: 3,
+    tip: 'Pedir para provar roupa na loja.'
+  },
+  {
+    frText: 'Je prends celui-ci',
+    ptText: 'Eu levo este aqui',
+    phonetic: 'ʒə pʁɑ̃ sə.lɥi.si',
+    category: 'Compras',
+    difficulty: 4,
+    tip: 'Apontar e decidir — bem comum em feiras e lojas.'
+  },
+  {
+    frText: 'Je paie par carte',
+    ptText: 'Eu pago com cartão',
+    phonetic: 'ʒə pɛ paʁ kaʁt',
+    category: 'Compras',
+    difficulty: 2,
+    tip: 'Quase toda loja aceita cartão. "En espèces" = em dinheiro.'
+  },
+  {
+    frText: 'Vous acceptez la carte ?',
+    ptText: 'Vocês aceitam cartão ?',
+    phonetic: 'vu zak.sɛ.pte la kaʁt',
+    category: 'Compras',
+    difficulty: 3,
+    tip: 'Pergunta segura antes de sacar o cartão.'
+  },
+  {
+    frText: 'Avez-vous un sac ?',
+    ptText: 'Vocês têm uma sacola ?',
+    phonetic: 'a.ve vu œ̃ sak',
+    category: 'Compras',
+    difficulty: 3,
+    tip: 'Na França, sacolas plásticas raramente são grátis.'
+  },
+  {
+    frText: 'La carte, s\'il vous plaît',
+    ptText: 'O cardápio, por favor',
+    phonetic: 'la kaʁt, sil vu plɛ',
+    category: 'Restaurante',
+    difficulty: 2,
+    tip: '"Carte" em restaurante significa o menu, não cartão.'
+  },
+  {
+    frText: 'Quel est le plat du jour ?',
+    ptText: 'Qual é o prato do dia ?',
+    phonetic: 'kɛ.l‿ɛ lə pla dy ʒuʁ',
+    category: 'Restaurante',
+    difficulty: 4,
+    tip: 'Ótima forma de pedir recomendação ao garçom.'
+  },
+  {
+    frText: 'Je suis végétarien',
+    ptText: 'Eu sou vegetariano',
+    phonetic: 'ʒə sɥi ve.ʒe.ta.ʁjɛ̃',
+    category: 'Restaurante',
+    difficulty: 3,
+    tip: '"Végétarienne" para feminina. Informa restrições alimentares.'
+  },
+  {
+    frText: 'Je suis allergique aux noix',
+    ptText: 'Eu sou alérgico a nozes',
+    phonetic: 'ʒə sɥi a.lɛʁ.ʒik o nwa',
+    category: 'Restaurante',
+    difficulty: 4,
+    tip: 'Comunique alergias sempre antes de pedir!'
+  },
+  {
+    frText: "C'est délicieux",
+    ptText: 'Está delicioso',
+    phonetic: 'sɛ de.li.sjø',
+    category: 'Restaurante',
+    difficulty: 2,
+    tip: 'Elogio que todo chef adora ouvir. Use à vontade!'
+  },
+  {
+    frText: 'Je n\'ai plus faim',
+    ptText: 'Eu não tenho mais fome',
+    phonetic: 'ʒə nɛ ply fɛ̃',
+    category: 'Restaurante',
+    difficulty: 2,
+    tip: 'Use para recusar mais comida educadamente.'
+  },
+  {
+    frText: 'Une carafe d\'eau, s\'il vous plaît',
+    ptText: 'Uma jarra de água, por favor',
+    phonetic: 'yn ka.ʁaf do, sil vu plɛ',
+    category: 'Restaurante',
+    difficulty: 4,
+    tip: 'Em Paris, água da torneira é servida grátis se você pedir!'
+  },
+  {
+    frText: 'Quel est le plat du jour ?',
+    ptText: 'Qual é o prato do dia ?',
+    phonetic: 'kɛ.l‿ɛ lə pla dy ʒuʁ',
+    category: 'Restaurante',
+    difficulty: 4,
+    tip: 'Sempre há uma especialidade — peça recomendação!'
+  },
+  {
+    frText: 'Quel est le meilleur restaurant du quartier ?',
+    ptText: 'Qual é o melhor restaurante do bairro ?',
+    phonetic: 'kɛ.l‿ɛ lə mɛ.jœʁ ʁɛs.to.ʁɑ̃ dy kaʁ.tje',
+    category: 'Restaurante',
+    difficulty: 4,
+    tip: 'Pergunte a locais — eles sempre têm uma dica boa!'
+  },
+  {
+    frText: 'Quel est le numéro d\'urgence ?',
+    ptText: 'Qual é o número de emergência ?',
+    phonetic: 'kɛ.l‿ɛ lə ny.me.ʁo dyʁ.ʒɑ̃s',
+    category: 'Emergência',
+    difficulty: 4,
+    tip: 'SAMU = 15, Bombeiros = 18, Polícia = 17, Geral = 112.'
+  },
+  {
+    frText: 'Appelez la police !',
+    ptText: 'Chamem a polícia !',
+    phonetic: 'a.p(ə).le la pɔ.lis',
+    category: 'Emergência',
+    difficulty: 2,
+    tip: 'Em emergência grave — disque 17 ou 112.'
+  },
+  {
+    frText: 'J\'ai besoin d\'aide',
+    ptText: 'Eu preciso de ajuda',
+    phonetic: 'ʒe bə.zwɛ̃ dɛd',
+    category: 'Emergência',
+    difficulty: 2,
+    tip: 'Frase crítica — memorize com pronúncia clara.'
+  },
+  {
+    frText: 'Où est l\'hôpital le plus proche ?',
+    ptText: 'Onde fica o hospital mais próximo ?',
+    phonetic: 'u‿ɛ lo.pi.tal lə ply pʁɔʃ',
+    category: 'Emergência',
+    difficulty: 4,
+    tip: 'Use em caso de acidente ou mal-estar.'
+  },
+  {
+    frText: 'Je me sens mal',
+    ptText: 'Eu estou me sentindo mal',
+    phonetic: 'ʒə mə sɑ̃ mal',
+    category: 'Saúde',
+    difficulty: 2,
+    tip: 'Para descrever indisposição — use com um farmacêutico.'
+  },
+  {
+    frText: "J'ai mal à la tête",
+    ptText: 'Eu tenho dor de cabeça',
+    phonetic: 'ʒe ma.la la tɛt',
+    category: 'Saúde',
+    difficulty: 3,
+    tip: 'Frasesita mais comum em farmácias. "Mal au ventre" = barriga.'
+  },
+  {
+    frText: 'Je tousse beaucoup',
+    ptText: 'Eu tusso muito',
+    phonetic: 'ʒə tus bo.ku',
+    category: 'Saúde',
+    difficulty: 3,
+    tip: 'Informe sintomas com clareza — melhor atendimento!'
+  },
+  {
+    frText: 'Avez-vous quelque chose contre la grippe ?',
+    ptText: 'Você tem algo contra gripe ?',
+    phonetic: 'a.ve vu kɛl.kə ʃoz kɔ̃.tʁə la gʁip',
+    category: 'Saúde',
+    difficulty: 4,
+    tip: 'Pergunta direta ao farmacêutico — ele pode recomendar.'
+  },
+  {
+    frText: 'Je voudrais prendre rendez-vous',
+    ptText: 'Eu gostaria de marcar uma consulta',
+    phonetic: 'ʒə vu.dʁɛ pʁɑ̃dʁ ʁɑ̃.de.vu',
+    category: 'Saúde',
+    difficulty: 4,
+    tip: 'Para marcar com médico. Ligue cedo — agendas lotam!'
+  },
+  {
+    frText: 'Je voudrais acheter un billet',
+    ptText: 'Eu gostaria de comprar uma passagem',
+    phonetic: 'ʒə vu.dʁɛ aʃ(ə).te œ̃ bi.jɛ',
+    category: 'Transporte',
+    difficulty: 4,
+    tip: '"Billet" = passagem/bilhete. Funciona para trem, metrô, avião.'
+  },
+  {
+    frText: 'Un billet aller-retour, s\'il vous plaît',
+    ptText: 'Uma passagem de ida e volta, por favor',
+    phonetic: 'œ̃ bi.jɛ a.le.ʁə.tuʁ, sil vu plɛ',
+    category: 'Transporte',
+    difficulty: 4,
+    tip: '"Aller simple" = só ida. "Aller-retour" = ida e volta.'
+  },
+  {
+    frText: 'Le train est à l\'heure ?',
+    ptText: 'O trem está no horário ?',
+    phonetic: 'lə tʁɛ̃ ɛ.ta.lœʁ',
+    category: 'Transporte',
+    difficulty: 4,
+    tip: 'Na França, trens atrasam muito — sempre pergunte!'
+  },
+  {
+    frText: 'À quelle heure part le train ?',
+    ptText: 'A que horas parte o trem ?',
+    phonetic: 'a kɛ.l‿œʁ paʁ lə tʁɛ̃',
+    category: 'Transporte',
+    difficulty: 4,
+    tip: 'Essencial para não perder o trem na estação.'
+  },
+  {
+    frText: 'Où est l\'arrêt de bus ?',
+    ptText: 'Onde fica o ponto de ônibus ?',
+    phonetic: 'u‿ɛ la.ʁɛ də bys',
+    category: 'Transporte',
+    difficulty: 4,
+    tip: 'Em cidades pequenas, ônibus é a melhor opção!'
+  },
+  {
+    frText: 'Pouvez-vous m\'emmener à … ?',
+    ptText: 'Você pode me levar até … ?',
+    phonetic: 'pu.ve vu mɑ̃.mə.ne a …',
+    category: 'Transporte',
+    difficulty: 4,
+    tip: 'Frasesita de táxi. Complete com o endereço de destino.'
+  },
+  {
+    frText: "J'étudie le français",
+    ptText: 'Eu estudo francês',
+    phonetic: 'ʒe.ty.di lə fʁɑ̃.sɛ',
+    category: 'Estudo',
+    difficulty: 1,
+    tip: 'Frase que abre muitas conversas com nativos!'
+  },
+  {
+    frText: 'J\'apprends le français depuis six mois',
+    ptText: 'Eu estudo francês há seis meses',
+    phonetic: 'ʒa.pʁɑ̃ lə fʁɑ̃.sɛ də.pɥi sis mwa',
+    category: 'Estudo',
+    difficulty: 4,
+    tip: 'Excelente para descrever seu nível de aprendizado.'
+  },
+  {
+    frText: 'J\'aime beaucoup la musique française',
+    ptText: 'Eu gosto muito de música francesa',
+    phonetic: 'ʒɛm bo.ku la my.zik fʁɑ̃.sɛz',
+    category: 'Estudo',
+    difficulty: 3,
+    tip: 'Excelente para puxar papo sobre cultura francesa!'
+  },
+  {
+    frText: 'Je voudrais devenir bilingue',
+    ptText: 'Eu gostaria de me tornar bilíngue',
+    phonetic: 'ʒə vu.dʁɛ də.və.niʁ bi.lɛ̃ɡ',
+    category: 'Estudo',
+    difficulty: 4,
+    tip: 'Compartilhe seu objetivo — nativos adoram ajudar!'
+  },
+  {
+    frText: 'Pouvez-vous parler plus lentement ?',
+    ptText: 'Você pode falar mais devagar ?',
+    phonetic: 'pu.ve vu paʁ.le ply lɑ̃t.mɑ̃',
+    category: 'Estudo',
+    difficulty: 4,
+    tip: 'Seu melhor amigo quando ouvir francês rápido!'
+  },
+  {
+    frText: "C'est très intéressant",
+    ptText: 'É muito interessante',
+    phonetic: 'sɛ tʁɛ ɛ̃.te.ʁe.sɑ̃',
+    category: 'Conversa',
+    difficulty: 2,
+    tip: 'Reação educada e útil em qualquer conversa.'
+  },
+  {
+    frText: 'Je ne suis pas d\'accord',
+    ptText: 'Eu não concordo',
+    phonetic: 'ʒə n(ə) sɥi pa da.kɔʁ',
+    category: 'Conversa',
+    difficulty: 3,
+    tip: 'Discordar educadamente — "je suis d\'accord" = concordo.'
+  },
+  {
+    frText: 'Vous avez raison',
+    ptText: 'Você tem razão',
+    phonetic: 'vu za.v‿ʁɛ.zɔ̃',
+    category: 'Conversa',
+    difficulty: 3,
+    tip: 'Reconhecer um argumento válido do outro — elegante!'
+  },
+  {
+    frText: 'Je suis désolé, j\'ai oublié',
+    ptText: 'Desculpe, eu esqueci',
+    phonetic: 'ʒə sɥi de.zɔ.le, ʒe u.bli.je',
+    category: 'Conversa',
+    difficulty: 3,
+    tip: 'Forma completa de pedir desculpas por esquecimento.'
+  },
+  {
+    frText: 'On se voit demain ?',
+    ptText: 'A gente se vê amanhã ?',
+    phonetic: 'ɔ̃ sə vwa d(ə).mɛ̃',
+    category: 'Conversa',
+    difficulty: 3,
+    tip: 'Combinação de "on" (a gente) + "se voir" (se ver).'
+  },
+  {
+    frText: 'Bonne soirée',
+    ptText: 'Boa noite (ao se despedir à noite)',
+    phonetic: 'bɔn swa.ʁe',
+    category: 'Cumprimentos',
+    difficulty: 1,
+    tip: 'Use só no fim do dia — depois do pôr do sol.'
+  },
+  {
+    frText: 'Quel beau temps !',
+    ptText: 'Que tempo bonito !',
+    phonetic: 'kɛl bo tɑ̃',
+    category: 'Tempo',
+    difficulty: 3,
+    tip: 'Exclamação comum em dias ensolarados.'
+  },
+  {
+    frText: 'J\'habite à Paris',
+    ptText: 'Eu moro em Paris',
+    phonetic: 'ʒa.bit a pa.ʁi',
+    category: 'Apresentação',
+    difficulty: 1,
+    tip: 'Use com qualquer cidade: "à Lyon", "à Marseille".'
+  },
+  {
+    frText: 'Je suis en vacances',
+    ptText: 'Eu estou de férias',
+    phonetic: 'ʒə sɥi.ɑ̃ va.kɑ̃s',
+    category: 'Apresentação',
+    difficulty: 2,
+    tip: 'Frase simpática — abre portas para dicas locais!'
+  },
+  {
+    frText: 'J\'adore la cuisine française',
+    ptText: 'Eu adoro a culinária francesa',
+    phonetic: 'ʒa.dɔʁ la kɥi.zin fʁɑ̃.sɛz',
+    category: 'Restaurante',
+    difficulty: 3,
+    tip: 'Sempre elogie a comida local — é regra universal!'
+  },
+  {
+    frText: 'Quel est votre plat préféré ?',
+    ptText: 'Qual é o seu prato preferido ?',
+    phonetic: 'kɛ.l‿ɛ vɔ.tʁə pla pʁe.fe.ʁe',
+    category: 'Conversa',
+    difficulty: 4,
+    tip: 'Pergunta clássica para puxar conversa em mesas.'
   }
 ]
 
@@ -983,6 +1786,9 @@ const transitioning = ref(false)
 
 const stats = ref({ again: 0, hard: 0, good: 0, easy: 0 })
 
+const audioEl = ref(null)
+const isPlayingAudio = ref(false)
+
 const currentCard = computed(() => deck.value[cardIndex.value] || {})
 
 const cardPhoneticWords = computed(() => {
@@ -1055,11 +1861,51 @@ function flipCard() {
   flipped.value = !flipped.value
 }
 
+function voiceOptions() {
+  return {
+    voice: settings.voice === 'male' ? 'male' : 'female',
+    region: settings.region || 'fr',
+    speed: settings.speed ?? 1.0
+  }
+}
+
+function stopCardAudio() {
+  if (audioEl.value) {
+    audioEl.value.pause()
+    audioEl.value.currentTime = 0
+  }
+  isPlayingAudio.value = false
+}
+
+function playCardAudio(text) {
+  const phrase = (text ?? currentCard.value?.frText ?? '').trim()
+  if (!phrase || !audioEl.value) return
+  if (isPlayingAudio.value) {
+    stopCardAudio()
+    return
+  }
+  try {
+    const { url } = getAudioUrl(phrase, voiceOptions())
+    audioEl.value.src = url
+    audioEl.value.load()
+    isPlayingAudio.value = true
+    const p = audioEl.value.play()
+    if (p && typeof p.catch === 'function') {
+      p.catch(() => {
+        isPlayingAudio.value = false
+      })
+    }
+  } catch (e) {
+    isPlayingAudio.value = false
+  }
+}
+
 function rate(level) {
   if (transitioning.value) return
   stats.value[level] = (stats.value[level] || 0) + 1
   transitioning.value = true
   flipped.value = false
+  stopCardAudio()
   setTimeout(() => {
     if (cardIndex.value + 1 >= deck.value.length) {
       done.value = true
@@ -1082,6 +1928,10 @@ function restart() {
 
 onMounted(() => {
   buildDeck()
+})
+
+onUnmounted(() => {
+  stopCardAudio()
 })
 </script>
 
@@ -1205,9 +2055,22 @@ onMounted(() => {
             >N{{ currentCard.difficulty }}</span>
           </span>
           <h2 class="fc__fr">{{ currentCard.frText }}</h2>
-          <span v-if="currentCard.category" class="fc__tag">
-            {{ currentCard.category }}
-          </span>
+          <div class="fc__front-foot">
+            <span v-if="currentCard.category" class="fc__tag">
+              {{ currentCard.category }}
+            </span>
+            <button
+              type="button"
+              class="fc__speak"
+              :class="{ 'is-playing': isPlayingAudio }"
+              :aria-label="isPlayingAudio ? 'Parar pronúncia' : 'Ouvir pronúncia'"
+              :title="isPlayingAudio ? 'Parar pronúncia' : 'Ouvir pronúncia'"
+              @click.stop="playCardAudio()"
+            >
+              <AppIcon :name="isPlayingAudio ? 'pause' : 'speaker'" :size="16" />
+              <span>{{ isPlayingAudio ? 'Parar' : 'Ouvir' }}</span>
+            </button>
+          </div>
           <span class="fc__tap-hint">
             <AppIcon name="info" :size="14" />
             toque para revelar
@@ -1226,6 +2089,16 @@ onMounted(() => {
           <div class="fc__back-fr">
             <span class="fc__lang-tag">FR</span>
             <strong>{{ currentCard.frText }}</strong>
+            <button
+              type="button"
+              class="fc__speak fc__speak--inline"
+              :class="{ 'is-playing': isPlayingAudio }"
+              :aria-label="isPlayingAudio ? 'Parar pronúncia' : 'Ouvir pronúncia'"
+              :title="isPlayingAudio ? 'Parar pronúncia' : 'Ouvir pronúncia'"
+              @click.stop="playCardAudio()"
+            >
+              <AppIcon :name="isPlayingAudio ? 'pause' : 'speaker'" :size="14" />
+            </button>
           </div>
           <div v-if="currentCard.phonetic" class="fc__phonetic-block">
             <div class="fc__phonetic-head">
@@ -1358,6 +2231,14 @@ onMounted(() => {
         <small>· flashcards</small>
       </span>
     </footer>
+
+    <audio
+      ref="audioEl"
+      hidden
+      @ended="isPlayingAudio = false"
+      @error="isPlayingAudio = false"
+      @pause="isPlayingAudio = false"
+    ></audio>
   </div>
 </template>
 
@@ -1655,6 +2536,63 @@ onMounted(() => {
   border-radius: 999px;
 }
 
+.fc__front-foot {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.fc__speak {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  font-family: var(--font-nav);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background var(--motion-fast), border-color var(--motion-fast), transform var(--motion-fast);
+}
+.fc__speak:hover {
+  background: rgba(255, 255, 255, 0.32);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-1px);
+}
+.fc__speak.is-playing {
+  background: #fff;
+  color: var(--color-primary-deep);
+  border-color: #fff;
+  animation: fc-speak-pulse 1.2s ease-in-out infinite;
+}
+.fc__speak--inline {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+  padding: 6px 10px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.fc__speak--inline:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+.fc__speak--inline.is-playing {
+  background: var(--color-accent, #f97316);
+  color: #fff;
+  border-color: var(--color-accent, #f97316);
+}
+@keyframes fc-speak-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5); }
+  50%      { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
+}
+
 .fc__tap-hint {
   display: inline-flex;
   align-items: center;
@@ -1674,6 +2612,8 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
 }
+
+.fc__back-fr { flex-wrap: wrap; }
 
 .fc__back-fr strong,
 .fc__back-pt span:last-child {
