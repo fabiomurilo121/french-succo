@@ -24,7 +24,14 @@ const errorMsg = ref('')
 const audioEl = ref(null)
 const audioLoading = ref(false)
 const grammarOriginal = ref('')
+const listening = ref(false)
+const speechSupported = ref(false)
+const recognitionRef = ref(null)
+const shouldListen = ref(false)
 let audioLoadingTimer = null
+let transcriptBase = ''
+let inactivityTimer = null
+const INACTIVITY_MS = 6000
 
 const overlayOpen = computed(() => loading.value || audioLoading.value)
 const overlayTitle = computed(() =>
@@ -139,10 +146,149 @@ watch(inputText, (v) => {
 onMounted(() => {
   history.fetchAll()
   favorites.fetchAll()
+  setupSpeechRecognition()
 })
 
 onUnmounted(() => {
   if (audioLoadingTimer) clearTimeout(audioLoadingTimer)
+  stopRecognition()
+})
+
+function setupSpeechRecognition() {
+  if (typeof window === 'undefined') return
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+  if (!SR) {
+    speechSupported.value = false
+    return
+  }
+  speechSupported.value = true
+  const rec = new SR()
+  rec.lang = 'fr-FR'
+  rec.interimResults = true
+  rec.continuous = true
+  rec.maxAlternatives = 1
+
+  rec.onstart = () => {
+    listening.value = true
+    resetInactivityTimer()
+  }
+  rec.onresult = (event) => {
+    let interim = ''
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const result = event.results[i]
+      if (result.isFinal) {
+        const piece = result[0].transcript.trim()
+        if (piece) {
+          transcriptBase += (transcriptBase && !transcriptBase.endsWith(' ') ? ' ' : '') + piece
+        }
+      } else {
+        interim += result[0].transcript
+      }
+    }
+    const display = (transcriptBase + (interim ? (transcriptBase && !transcriptBase.endsWith(' ') ? ' ' : '') + interim : '')).trim()
+    inputText.value = display
+    resetInactivityTimer()
+  }
+  rec.onerror = (event) => {
+    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+      shouldListen.value = false
+      listening.value = false
+      clearInactivityTimer()
+      toast.error('Permissão de microfone negada. Verifique o navegador.')
+    } else if (event.error === 'no-speech') {
+      /* continua escutando — não fazer nada */
+    } else if (event.error === 'aborted') {
+      /* sessão abortada — restart cuida disso */
+    } else {
+      shouldListen.value = false
+      listening.value = false
+      clearInactivityTimer()
+    }
+  }
+  rec.onend = () => {
+    if (shouldListen.value) {
+      try {
+        recognitionRef.value?.start()
+      } catch (e) {
+        listening.value = false
+        shouldListen.value = false
+        clearInactivityTimer()
+      }
+    } else {
+      listening.value = false
+      clearInactivityTimer()
+    }
+  }
+
+  recognitionRef.value = rec
+}
+
+function resetInactivityTimer() {
+  if (inactivityTimer) clearTimeout(inactivityTimer)
+  inactivityTimer = setTimeout(() => {
+    if (shouldListen.value) {
+      shouldListen.value = false
+      try {
+        if (recognitionRef.value && listening.value) {
+          recognitionRef.value.stop()
+        }
+      } catch (e) {
+        /* ignore */
+      }
+      listening.value = false
+      toast.info('Microfone parado por inatividade.')
+    }
+  }, INACTIVITY_MS)
+}
+
+function clearInactivityTimer() {
+  if (inactivityTimer) {
+    clearTimeout(inactivityTimer)
+    inactivityTimer = null
+  }
+}
+
+function startListening() {
+  if (!speechSupported.value) {
+    toast.warning('Reconhecimento de voz não suportado neste navegador. Use Chrome.')
+    return
+  }
+  if (mode.value !== 'grammar') return
+  if (loading.value) return
+  if (listening.value) return
+  transcriptBase = ''
+  shouldListen.value = true
+  try {
+    recognitionRef.value?.start()
+  } catch (e) {
+    listening.value = false
+    shouldListen.value = false
+    clearInactivityTimer()
+  }
+}
+
+function stopRecognition() {
+  shouldListen.value = false
+  clearInactivityTimer()
+  try {
+    if (recognitionRef.value && listening.value) {
+      recognitionRef.value.stop()
+    }
+  } catch (e) {
+    /* ignore */
+  }
+  listening.value = false
+}
+
+function toggleMic() {
+  if (listening.value) stopRecognition()
+  else startListening()
+}
+
+watch(mode, (next) => {
+  if (next !== 'grammar' && listening.value) {
+    stopRecognition()
+  }
 })
 
 async function processText() {
@@ -509,9 +655,30 @@ function formatPhoneticBR(ipa) {
             "
             :maxlength="MAX_CHARS"
           ></textarea>
+          <button
+            v-if="inputText.length > 0"
+            type="button"
+            class="db__clear-input"
+            aria-label="Limpar texto"
+            title="Limpar texto"
+            @click="inputText = ''"
+          >
+            <AppIcon name="cross" :size="14" />
+          </button>
           <div class="db__input-foot">
-            <button class="db__mic-btn" type="button" aria-label="Áudio">
-          <img :src="icons['IMG_16']" alt="" />
+            <button
+              v-if="mode === 'grammar'"
+              class="db__mic-btn"
+              :class="{ 'is-listening': listening, 'is-disabled': !speechSupported }"
+              type="button"
+              :aria-label="listening ? 'Parar gravação' : 'Falar em francês'"
+              :title="speechSupported ? 'Microfone' : 'Reconhecimento de voz indisponível'"
+              :disabled="!speechSupported || loading"
+              @click="toggleMic"
+            >
+              <AppIcon v-if="!listening" name="mic" :size="18" />
+              <AppIcon v-else name="pause" :size="18" />
+              <span class="db__mic-pulse" aria-hidden="true"></span>
             </button>
             <span class="db__counter">{{ charCount }} / {{ MAX_CHARS }}</span>
           </div>
@@ -1086,6 +1253,7 @@ function formatPhoneticBR(ipa) {
 }
 
 .db__input-wrap {
+  position: relative;
   background: var(--surface-card);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
@@ -1119,6 +1287,25 @@ function formatPhoneticBR(ipa) {
   border-top: 1px solid var(--border-soft);
 }
 
+.db__clear-input {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.db__clear-input:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
 .db__mic-btn {
   width: 36px;
   height: 36px;
@@ -1128,14 +1315,39 @@ function formatPhoneticBR(ipa) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
-.db__mic-btn:hover {
+.db__mic-btn:hover:not(.is-disabled):not(:disabled) {
   background: var(--surface-sunken);
   color: var(--color-primary);
+}
+.db__mic-btn.is-listening {
+  background: var(--color-primary);
+  color: #fff;
+}
+.db__mic-btn.is-disabled,
+.db__mic-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 .db__mic-btn img {
   width: 18px;
   height: 18px;
+}
+.db__mic-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--color-primary);
+  opacity: 0;
+  pointer-events: none;
+}
+.db__mic-btn.is-listening .db__mic-pulse {
+  animation: db-mic-pulse 1.4s ease-out infinite;
+}
+@keyframes db-mic-pulse {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(1.7); opacity: 0; }
 }
 
 .db__counter {
