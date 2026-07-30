@@ -243,65 +243,67 @@ onMounted(() => {})
       </p>
     </section>
 
-    <article
-      v-for="group in groups"
-      :key="group.combo"
-      class="pr__group card"
-      :class="{ 'is-playing': group.playing }"
-    >
-      <header class="pr__group-head">
-        <div class="pr__group-combo">
-          <span class="pr__group-combo-label">Combinação</span>
-          <strong>{{ group.combo }}</strong>
-        </div>
-        <div class="pr__group-sound">
-          <span class="pr__group-sound-label">Som de</span>
-          <strong class="pr__group-sound-value">"{{ group.sound }}"</strong>
-        </div>
-        <button
-          type="button"
-          class="pr__group-play"
-          :class="{ 'is-playing': group.playing }"
-          @click="playGroup(group)"
-          :aria-label="group.playing ? 'Parar reprodução do grupo' : `Ouvir todos os exemplos de ${group.combo}`"
-        >
-          <AppIcon :name="group.playing ? 'pause' : 'play'" :size="14" />
-          {{ group.playing ? 'Parar' : 'Ouvir grupo' }}
-        </button>
-      </header>
-
-      <p class="pr__group-desc">{{ group.description }}</p>
-
-      <ul class="pr__examples">
-        <li
-          v-for="(ex, idx) in group.examples"
-          :key="idx"
-          class="pr__example"
-          :class="{
-            'is-current': playingKey === `${group.combo}-${idx}`,
-            'is-done': group.playing && idx < group.cursor
-          }"
-        >
+    <div class="pr__grid">
+      <article
+        v-for="group in groups"
+        :key="group.combo"
+        class="pr__group card"
+        :class="{ 'is-playing': group.playing }"
+      >
+        <header class="pr__group-head">
+          <div class="pr__group-combo">
+            <span class="pr__group-combo-label">Combinação</span>
+            <strong>{{ group.combo }}</strong>
+          </div>
+          <div class="pr__group-sound">
+            <span class="pr__group-sound-label">Som de</span>
+            <strong class="pr__group-sound-value">"{{ group.sound }}"</strong>
+          </div>
           <button
             type="button"
-            class="pr__example-play"
-            :class="{ 'is-playing': playingKey === `${group.combo}-${idx}` }"
-            @click="play(ex.fr, `${group.combo}-${idx}`)"
-            :aria-label="`Ouvir ${ex.fr}`"
+            class="pr__group-play"
+            :class="{ 'is-playing': group.playing }"
+            @click="playGroup(group)"
+            :aria-label="group.playing ? 'Parar reprodução do grupo' : `Ouvir todos os exemplos de ${group.combo}`"
           >
-            <AppIcon
-              :name="playingKey === `${group.combo}-${idx}` ? 'pause' : 'speaker'"
-              :size="16"
-            />
+            <AppIcon :name="group.playing ? 'pause' : 'play'" :size="14" />
+            {{ group.playing ? 'Parar' : 'Ouvir grupo' }}
           </button>
-          <div class="pr__example-text">
-            <strong class="pr__example-fr">{{ ex.fr }}</strong>
-            <small class="pr__example-pt">{{ ex.pt }}</small>
-          </div>
-          <span class="pr__example-index" aria-hidden="true">{{ idx + 1 }}</span>
-        </li>
-      </ul>
-    </article>
+        </header>
+
+        <p class="pr__group-desc">{{ group.description }}</p>
+
+        <ul class="pr__examples">
+          <li
+            v-for="(ex, idx) in group.examples"
+            :key="idx"
+            class="pr__example"
+            :class="{
+              'is-current': playingKey === `${group.combo}-${idx}`,
+              'is-done': group.playing && idx < group.cursor
+            }"
+          >
+            <button
+              type="button"
+              class="pr__example-play"
+              :class="{ 'is-playing': playingKey === `${group.combo}-${idx}` }"
+              @click="play(ex.fr, `${group.combo}-${idx}`)"
+              :aria-label="`Ouvir ${ex.fr}`"
+            >
+              <AppIcon
+                :name="playingKey === `${group.combo}-${idx}` ? 'pause' : 'speaker'"
+                :size="16"
+              />
+            </button>
+            <div class="pr__example-text">
+              <strong class="pr__example-fr">{{ ex.fr }}</strong>
+              <small class="pr__example-pt">{{ ex.pt }}</small>
+            </div>
+            <span class="pr__example-index" aria-hidden="true">{{ idx + 1 }}</span>
+          </li>
+        </ul>
+      </article>
+    </div>
 
     <audio
       ref="audioEl"
@@ -317,10 +319,16 @@ onMounted(() => {})
 .pr {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
   font-family: var(--font-body);
-  max-width: 920px;
+  max-width: 1200px;
   margin: 0 auto;
+}
+
+.pr__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .pr__head {
@@ -413,8 +421,8 @@ onMounted(() => {})
 .pr__group {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 22px 24px;
+  gap: 10px;
+  padding: 16px 18px;
   background: var(--surface-card);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
@@ -430,8 +438,8 @@ onMounted(() => {})
   display: grid;
   grid-template-columns: 1fr 1fr auto;
   align-items: center;
-  gap: 16px;
-  padding-bottom: 14px;
+  gap: 12px;
+  padding-bottom: 10px;
   border-bottom: 1px dashed var(--border-soft);
 }
 
@@ -453,7 +461,7 @@ onMounted(() => {})
 }
 .pr__group-combo strong {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--color-primary);
   letter-spacing: 0.02em;
@@ -464,7 +472,7 @@ onMounted(() => {})
 }
 .pr__group-sound-value {
   font-family: var(--font-display);
-  font-size: 26px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--color-accent, #f97316);
   letter-spacing: 0.02em;
@@ -475,12 +483,12 @@ onMounted(() => {})
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 7px 12px;
   border-radius: 999px;
   background: var(--color-primary);
   color: #fff;
   font-family: var(--font-nav);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   border: none;
   cursor: pointer;
@@ -498,9 +506,9 @@ onMounted(() => {})
 
 .pr__group-desc {
   margin: 0;
-  font-size: 13.5px;
+  font-size: 12.5px;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: 1.45;
 }
 
 .pr__examples {
@@ -509,14 +517,14 @@ onMounted(() => {})
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .pr__example {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
+  gap: 10px;
+  padding: 7px 10px;
   background: var(--surface-sunken);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);
@@ -531,8 +539,8 @@ onMounted(() => {})
 }
 
 .pr__example-play {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: var(--color-primary);
   color: #fff;
@@ -559,24 +567,24 @@ onMounted(() => {})
 }
 .pr__example-fr {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.005em;
 }
 .pr__example-pt {
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-muted);
 }
 
 .pr__example-index {
   font-family: var(--font-nav);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   color: var(--text-faint);
   background: var(--surface-card);
   border: 1px solid var(--border-default);
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: 999px;
   flex-shrink: 0;
 }
@@ -586,14 +594,21 @@ onMounted(() => {})
   border-color: var(--color-primary);
 }
 
+@media (max-width: 860px) {
+  .pr__grid { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 640px) {
   .pr__title { font-size: 22px; }
   .pr__group-head {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
   }
-  .pr__group-play { justify-self: flex-start; }
-  .pr__group-combo strong { font-size: 24px; }
-  .pr__group-sound-value { font-size: 22px; }
+  .pr__group-play {
+    grid-column: 1 / -1;
+    justify-self: flex-start;
+  }
+  .pr__group-combo strong { font-size: 20px; }
+  .pr__group-sound-value { font-size: 18px; }
 }
 </style>
