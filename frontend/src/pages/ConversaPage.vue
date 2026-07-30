@@ -223,10 +223,7 @@ async function startConversation(scenarioId) {
       character: response.character,
       setting: response.setting
     }
-    suggestions.value = (response.suggestedReplies || []).map((s) => {
-      const [fr, pt] = String(s).split(' — ')
-      return { fr: fr?.trim() || '', pt: pt?.trim() || '' }
-    })
+    suggestions.value = (response.suggestedReplies || []).map(parseSuggestion)
     culturalTip.value = response.culturalTip || ''
     turns.value.push({
       role: 'assistant',
@@ -308,7 +305,7 @@ async function sendMessage(forcedText) {
       translation: response.replyTranslation || '',
       timestamp: Date.now()
     })
-    suggestions.value = response.suggestedReplies || []
+    suggestions.value = (response.suggestedReplies || []).map(parseSuggestion)
     if (response.culturalTip) culturalTip.value = response.culturalTip
 
     await nextTick()
@@ -326,9 +323,19 @@ async function sendMessage(forcedText) {
   }
 }
 
+function parseSuggestion(s) {
+  if (s == null) return { fr: '', pt: '' }
+  if (typeof s === 'string') {
+    const [fr, pt] = s.split(' — ')
+    return { fr: (fr || '').trim(), pt: (pt || '').trim() }
+  }
+  return { fr: s.fr || '', pt: s.pt || '' }
+}
+
 function applySuggestion(s) {
-  if (!s?.fr) return
-  sendMessage(s.fr)
+  const parsed = parseSuggestion(s)
+  if (!parsed.fr) return
+  sendMessage(parsed.fr)
 }
 
 function playTurnAudio(turn) {

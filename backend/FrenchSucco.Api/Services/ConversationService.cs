@@ -115,6 +115,9 @@ Règles:
 6. Si l'apprenant écrit une phrase avec une petite erreur, NE CORRIGEZ PAS directement dans votre réplique. Continuez la conversation comme un vrai {character}.
 7. Le ton doit être amical, patient, encourageant — comme un acteur patient qui aime aider le visiteur.
 
+IMPORTANT — suggestions:
+Le champ ""suggestedReplies"" doit contenir des répliques que le CLIENT (l'apprenant brésilien, le visiteur, le touriste) dirait pour répondre à votre salutation. Vous jouez le rôle du {character}, donc le client est votre interlocuteur. Ne mettez JAMAIS de répliques que vous-même ({character}) diriez. Mettez-vous à la place du client qui commande au restaurant, achète au marché, demande à l'hôtel, etc. Chaque suggestion doit être en français ET traduite en portugais brésilien (""pt"").
+
 Répondez ONLY avec ce JSON strict:
 {{
   ""greeting"": ""<votre première réplique en français, en restant dans le personnage, max 18 mots>"",
@@ -122,9 +125,9 @@ Répondez ONLY avec ce JSON strict:
   ""translation"": ""<traduction en portugais brésilien de la réplique>"",
   ""culturalTip"": ""<courte astuce culturelle en portugais liée au scénario, ex: 'Ao entrar em qualquer comércio na França, diga Bonjour antes de pedir algo.'>"",
   ""suggestedReplies"": [
-    {{ ""fr"": ""<suggestion de réponse courte en français>"", ""pt"": ""<traduction en portugais>"", ""relevance"": ""réponse utile"" }},
-    {{ ""fr"": ""<autre suggestion>"", ""pt"": ""<traduction>"", ""relevance"": ""réponse simple"" }},
-    {{ ""fr"": ""<autre suggestion>"", ""pt"": ""<traduction>"", ""relevance"": ""question pour avancer"" }}
+    {{ ""fr"": ""<réplique COURTE que le CLIENT dirait, en français>"", ""pt"": ""<traduction en portugais brésilien>"", ""relevance"": ""réponse utile"" }},
+    {{ ""fr"": ""<autre réplique du client>"", ""pt"": ""<traduction en portugais brésilien>"", ""relevance"": ""réponse simple"" }},
+    {{ ""fr"": ""<autre réplique du client>"", ""pt"": ""<traduction en portugais brésilien>"", ""relevance"": ""question pour avancer"" }}
   ]
 }}";
 
@@ -141,7 +144,7 @@ Répondez ONLY avec ce JSON strict:
             data.Translation ?? "",
             data.CulturalTip,
             (data.SuggestedReplies ?? new()).Take(3)
-                .Select(s => $"{s.Fr} — {s.Pt}")
+                .Select(s => new ConversationSuggestionDto(s.Fr ?? "", s.Pt ?? ""))
                 .ToList()
         );
     }
@@ -174,6 +177,9 @@ Règles STRICTES:
 6. Faites UNE seule question à la fois pour faire avancer la conversation.
 7. Ne déviez jamais du scénario. Si l'apprenant pose une question hors sujet, ramenez-le poliment au scénario.
 
+IMPORTANT — suggestions:
+Le champ ""suggestedReplies"" doit contenir des répliques que le CLIENT (l'apprenant brésilien, votre interlocuteur) pourrait dire ensuite pour répondre à votre dernière réplique. Vous jouez {character} ; les suggestions doivent refléter ce que le client dirait, JAMAIS ce que vous ({character}) répondriez. Mettez-vous à la place du client : commande au restaurant, achat au marché, demande à l'hôtel, etc. Chaque suggestion DOIT être accompagnée de sa traduction en portugais brésilien (""pt"").
+
 Historique de la conversation:
 {historyText}
 
@@ -184,9 +190,9 @@ Répondez ONLY avec ce JSON strict:
   ""replyTranslation"": ""<traduction en portugais brésilien de votre réplique>"",
   ""culturalTip"": ""<courte astuce culturelle en portugais si pertinent, sinon string vide>"",
   ""suggestedReplies"": [
-    {{ ""fr"": ""<suggestion de réponse courte en français>"", ""pt"": ""<traduction en portugais>"", ""relevance"": ""réponse utile"" }},
-    {{ ""fr"": ""<autre suggestion>"", ""pt"": ""<traduction>"", ""relevance"": ""réponse simple"" }},
-    {{ ""fr"": ""<autre suggestion>"", ""pt"": ""<traduction>"", ""relevance"": ""question pour avancer"" }}
+    {{ ""fr"": ""<réplique COURTE que le CLIENT dirait ensuite, en français>"", ""pt"": ""<traduction en portugais brésilien>"", ""relevance"": ""réponse utile"" }},
+    {{ ""fr"": ""<autre réplique du client>"", ""pt"": ""<traduction en portugais brésilien>"", ""relevance"": ""réponse simple"" }},
+    {{ ""fr"": ""<autre réplique du client>"", ""pt"": ""<traduction en portugais brésilien>"", ""relevance"": ""question pour avancer"" }}
   ]
 }}";
 

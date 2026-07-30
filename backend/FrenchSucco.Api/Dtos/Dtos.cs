@@ -153,7 +153,7 @@ public record ConversationStartResponse(
     string GreetingPhonetic,
     string GreetingTranslation,
     string? CulturalTip,
-    List<string> SuggestedReplies
+    List<ConversationSuggestionDto> SuggestedReplies
 );
 
 public record ConversationReplyRequest(
