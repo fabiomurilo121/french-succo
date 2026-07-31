@@ -1586,9 +1586,57 @@ const deck = computed(() => sessionDeck.value)
 const currentDifficulty = ref(2) // 1-4 (fácil → expert)
 const direction = ref(0) // -2..+2 (bias para baixo = mais fácil, +2 = mais difícil)
 const catalogVisible = ref(false)
+const selectedLevel = ref(null) // 1, 2, 3 (Fácil, Médio, Difícil) ou null = tela de seleção
+
+const LEVEL_INFO = {
+  1: { id: 1, name: 'Fácil', icon: 'sparkles', color: '#22c55e', description: 'Palavras curtas, cumprimentos e expressões do dia a dia' },
+  2: { id: 2, name: 'Médio', icon: 'flask', color: '#3b82f6', description: 'Frases úteis para viagens, restaurantes e conversas' },
+  3: { id: 3, name: 'Difícil', icon: 'gauge', color: '#f97315', description: 'Frases completas e vocabulário avançado' }
+}
+
+// Mapeia os 3 níveis de seleção para os buckets de difficulty internos (1-4):
+// Fácil  -> difficulty in {1, 2}
+// Médio  -> difficulty in {3}
+// Difícil -> difficulty in {4}
+const LEVEL_TO_INTERNAL = {
+  1: [1, 2],
+  2: [3],
+  3: [4]
+}
+
+function bucketForLevel(level) {
+  return LEVEL_TO_INTERNAL[level] || [2]
+}
+
+function levelItemsCount(level) {
+  const internals = bucketForLevel(level)
+  return defaultDeck.filter((c) => internals.includes(c.difficulty || 2)).length
+}
 
 function toggleCatalog() {
   catalogVisible.value = !catalogVisible.value
+}
+
+function pickLevel(level) {
+  selectedLevel.value = level
+  direction.value = 0
+  currentDifficulty.value = LEVEL_TO_INTERNAL[level][0]
+  stats.value = { again: 0, hard: 0, good: 0, easy: 0 }
+  cardIndex.value = 0
+  flipped.value = false
+  done.value = false
+  buildDeck()
+}
+
+function changeLevel() {
+  selectedLevel.value = null
+  sessionDeck.value = []
+  stats.value = { again: 0, hard: 0, good: 0, easy: 0 }
+  cardIndex.value = 0
+  flipped.value = false
+  done.value = false
+  direction.value = 0
+  currentDifficulty.value = 2
 }
 
 function formatPhoneticBR(ipa) {
@@ -1730,6 +1778,23 @@ function buildDeck() {
     return
   }
 
+  // Quando o usuário escolheu um nível, o baralho vem só daquele bucket
+  // (sem adaptação automática — o nível fica fixo na sessão).
+  if (selectedLevel.value !== null) {
+    const internals = bucketForLevel(selectedLevel.value)
+    const filtered = pool.filter((c) =>
+      internals.includes(Math.max(1, Math.min(4, c.difficulty || 2)))
+    )
+    const target = internals[0]
+    sessionDeck.value = adaptiveDeck(
+      filtered.length ? filtered : pool,
+      target
+    )
+    currentDifficulty.value = target
+    direction.value = 0
+    return
+  }
+
   direction.value = calculateBias()
   currentDifficulty.value = Math.max(1, Math.min(4, 2 + direction.value))
   sessionDeck.value = adaptiveDeck(pool, currentDifficulty.value)
@@ -1743,6 +1808,9 @@ function pickNextAdaptiveCard() {
 
 function adjustDifficultyAfterRate(level) {
   // ajuste contínuo: cada rate empurra o bias
+  // Quando o usuário escolheu um nível fixo, não alteramos a dificuldade.
+  if (selectedLevel.value !== null) return
+
   const a = stats.value.again || 0
   const h = stats.value.hard || 0
   const g = stats.value.good || 0
@@ -1805,16 +1873,30 @@ const progress = computed(() => {
 const totalDone = computed(() => stats.value.again + stats.value.hard + stats.value.good + stats.value.easy)
 
 const sourceLabel = computed(() => {
+  if (selectedLevel.value !== null) {
+    const lvl = LEVEL_INFO[selectedLevel.value]
+    return `Nível ${lvl.name} · ${favorites.items.length >= 3 ? 'favoritos + essenciais' : 'baralho essencial'}`
+  }
   if (favorites.items.length >= 3) return 'Seus favoritos + frases essenciais'
   return 'Baralho essencial'
 })
 
+// Mapeia difficulty interno (1-4) -> nível de seleção (1, 2 ou 3)
+const currentLevelFromDifficulty = computed(() => {
+  const d = currentDifficulty.value
+  if (d <= 2) return 1
+  if (d === 3) return 2
+  return 3
+})
+
 const difficultyLabel = computed(() => {
-  const labels = { 1: 'Iniciante', 2: 'Básico', 3: 'Intermediário', 4: 'Avançado' }
-  return labels[currentDifficulty.value] || 'Básico'
+  return LEVEL_INFO[currentLevelFromDifficulty.value]?.name || 'Fácil'
 })
 
 const trendInfo = computed(() => {
+  if (selectedLevel.value !== null) {
+    return { icon: '→', text: 'Nível fixo', color: '#10b981' }
+  }
   if (totalDone.value < 3) return { icon: '•', text: 'Calibrando…', color: '#94a3b8' }
   if (direction.value >= 1)
     return { icon: '↗', text: 'Subindo dificuldade', color: '#3b82f6' }
@@ -1823,21 +1905,24 @@ const trendInfo = computed(() => {
   return { icon: '→', text: 'Dificuldade estável', color: '#10b981' }
 })
 
+// Mostra 3 bolinhas (uma por nível de seleção)
 const difficultyDots = computed(() => {
-  // mostra 4 bolinhas: a atual preenchida
-  return [1, 2, 3, 4].map((d) => ({
-    level: d,
-    active: d === currentDifficulty.value,
-    reached: d <= currentDifficulty.value && direction.value >= 0
+  const activeLevel = currentLevelFromDifficulty.value
+  return [1, 2, 3].map((l) => ({
+    level: l,
+    active: l === activeLevel,
+    reached: l <= activeLevel
   }))
 })
 
 const defaultCardCount = computed(() => defaultDeck.length)
 const defaultByLevel = computed(() => {
-  const acc = { 1: 0, 2: 0, 3: 0, 4: 0 }
+  // buckets: 1 = Fácil (1,2), 2 = Médio (3), 3 = Difícil (4)
+  const acc = { 1: 0, 2: 0, 3: 0 }
   for (const c of defaultDeck) {
     const d = Math.max(1, Math.min(4, c.difficulty || 2))
-    acc[d] = (acc[d] || 0) + 1
+    const bucket = d <= 2 ? 1 : d === 3 ? 2 : 3
+    acc[bucket] = (acc[bucket] || 0) + 1
   }
   return acc
 })
@@ -1927,7 +2012,7 @@ function restart() {
 }
 
 onMounted(() => {
-  buildDeck()
+  if (selectedLevel.value !== null) buildDeck()
 })
 
 onUnmounted(() => {
@@ -1970,11 +2055,58 @@ onUnmounted(() => {
               />
             </div>
           </div>
-          <span class="fc__diff-name">{{ difficultyLabel }}</span>
+          <div class="fc__adaptive-foot">
+            <span
+              class="fc__diff-name"
+              :style="{
+                color: selectedLevel !== null ? LEVEL_INFO[selectedLevel].color : undefined
+              }"
+            >{{ difficultyLabel }}</span>
+            <button
+              v-if="selectedLevel !== null"
+              type="button"
+              class="fc__change-level fc__change-level--inline"
+              @click="changeLevel"
+              :title="`Trocar de ${LEVEL_INFO[selectedLevel].name}`"
+            >
+              <AppIcon name="refresh" :size="12" />
+              Trocar
+            </button>
+          </div>
         </div>
       </div>
     </header>
 
+    <!-- Seleção de nível -->
+    <section v-if="selectedLevel === null" class="fc__levels">
+      <div
+        v-for="level in [1, 2, 3]"
+        :key="level"
+        class="fc__level-card card"
+        :style="{ '--level-color': LEVEL_INFO[level].color }"
+        @click="pickLevel(level)"
+      >
+        <div class="fc__level-icon">
+          <AppIcon :name="LEVEL_INFO[level].icon" :size="28" />
+        </div>
+        <div class="fc__level-body">
+          <div class="fc__level-head">
+            <h2 class="fc__level-name">{{ LEVEL_INFO[level].name }}</h2>
+            <span class="fc__level-count">
+              {{ levelItemsCount(level) }} {{ levelItemsCount(level) === 1 ? 'carta' : 'cartas' }}
+            </span>
+          </div>
+          <p class="fc__level-desc">{{ LEVEL_INFO[level].description }}</p>
+          <div class="fc__level-cta">
+            <AppIcon name="play" :size="14" />
+            <span>Começar</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Conteúdo do jogo (só aparece após escolher nível) -->
+    <template v-else>
     <!-- Toggle do catálogo -->
     <div class="fc__catalog-toggle-row">
       <button
@@ -2017,9 +2149,13 @@ onUnmounted(() => {
             :key="lvl"
             class="fc__catalog-level"
             :class="`fc__catalog-level--${lvl}`"
+            :style="{ '--lvl-color': LEVEL_INFO[lvl].color }"
           >
             <span class="fc__catalog-level-n">{{ count }}</span>
-            <span class="fc__catalog-level-l">N{{ lvl }}</span>
+            <span class="fc__catalog-level-l">
+              <AppIcon :name="LEVEL_INFO[lvl].icon" :size="9" />
+              {{ LEVEL_INFO[lvl].name }}
+            </span>
           </div>
         </div>
 
@@ -2145,7 +2281,14 @@ onUnmounted(() => {
         <AppIcon name="check" :size="48" />
       </div>
       <h2>Sessão concluída!</h2>
-      <p>Você revisou {{ totalDone }} carta(s) do seu baralho.</p>
+      <p>
+        Você revisou {{ totalDone }} carta(s) do nível
+        <strong
+          v-if="selectedLevel !== null"
+          :style="{ color: LEVEL_INFO[selectedLevel].color }"
+        >{{ LEVEL_INFO[selectedLevel].name }}</strong>
+        <span v-else>atual</span>.
+      </p>
 
       <div class="fc__done-stats">
         <div class="fc__done-stat fc__done-stat--again">
@@ -2166,10 +2309,16 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <button class="btn btn-primary btn--lg" @click="restart">
-        <AppIcon name="refresh" :size="16" />
-        Embaralhar e recomeçar
-      </button>
+      <div class="fc__done-actions">
+        <button class="btn btn-primary btn--lg" @click="restart">
+          <AppIcon name="refresh" :size="16" />
+          Embaralhar e recomeçar
+        </button>
+        <button class="btn btn-secondary" @click="changeLevel">
+          <AppIcon name="layers" :size="16" />
+          Trocar nível
+        </button>
+      </div>
     </section>
 
     <!-- Controls: reveal -->
@@ -2223,9 +2372,19 @@ onUnmounted(() => {
         <span>{{ stats.easy }}</span>Fácil
       </div>
     </div>
+    </template>
 
     <footer class="fc__footer">
       <span>© 2026 French Succo — Aprenda um card por vez.</span>
+      <button
+        v-if="selectedLevel !== null"
+        type="button"
+        class="fc__change-level"
+        @click="changeLevel"
+      >
+        <AppIcon name="refresh" :size="13" />
+        Trocar nível
+      </button>
       <span class="fc__footer-version">
         v{{ '1.0.1' }}
         <small>· flashcards</small>
@@ -2343,6 +2502,105 @@ onUnmounted(() => {
 }
 
 /* ─── Adaptive indicator ─── */
+
+/* ─── Level selector ─── */
+.fc__levels {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+@media (min-width: 720px) {
+  .fc__levels {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.fc__level-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  cursor: pointer;
+  transition: transform var(--motion-fast), box-shadow var(--motion-fast),
+    border-color var(--motion-fast);
+  text-align: left;
+  --level-color: var(--color-primary);
+}
+
+.fc__level-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--level-color);
+}
+
+.fc__level-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--level-color) 14%, transparent);
+  color: var(--level-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--level-color) 30%, transparent);
+}
+
+.fc__level-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fc__level-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fc__level-name {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.fc__level-count {
+  font-family: var(--font-nav);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--surface-sunken);
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.fc__level-desc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.fc__level-cta {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-nav);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--level-color);
+}
+
 .fc__adaptive {
   margin-top: 12px;
   padding-top: 12px;
@@ -2405,6 +2663,48 @@ onUnmounted(() => {
   text-transform: uppercase;
   color: var(--text-muted);
   align-self: flex-start;
+}
+
+.fc__adaptive-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.fc__adaptive-foot .fc__diff-name {
+  align-self: auto;
+  font-size: 12px;
+}
+
+.fc__change-level {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-soft);
+  color: var(--text-muted);
+  font-family: var(--font-nav);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--motion-fast), color var(--motion-fast),
+    border-color var(--motion-fast);
+}
+
+.fc__change-level:hover {
+  background: var(--color-primary-softer);
+  color: var(--color-primary);
+  border-color: var(--color-primary-soft);
+}
+
+.fc__change-level--inline {
+  padding: 3px 8px;
+  font-size: 10px;
 }
 
 /* Difficulty badges inside cards */
@@ -2991,14 +3291,6 @@ onUnmounted(() => {
   color: var(--color-accent);
 }
 
-.fc__catalog-level--4 {
-  background: rgba(220, 38, 38, 0.1);
-  border-color: rgba(220, 38, 38, 0.25);
-}
-.fc__catalog-level--4 .fc__catalog-level-n {
-  color: #dc2626;
-}
-
 .fc__catalog-categories {
   grid-column: 1 / -1;
   grid-row: 2;
@@ -3250,6 +3542,13 @@ onUnmounted(() => {
   width: 100%;
   max-width: 480px;
   margin: 12px 0;
+}
+
+.fc__done-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .fc__done-stat {
