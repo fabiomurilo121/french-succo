@@ -33,6 +33,11 @@ const routes = [
     component: () => import('@/pages/PronunciaPage.vue')
   },
   {
+    path: '/adivinhar',
+    name: 'adivinhar',
+    component: () => import('@/pages/DictationPage.vue')
+  },
+  {
     path: '/conversa',
     name: 'conversa',
     component: () => import('@/pages/ConversaPage.vue')
