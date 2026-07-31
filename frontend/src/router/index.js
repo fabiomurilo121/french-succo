@@ -38,6 +38,11 @@ const routes = [
     component: () => import('@/pages/ConversaPage.vue')
   },
   {
+    path: '/placas',
+    name: 'placas',
+    component: () => import('@/pages/PlaquesPage.vue')
+  },
+  {
     path: '/detalhes',
     name: 'detalhes',
     component: () => import('@/pages/DetalhesPage.vue')

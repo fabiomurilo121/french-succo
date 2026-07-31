@@ -18,6 +18,7 @@ const navItems = [
   { name: 'Conjugação', to: '/conjugacao', icon: 'grammar' },
   { name: 'Pronúncia', to: '/pronuncia', icon: 'speaker' },
   { name: 'Conversar', to: '/conversa', icon: 'chat' },
+  { name: 'Placas de Rua', to: '/placas', icon: 'flag' },
   { name: 'Detalhes', to: '/detalhes', icon: 'chartBar' },
   { name: 'Configurações', to: '/configuracoes', icon: 'settings' }
 ]
