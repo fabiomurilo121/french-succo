@@ -771,32 +771,27 @@ function formatPhoneticBR(ipa) {
                 <span class="db__pronunciation-label">PRONÚNCIA</span>
                 <span class="db__pronunciation-tag">🇧🇷 pt-BR</span>
               </div>
-              <div class="db__pronunciation-line">
-                <button class="db__speaker" @click="playAudio('normal')" type="button" aria-label="Ouvir pronúncia">
-                  <AppIcon name="speaker" :size="18" />
-                </button>
-                <div class="db__phonetic-display">
-                  <div class="db__phonetic-words">
+              <div class="db__phonetic-display">
+                <div class="db__phonetic-words">
+                  <span
+                    v-for="(word, wi) in phoneticWords"
+                    :key="wi"
+                    class="db__phonetic-word"
+                  >
                     <span
-                      v-for="(word, wi) in phoneticWords"
-                      :key="wi"
-                      class="db__phonetic-word"
-                    >
-                      <span
-                        v-for="(syl, si) in word.syllables"
-                        :key="si"
-                        :class="['db__syl', { 'is-stressed': si === word.syllables.length - 1 }]"
-                      >{{ syl }}</span>
-                    </span>
-                  </div>
-                  <p class="db__pronunciation-flow" :title="continuousFlow">
-                    <span class="db__pronunciation-flow-label">leitura:</span>
-                    {{ continuousFlow }}
-                  </p>
-                  <p class="db__pronunciation-hint">
-                    <em>↳ Cada bloco é uma sílaba — as <strong>MAIÚSCULAS</strong> são as tônicas (mais força). Fale em voz alta.</em>
-                  </p>
+                      v-for="(syl, si) in word.syllables"
+                      :key="si"
+                      :class="['db__syl', { 'is-stressed': si === word.syllables.length - 1 }]"
+                    >{{ syl }}</span>
+                  </span>
                 </div>
+                <p class="db__pronunciation-flow" :title="continuousFlow">
+                  <span class="db__pronunciation-flow-label">leitura:</span>
+                  {{ continuousFlow }}
+                </p>
+                <p class="db__pronunciation-hint">
+                  <em>↳ Cada bloco é uma sílaba — as <strong>MAIÚSCULAS</strong> são as tônicas (mais força). Fale em voz alta.</em>
+                </p>
               </div>
             </div>
 
@@ -1672,33 +1667,11 @@ function formatPhoneticBR(ipa) {
   border: 1px solid #c5dbff;
 }
 
-.db__pronunciation-line {
+.db__phonunciation-line {
   display: flex;
   align-items: flex-start;
   gap: 14px;
   flex-wrap: wrap;
-}
-
-.db__speaker {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: var(--color-primary);
-  color: #fff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
-  transition: background var(--motion-fast), transform var(--motion-fast);
-}
-.db__speaker:hover {
-  background: var(--color-primary-hover, #2563eb);
-  transform: translateY(-1px);
-}
-.db__speaker :deep(svg) {
-  width: 18px;
-  height: 18px;
 }
 
 .db__phonetic-display {
