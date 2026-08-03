@@ -5,6 +5,7 @@ import { useFavoritesStore } from '@/stores/library'
 import { useToastStore } from '@/stores/toast'
 import { useSettingsStore } from '@/stores/settings'
 import { getAudioUrl } from '@/services/audioCache'
+import { APP_VERSION } from '@/version'
 
 const favorites = useFavoritesStore()
 const toast = useToastStore()
@@ -2386,7 +2387,7 @@ onUnmounted(() => {
         Trocar nível
       </button>
       <span class="fc__footer-version">
-        v{{ '1.0.1' }}
+        v{{ APP_VERSION }}
         <small>· flashcards</small>
       </span>
     </footer>

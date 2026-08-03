@@ -356,7 +356,7 @@ const weeklyDelta = computed(() => {
     <footer class="dt__footer">
       <span>© 2026 French Succo — Acompanhe. Pratique. Evolua.</span>
       <span class="dt__footer-version">
-        v1.0.1<small>· detalhes</small>
+        v1.0.2<small>· detalhes</small>
       </span>
     </footer>
   </div>
