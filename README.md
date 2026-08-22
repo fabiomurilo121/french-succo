@@ -1,4 +1,4 @@
-# French Succo
+# Parle-Juh
 
 > Aplicativo web para aprendizado de francês com tradução automática,
 > correção gramatical, transcrição fonética e pronúncia nativa via TTS.

@@ -516,7 +516,7 @@ function formatNumber(n) {
         </button>
       </div>
       <div class="cs__footer-version">
-        <span>French Succo</span>
+        <span>Parle-Juh</span>
         <span class="cs__footer-version-pill">
           v{{ APP_VERSION }}
           <small>· {{ APP_BUILD }}</small>

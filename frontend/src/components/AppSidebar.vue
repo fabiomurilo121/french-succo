@@ -12,14 +12,14 @@ const route = useRoute()
 
 const navItems = [
   { name: 'Início', to: '/dashboard', icon: 'home' },
-  { name: 'Flashcards', to: '/flashcards', icon: 'cards' },
+  { name: 'Flashcards', to: '/flashcards', icon: 'layers' },
   { name: 'Completar Frases', to: '/complete', icon: 'fillBlank' },
   { name: 'Histórias', to: '/historias', icon: 'book' },
   { name: 'Conjugação', to: '/conjugacao', icon: 'grammar' },
   { name: 'Pronúncia', to: '/pronuncia', icon: 'speaker' },
-  { name: 'Adivinhar Áudio', to: '/adivinhar', icon: 'volume' },
+  { name: 'Adivinhar Áudio', to: '/adivinhar', icon: 'headphones' },
   { name: 'Conversar', to: '/conversa', icon: 'chat' },
-  { name: 'Placas de Rua', to: '/placas', icon: 'flag' },
+  { name: 'Placas de Rua', to: '/placas', icon: 'map' },
   { name: 'Detalhes', to: '/detalhes', icon: 'chartBar' },
   { name: 'Configurações', to: '/configuracoes', icon: 'settings' }
 ]
@@ -30,9 +30,12 @@ const navItems = [
     <header class="sb__head">
       <div class="sb__brand">
         <div class="sb__logo">
-          <img :src="icons['IMG_1']" alt="Logo" />
+          <img :src="icons['LOGO']" alt="Parle-Juh" />
         </div>
-        <span class="sb__title">Aprender Francês</span>
+        <div class="sb__brand-text">
+          <span class="sb__eyebrow">Aprenda francês</span>
+          <span class="sb__title">Parle-Juh</span>
+        </div>
       </div>
       <button
         class="sb__close"
@@ -130,33 +133,59 @@ const navItems = [
 .sb__brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   min-width: 0;
 }
 
 .sb__logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: var(--color-primary);
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--color-primary-soft, #dbeafe) 0%, transparent 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  box-shadow: 0 6px 18px -6px rgba(59, 130, 246, 0.35);
 }
 
 .sb__logo img {
-  width: 22px;
-  height: 22px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sb__brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  line-height: 1;
+}
+
+.sb__eyebrow {
+  font-family: var(--font-nav);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .sb__title {
   font-family: var(--font-display);
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--color-primary-text);
-  letter-spacing: -0.01em;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #6366f1 50%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

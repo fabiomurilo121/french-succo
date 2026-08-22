@@ -909,7 +909,7 @@ const errorMessage = computed(() => {
     </div>
 
     <footer class="cp__footer">
-      <span>© 2026 French Succo — Arraste, encaixe, aprenda.</span>
+      <span>© 2026 Parle-Juh — Arraste, encaixe, aprenda.</span>
       <button class="cp__restart" type="button" @click="restart">
         <AppIcon name="refresh" :size="13" />
         Embaralhar tudo

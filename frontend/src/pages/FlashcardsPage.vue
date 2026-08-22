@@ -2398,7 +2398,7 @@ onUnmounted(() => {
     </template>
 
     <footer class="fc__footer">
-      <span>© 2026 French Succo — Aprenda um card por vez.</span>
+      <span>© 2026 Parle-Juh — Aprenda um card por vez.</span>
       <button
         v-if="selectedLevel !== null"
         type="button"

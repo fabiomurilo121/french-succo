@@ -1045,7 +1045,7 @@ function formatPhoneticBR(ipa) {
     </section>
 
     <footer class="db__footer">
-      <span>© 2026 French Succo — Foco no seu sucesso.</span>
+      <span>© 2026 Parle-Juh — Foco no seu sucesso.</span>
       <span class="db__footer-version">
         v{{ APP_VERSION }}
         <small>· {{ APP_BUILD }}</small>
