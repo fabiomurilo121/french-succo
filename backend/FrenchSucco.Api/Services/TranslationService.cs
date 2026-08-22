@@ -20,19 +20,22 @@ public class TranslationService : ITranslationService
 
     public async Task<TranslationResponse> TranslateAsync(string text, string? sourceLang, string region, CancellationToken ct = default)
     {
-        var system = @"Você é um tradutor especializado em português/francês. Produza respostas em JSON com esta estrutura:
+        var system = @"Você é um tradutor especializado em português↔francês. Responda SOMENTE em JSON válido no seguinte formato:
 {
-  ""frText"": ""<francês natural e correto>"",
-  ""phonetic"": ""<transcrição fonética simplificada em português, ex: bõ-jur>"",
+  ""frInformal"": ""<francês informal/tu, tom amigável e natural entre conhecidos>"",
+  ""frFormal"": ""<francês formal/você (vous), tom polido e profissional>"",
+  ""phoneticInformal"": ""<transcrição fonética simplificada em pt-BR para frInformal>"",
+  ""phoneticFormal"": ""<transcrição fonética simplificada em pt-BR para frFormal>"",
+  ""phonetic"": ""<Use o mesmo valor de phoneticInformal — mantido para compatibilidade>"",
   ""translation"": ""<português>"",
   ""culturalTip"": ""<curta dica cultural opcional>"",
   ""category"": ""<uma das: Comum, Viagem, Estudo, Restaurante, Trabalho, Expressões>""
 }
-Apenas devolva o JSON.";
+Regras: frInformal e frFormal DEVEM ser frases equivalentes em significado, diferindo APENAS no registro (tu/vous, coloquial vs. polido). As fonéticas phoneticInformal e phoneticFormal devem refletir a pronúncia de cada variante. Não use markdown.";
 
         var user = $"Idioma de origem: {(string.IsNullOrEmpty(sourceLang) ? "auto-detect" : sourceLang)}. Texto: {text}";
 
-        var json = await _miniMax.CompleteChatAsync(system, user, ct);
+        var json = await _miniMax.CompleteChatAsync(system, user, ct, jsonMode: true);
 
         if (string.IsNullOrWhiteSpace(json))
             throw new InvalidOperationException("Resposta vazia do modelo de tradução.");
@@ -43,13 +46,32 @@ Apenas devolva o JSON.";
         if (data is null)
             throw new InvalidOperationException("Não foi possível interpretar a resposta do tradutor.");
 
-        if (string.IsNullOrWhiteSpace(data.FrText))
+        var informal = !string.IsNullOrWhiteSpace(data.FrInformal)
+            ? data.FrInformal!
+            : (!string.IsNullOrWhiteSpace(data.FrText) ? data.FrText! : "");
+        var formal = data.FrFormal;
+
+        if (string.IsNullOrWhiteSpace(informal))
             throw new InvalidOperationException("O tradutor não retornou uma frase em francês.");
+
+        if (string.IsNullOrWhiteSpace(formal))
+            formal = informal;
+
+        var phoneticInformal = !string.IsNullOrWhiteSpace(data.PhoneticInformal)
+            ? data.PhoneticInformal
+            : (data.Phonetic ?? "");
+        var phoneticFormal = !string.IsNullOrWhiteSpace(data.PhoneticFormal)
+            ? data.PhoneticFormal
+            : phoneticInformal;
 
         return new TranslationResponse(
             sourceLang ?? "pt",
-            data.FrText,
-            data.Phonetic ?? "",
+            informal,
+            informal,
+            formal,
+            phoneticInformal,
+            phoneticFormal,
+            data.Phonetic ?? phoneticInformal,
             data.Translation ?? text,
             data.CulturalTip,
             data.Category ?? "Comum"
@@ -58,7 +80,11 @@ Apenas devolva o JSON.";
 
     private class MiniMaxTranslatePayload
     {
+        [JsonPropertyName("frInformal")] public string? FrInformal { get; set; }
+        [JsonPropertyName("frFormal")] public string? FrFormal { get; set; }
         [JsonPropertyName("frText")] public string? FrText { get; set; }
+        [JsonPropertyName("phoneticInformal")] public string? PhoneticInformal { get; set; }
+        [JsonPropertyName("phoneticFormal")] public string? PhoneticFormal { get; set; }
         [JsonPropertyName("phonetic")] public string? Phonetic { get; set; }
         [JsonPropertyName("translation")] public string? Translation { get; set; }
         [JsonPropertyName("culturalTip")] public string? CulturalTip { get; set; }

@@ -21,6 +21,10 @@ public record GrammarCorrection(
 public record TranslationResponse(
     string SourceLang,
     string FrText,
+    string FrInformal,
+    string? FrFormal,
+    string PhoneticInformal,
+    string PhoneticFormal,
     string Phonetic,
     string? Translation,
     string? CulturalTip,

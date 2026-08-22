@@ -6,6 +6,7 @@ import { useHistoryStore, useFavoritesStore } from '@/stores/library'
 import { useToastStore } from '@/stores/toast'
 import { api } from '@/services/api'
 import { getAudioUrl, audioCache } from '@/services/audioCache'
+import { translateCached, correctCached } from '@/services/textCache'
 import icons from '@/assets/icons'
 import { APP_VERSION, APP_BUILD } from '@/version'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
@@ -28,10 +29,24 @@ const listening = ref(false)
 const speechSupported = ref(false)
 const recognitionRef = ref(null)
 const shouldListen = ref(false)
+const toneVariant = ref('informal')
 let audioLoadingTimer = null
 let transcriptBase = ''
 let inactivityTimer = null
 const INACTIVITY_MS = 6000
+
+const activeTone = computed(() => {
+  if (!result.value || result.value.type !== 'translation') return 'informal'
+  return ['informal', 'formal'].includes(toneVariant.value) ? toneVariant.value : 'informal'
+})
+
+const activeFrText = computed(() => {
+  if (!result.value) return ''
+  if (result.value.type === 'grammar') return result.value.frText || ''
+  return activeTone.value === 'formal'
+    ? (result.value.frFormal || result.value.frInformal || result.value.frText || '')
+    : (result.value.frInformal || result.value.frText || '')
+})
 
 const overlayOpen = computed(() => loading.value || audioLoading.value)
 const overlayTitle = computed(() =>
@@ -65,8 +80,17 @@ const charCount = computed(() => inputText.value.length)
 
 const DEFAULT_PHONETIC = 'bõ.ʒuʁ, kɔ.mɑ̃.t‿a.le vu.z‿o.ʒuʁ.dɥi'
 
+const activePhonetic = computed(() => {
+  if (!result.value || result.value.type !== 'translation') {
+    return result.value?.phonetic || DEFAULT_PHONETIC
+  }
+  const informal = result.value.phoneticInformal || result.value.phonetic
+  const formal = result.value.phoneticFormal || result.value.phonetic || informal
+  return activeTone.value === 'formal' ? formal : (informal || DEFAULT_PHONETIC)
+})
+
 const phoneticWords = computed(() => {
-  const ipa = result.value?.phonetic || DEFAULT_PHONETIC
+  const ipa = activePhonetic.value || DEFAULT_PHONETIC
   return formatPhoneticBR(ipa)
 })
 
@@ -301,28 +325,40 @@ async function processText() {
     const region = settings.region || 'fr'
 
     if (mode.value === 'translate') {
-      const response = await api.translate({
+      const response = await translateCached({
         text: inputText.value.trim(),
         sourceLang: detectedLang.value === 'auto' ? null : detectedLang.value,
         targetLang: 'fr',
         region
       })
+      const cached = response.__cached === true
+      const informal = response.frInformal || response.frText || 'Bonjour, comment ça va ?'
+      const formal = response.frFormal || informal
+      const phoneticInformal = response.phoneticInformal || response.phonetic || ''
+      const phoneticFormal = response.phoneticFormal || phoneticInformal
+      toneVariant.value = 'informal'
       result.value = {
         type: 'translation',
-        frText: response.frText || 'Bonjour, comment allez-vous aujourd\'hui ?',
-        phonetic: response.phonetic || 'bõ.ʒuʁ, kɔ.mã.t‿a.le vu.z‿o.ʒuʁ.dɥi',
+        frText: informal,
+        frInformal: informal,
+        frFormal: formal,
+        phonetic: phoneticInformal,
+        phoneticInformal,
+        phoneticFormal,
         translation: response.translation || inputText.value,
         culturalTip:
           response.culturalTip ||
-          'Em contextos formais, sempre use "Vous" em vez de "Tu". O "Bonjour" é obrigatório ao entrar em qualquer estabelecimento comercial na França.',
+          'Em contextos formais use "vous"; entre amigos, "tu". "Bonjour" é obrigatório ao entrar em qualquer comércio na França.',
         category: response.category || 'Comum'
       }
+      if (cached) toast.info('Resultado carregado do cache local', { duration: 1200 })
     } else {
       const originalText = inputText.value.trim()
-      const response = await api.correct({
+      const response = await correctCached({
         text: originalText,
         region
       })
+      if (response.__cached) toast.info('Correção carregada do cache local', { duration: 1200 })
       const correctedText = response.corrected || originalText
       inputText.value = correctedText
       grammarOriginal.value = response.original || originalText
@@ -340,7 +376,7 @@ async function processText() {
     history.add({
       sourceLang: detectedLang.value === 'auto' ? 'pt' : detectedLang.value,
       sourceText: inputText.value,
-      frText: result.value.frText,
+      frText: activeFrText.value || result.value.frText,
       phonetic: result.value.phonetic || '',
       category: result.value.category || 'Comum',
       mode: mode.value
@@ -399,8 +435,9 @@ function playAudioForText(text, speedVariant) {
 }
 
 function playAudio(speedVariant) {
-  if (!result.value?.frText) return
-  playAudioForText(result.value.frText, speedVariant)
+  const text = activeFrText.value || result.value?.frText
+  if (!text) return
+  playAudioForText(text, speedVariant)
 }
 
 function playHistoryItemAudio(item) {
@@ -425,15 +462,17 @@ function playHistoryItemAudio(item) {
 }
 
 function copyResult() {
-  if (!result.value?.frText) return
-  navigator.clipboard.writeText(result.value.frText)
+  const text = activeFrText.value || result.value?.frText
+  if (!text) return
+  navigator.clipboard.writeText(text)
   toast.success('Copiado!', { duration: 1500 })
 }
 
 function favoriteResult() {
-  if (!result.value?.frText) return
+  const text = activeFrText.value || result.value?.frText
+  if (!text) return
   const ok = favorites.add({
-    frText: result.value.frText,
+    frText: text,
     ptText: result.value.translation || inputText.value,
     phonetic: result.value.phonetic,
     category: result.value.category || 'Comum'
@@ -444,8 +483,9 @@ function favoriteResult() {
 }
 
 function isFav() {
-  if (!result.value?.frText) return false
-  return favorites.isFavorited(result.value.frText)
+  const text = activeFrText.value || result.value?.frText
+  if (!text) return false
+  return favorites.isFavorited(text)
 }
 
 const filteredHistory = computed(() => {
@@ -764,7 +804,34 @@ function formatPhoneticBR(ipa) {
               </div>
             </header>
 
-            <h2 class="db__result-phrase">{{ result.frText }}</h2>
+            <div v-if="result.type === 'translation'" class="db__tone-tabs" role="tablist" aria-label="Registro da tradução">
+              <button
+                type="button"
+                role="tab"
+                class="db__tone-tab"
+                :class="{ 'is-active': activeTone === 'informal' }"
+                :aria-selected="activeTone === 'informal'"
+                @click="toneVariant = 'informal'"
+              >
+                <AppIcon name="user" :size="13" />
+                <span>Informal</span>
+                <small>tu</small>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                class="db__tone-tab"
+                :class="{ 'is-active': activeTone === 'formal' }"
+                :aria-selected="activeTone === 'formal'"
+                @click="toneVariant = 'formal'"
+              >
+                <AppIcon name="briefcase" :size="13" />
+                <span>Formal</span>
+                <small>vous</small>
+              </button>
+            </div>
+
+            <h2 class="db__result-phrase">{{ activeFrText }}</h2>
 
             <div v-if="settings.showPhonetic" class="db__pronunciation">
               <div class="db__pronunciation-head">
@@ -796,6 +863,7 @@ function formatPhoneticBR(ipa) {
             </div>
 
             <hr class="db__divider" />
+
 
             <div class="db__audio">
               <strong>Ações de áudio</strong>
@@ -1630,6 +1698,59 @@ function formatPhoneticBR(ipa) {
   letter-spacing: -0.01em;
   color: var(--text-primary);
   margin: 0;
+}
+
+.db__tone-tabs {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 3px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  gap: 2px;
+  margin-bottom: -4px;
+}
+
+.db__tone-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: transparent;
+  transition: color var(--motion-fast), background var(--motion-fast),
+    box-shadow var(--motion-fast), transform var(--motion-fast);
+  cursor: pointer;
+}
+
+.db__tone-tab:hover:not(.is-active) {
+  color: var(--text-primary);
+}
+
+.db__tone-tab.is-active {
+  background: var(--surface-card);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+.db__tone-tab small {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--color-primary-deep);
+  text-transform: uppercase;
+}
+
+.db__tone-tab:not(.is-active) small {
+  background: transparent;
+  color: var(--text-faint);
 }
 
 .db__pronunciation {

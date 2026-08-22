@@ -326,10 +326,93 @@ function shuffleArray(arr) {
   return copy
 }
 
+const DIFFICULTY_BY_ID = {
+  1: 'hard',
+  2: 'medium', 3: 'medium', 4: 'medium',
+  6: 'medium', 8: 'medium',
+  18: 'medium', 22: 'medium', 24: 'medium',
+  27: 'medium', 29: 'medium', 30: 'medium'
+}
+
+const DIFFICULTY_META = {
+  easy:   { label: 'Fácil',   color: '#10b981', icon: 'sparkles',
+           points: 1, hint: 'always', poolSize: 'small',
+           description: 'Frases curtas com 1 espaço. Poucas opções na piscina — ideal para começar.' },
+  medium: { label: 'Médio',   color: '#f59e0b', icon: 'flask',
+           points: 2, hint: 'always', poolSize: 'full',
+           description: 'Frases do dia a dia com até 2 espaços. Mais distratores na piscina.' },
+  hard:   { label: 'Difícil', color: '#ef4444', icon: 'gauge',
+           points: 3, hint: 'reveal', poolSize: 'full',
+           description: 'Frases longas e contrações. A tradução em português fica oculta.' },
+  mixed:  { label: 'Misto',   color: '#6366f1', icon: 'layers',
+           points: 1, hint: 'always', poolSize: 'auto',
+           description: 'Mistura frases de todas as dificuldades, na ordem que sair.' }
+}
+
+const DIFFICULTY_ORDER = ['easy', 'medium', 'hard', 'mixed']
+
+function getDifficulty(id) {
+  return DIFFICULTY_BY_ID[id] || 'easy'
+}
+
+const DIFFICULTY_KEY = 'french-succo:complete-difficulty'
+
+const currentDifficulty = ref(null)
+const levelSelected = ref(false)
+const difficultyMeta = computed(() =>
+  currentDifficulty.value ? DIFFICULTY_META[currentDifficulty.value] : null
+)
+const showHint = ref(false)
+const hasChosenDifficulty = computed(() => levelSelected.value && currentDifficulty.value !== null)
+
+const exerciseDifficulty = computed(() =>
+  currentExercise.value ? getDifficulty(currentExercise.value.id) : 'easy'
+)
+
+function difficultyCount(d) {
+  if (d === 'mixed') return exercises.length
+  return exercises.filter((ex) => getDifficulty(ex.id) === d).length
+}
+
+function pickPoolFor(exercise) {
+  const meta = currentDifficulty.value === 'mixed'
+    ? DIFFICULTY_META[getDifficulty(exercise.id)]
+    : DIFFICULTY_META[currentDifficulty.value]
+
+  if (meta.poolSize === 'full') return [...exercise.pool]
+
+  const slotCount = exercise.slots.length
+  const correctSet = new Set(exercise.slots.map((s) => s.text))
+  const distractors = exercise.pool.filter((p) => !correctSet.has(p))
+  const needed = Math.max(slotCount + 2, slotCount + 1)
+  const picked = shuffleArray(distractors).slice(0, Math.max(1, needed - slotCount))
+  return shuffleArray([...exercise.slots.map((s) => s.text), ...picked])
+}
+
+function setDifficulty(d) {
+  if (!DIFFICULTY_META[d]) return
+
+  currentDifficulty.value = d
+  levelSelected.value = true
+  showHint.value = false
+  try { localStorage.setItem(DIFFICULTY_KEY, d) } catch { /* ignore */ }
+  buildSession()
+  toast.success(`Dificuldade: ${DIFFICULTY_META[d].label}`, { duration: 1400 })
+}
+
+function resetDifficulty() {
+  currentDifficulty.value = null
+  levelSelected.value = false
+  sessionDeck.value = []
+  cardIndex.value = 0
+  showHint.value = false
+}
+
 function resetExercise() {
   if (!currentExercise.value) return
   filledSlots.value = {}
-  poolTiles.value = currentExercise.value.pool.map((text, idx) => ({
+  const poolTexts = pickPoolFor(currentExercise.value)
+  poolTiles.value = poolTexts.map((text, idx) => ({
     uid: 't' + idx + '-' + Math.random().toString(36).slice(2, 6),
     text,
     from: 'pool'
@@ -337,20 +420,23 @@ function resetExercise() {
   selectedTileUid.value = null
   checkState.value = null
   erroredSlots.value = {}
+  showHint.value = false
 }
 
 function buildSession() {
-  sessionDeck.value = shuffleArray(exercises)
+  if (!currentDifficulty.value) return
+  const filtered = currentDifficulty.value === 'mixed'
+    ? exercises
+    : exercises.filter((ex) => getDifficulty(ex.id) === currentDifficulty.value)
+  sessionDeck.value = shuffleArray(filtered)
   cardIndex.value = 0
-  stats.value = { correct: 0, attempts: 0 }
+  stats.value = { attempts: 0, easy: 0, medium: 0, hard: 0, points: 0 }
   resetExercise()
 }
 
 function restart() {
-  if (
-    stats.value.correct > 0 &&
-    !confirm('Reiniciar a sessão? Seu progresso será zerado.')
-  ) {
+  const total = (stats.value.easy || 0) + (stats.value.medium || 0) + (stats.value.hard || 0)
+  if (total > 0 && !confirm('Reiniciar a sessão? Seu progresso será zerado.')) {
     return
   }
   buildSession()
@@ -358,7 +444,7 @@ function restart() {
 }
 
 onMounted(() => {
-  buildSession()
+  if (currentDifficulty.value !== null) buildSession()
 })
 
 watch(cardIndex, () => {
@@ -487,7 +573,9 @@ function checkAnswer() {
   erroredSlots.value = newErr
   if (allCorrect) {
     checkState.value = 'success'
-    stats.value.correct++
+    const diff = exerciseDifficulty.value
+    stats.value[diff] = (stats.value[diff] || 0) + 1
+    stats.value.points += DIFFICULTY_META[diff].points
   } else {
     checkState.value = 'error'
   }
@@ -496,9 +584,16 @@ function checkAnswer() {
 function nextExercise() {
   if (checkState.value !== 'success') return
   if (cardIndex.value + 1 >= totalExercises.value) {
-    sessionDeck.value = shuffleArray(exercises)
+    // Wrap-around: mantém a pontuação, mas reembaralha o baralho filtrado
+    // e reseta explicitamente o estado da tela (o watch(cardIndex) não dispara
+    // porque cardIndex permanece em 0 e não muda de valor).
+    const filtered = currentDifficulty.value === 'mixed'
+      ? exercises
+      : exercises.filter((ex) => getDifficulty(ex.id) === currentDifficulty.value)
+    sessionDeck.value = shuffleArray(filtered)
     cardIndex.value = 0
-    toast.success('Sessão reiniciada! Continue praticando.', { duration: 2000 })
+    resetExercise()
+    toast.success('Nova rodada! Continue praticando.', { duration: 2000 })
   } else {
     cardIndex.value++
   }
@@ -514,11 +609,11 @@ function clearSlots() {
 }
 
 const scoreMsg = computed(() => {
-  const c = stats.value.correct
   const a = stats.value.attempts
   if (a === 0) return null
-  const rate = Math.round((c / a) * 100)
-  return `${c} acerto(s) em ${a} tentativa(s) — ${rate}%`
+  const total = (stats.value.easy || 0) + (stats.value.medium || 0) + (stats.value.hard || 0)
+  const accuracy = Math.round((total / a) * 100)
+  return `${total}/${a} acertos · ${stats.value.points} pts · ${accuracy}% de precisão`
 })
 
 const errorMessage = computed(() => {
@@ -534,7 +629,57 @@ const errorMessage = computed(() => {
 </script>
 
 <template>
-  <div class="cp" v-if="currentExercise">
+  <div class="cp">
+    <!-- Tela de seleção de dificuldade (mesmo padrão visual do DictationPage) -->
+    <section v-if="!levelSelected" class="cp__level-select">
+      <header class="cp__head">
+        <div class="cp__title-block">
+          <span class="cp__eyebrow">COMPLETAR FRASES</span>
+          <h1 class="cp__title">Escolha a dificuldade</h1>
+          <p class="cp__sub">
+            Arraste as palavras para os espaços. Cada nível ajusta o tamanho
+            da frase, a quantidade de opções na piscina e os pontos por acerto.
+          </p>
+        </div>
+      </header>
+
+      <div class="cp__levels-grid">
+        <div
+          v-for="d in DIFFICULTY_ORDER"
+          :key="d"
+          class="cp__level-card card"
+          :style="{ '--level-color': DIFFICULTY_META[d].color }"
+          @click="setDifficulty(d)"
+        >
+          <div class="cp__level-icon">
+            <AppIcon :name="DIFFICULTY_META[d].icon" :size="32" />
+          </div>
+          <div class="cp__level-body">
+            <div class="cp__level-head">
+              <h2 class="cp__level-name">{{ DIFFICULTY_META[d].label }}</h2>
+              <span class="cp__level-count">
+                {{ difficultyCount(d) }} {{ difficultyCount(d) === 1 ? 'frase' : 'frases' }}
+              </span>
+            </div>
+            <p class="cp__level-desc">{{ DIFFICULTY_META[d].description }}</p>
+            <div class="cp__level-meta">
+              <span class="cp__level-tag">+{{ DIFFICULTY_META[d].points }} pts / acerto</span>
+              <span v-if="DIFFICULTY_META[d].hint === 'reveal'" class="cp__level-tag cp__level-tag--warn">
+                <AppIcon name="info" :size="11" />
+                Tradução oculta
+              </span>
+            </div>
+            <div class="cp__level-cta">
+              <AppIcon name="play" :size="14" />
+              <span>Começar</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tela do jogo (quando já existe uma dificuldade escolhida) -->
+    <template v-else-if="currentExercise">
     <header class="cp__head">
       <div class="cp__title-block">
         <span class="cp__eyebrow">COMPLETAR FRASES</span>
@@ -552,12 +697,47 @@ const errorMessage = computed(() => {
           <span class="cp__bar-fill" :style="{ width: progress + '%' }"></span>
         </div>
         <p v-if="scoreMsg" class="cp__score">{{ scoreMsg }}</p>
+        <div class="cp__progress-foot">
+          <span
+            class="cp__level-badge"
+            :style="{
+              background: difficultyMeta.color + '22',
+              color: difficultyMeta.color,
+              borderColor: difficultyMeta.color + '55'
+            }"
+          >
+            <AppIcon :name="difficultyMeta.icon" :size="12" />
+            {{ difficultyMeta.label }}
+          </span>
+          <button
+            type="button"
+            class="cp__change-difficulty"
+            @click="resetDifficulty"
+            aria-label="Trocar de dificuldade"
+          >
+            <AppIcon name="refresh" :size="12" />
+            Trocar
+          </button>
+        </div>
       </div>
     </header>
 
     <section class="cp__exercise card">
       <header class="cp__exercise-head">
-        <span class="cp__exercise-tag">{{ currentExercise.category }}</span>
+        <div class="cp__exercise-tags">
+          <span class="cp__exercise-tag">{{ currentExercise.category }}</span>
+          <span
+            class="cp__exercise-difficulty"
+            :style="{
+              color: DIFFICULTY_META[exerciseDifficulty].color,
+              background: DIFFICULTY_META[exerciseDifficulty].color + '1a',
+              borderColor: DIFFICULTY_META[exerciseDifficulty].color + '55'
+            }"
+          >
+            <span class="cp__exercise-difficulty-dot" :style="{ background: DIFFICULTY_META[exerciseDifficulty].color }"></span>
+            {{ DIFFICULTY_META[exerciseDifficulty].label }}
+          </span>
+        </div>
         <button
           type="button"
           class="cp__exercise-clear"
@@ -623,10 +803,25 @@ const errorMessage = computed(() => {
         }}</span>
       </div>
 
-      <p class="cp__hint muted">
+      <div v-if="difficultyMeta.hint === 'always'" class="cp__hint muted">
         <AppIcon name="info" :size="13" />
         Tradução: <strong>{{ currentExercise.translation }}</strong>
-      </p>
+      </div>
+      <div v-else class="cp__hint cp__hint--hard">
+        <button
+          type="button"
+          class="cp__hint-toggle"
+          @click="showHint = !showHint"
+        >
+          <AppIcon :name="showHint ? 'cross' : 'info'" :size="13" />
+          {{ showHint ? 'Esconder tradução' : 'Mostrar tradução' }}
+        </button>
+        <Transition name="cp-hint">
+          <p v-if="showHint">
+            <strong>{{ currentExercise.translation }}</strong>
+          </p>
+        </Transition>
+      </div>
 
       <Transition name="cp-fb">
         <div v-if="checkState === 'success'" class="cp__feedback cp__feedback--ok">
@@ -720,6 +915,7 @@ const errorMessage = computed(() => {
         Embaralhar tudo
       </button>
     </footer>
+    </template>
   </div>
 </template>
 
@@ -1022,6 +1218,270 @@ const errorMessage = computed(() => {
 }
 .cp__hint strong {
   color: var(--text-primary);
+}
+
+.cp__hint--hard {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(239, 68, 68, 0.04));
+  border: 1px dashed rgba(239, 68, 68, 0.3);
+}
+.cp__hint--hard p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+.cp__hint-toggle {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+  font-family: var(--font-nav);
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background var(--motion-fast), color var(--motion-fast);
+}
+.cp__hint-toggle:hover {
+  background: rgba(239, 68, 68, 0.22);
+  color: #7f1d1d;
+}
+
+.cp-hint-enter-active,
+.cp-hint-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cp-hint-enter-from,
+.cp-hint-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/* ─── Level selection cards (DictationPage pattern) ─── */
+.cp__level-select {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cp__levels-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.cp__level-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 22px 24px;
+  background: var(--surface-card);
+  border: 2px solid var(--border-default);
+  border-left: 6px solid var(--level-color);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  box-shadow: var(--shadow-xs);
+  transition: border-color var(--motion-base) var(--ease-out),
+    transform var(--motion-base) var(--ease-out),
+    box-shadow var(--motion-base) var(--ease-out);
+}
+
+.cp__level-card:hover {
+  border-color: var(--level-color);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px -10px color-mix(in srgb, var(--level-color) 30%, transparent);
+}
+
+.cp__level-card:active {
+  transform: translateY(0);
+}
+
+.cp__level-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--level-color) 14%, transparent);
+  color: var(--level-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform var(--motion-base) var(--ease-out);
+}
+
+.cp__level-card:hover .cp__level-icon {
+  transform: scale(1.06) rotate(-4deg);
+}
+
+.cp__level-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cp__level-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cp__level-name {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.cp__level-count {
+  font-family: var(--font-nav);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--level-color);
+  background: color-mix(in srgb, var(--level-color) 12%, transparent);
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.cp__level-desc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.cp__level-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.cp__level-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--level-color) 14%, transparent);
+  color: var(--level-color);
+}
+
+.cp__level-tag--warn {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+}
+
+.cp__level-cta {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-nav);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--level-color);
+}
+
+@media (max-width: 720px) {
+  .cp__levels-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Game header: difficulty badge + change button ─── */
+.cp__progress-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-soft);
+}
+
+.cp__level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: 1px solid;
+}
+
+.cp__change-difficulty {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  font-family: var(--font-nav);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color var(--motion-fast), color var(--motion-fast),
+    background var(--motion-fast);
+}
+
+.cp__change-difficulty:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+/* ─── Exercise tags (category + difficulty badge inside card) ─── */
+.cp__exercise-tags {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cp__exercise-difficulty {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-family: var(--font-nav);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  border: 1px solid;
+}
+
+.cp__exercise-difficulty-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
 }
 
 /* ─── Feedback banner (success / error / incomplete) ─── */

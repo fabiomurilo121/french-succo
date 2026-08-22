@@ -1590,9 +1590,15 @@ const catalogVisible = ref(false)
 const selectedLevel = ref(null) // 1, 2, 3 (Fácil, Médio, Difícil) ou null = tela de seleção
 
 const LEVEL_INFO = {
-  1: { id: 1, name: 'Fácil', icon: 'sparkles', color: '#22c55e', description: 'Palavras curtas, cumprimentos e expressões do dia a dia' },
-  2: { id: 2, name: 'Médio', icon: 'flask', color: '#3b82f6', description: 'Frases úteis para viagens, restaurantes e conversas' },
-  3: { id: 3, name: 'Difícil', icon: 'gauge', color: '#f97315', description: 'Frases completas e vocabulário avançado' }
+  1: { id: 1, name: 'Fácil', icon: 'sparkles', color: '#22c55e',
+       description: 'Palavras curtas, cumprimentos e expressões do dia a dia',
+       meta: ['12 cartas / sessão', 'Adaptação automática'] },
+  2: { id: 2, name: 'Médio', icon: 'flask', color: '#3b82f6',
+       description: 'Frases úteis para viagens, restaurantes e conversas',
+       meta: ['12 cartas / sessão', 'Adaptação automática'] },
+  3: { id: 3, name: 'Difícil', icon: 'gauge', color: '#f97316',
+       description: 'Frases completas e vocabulário avançado',
+       meta: ['12 cartas / sessão', 'Adaptação automática'] }
 }
 
 // Mapeia os 3 níveis de seleção para os buckets de difficulty internos (1-4):
@@ -2058,11 +2064,18 @@ onUnmounted(() => {
           </div>
           <div class="fc__adaptive-foot">
             <span
-              class="fc__diff-name"
+              v-if="selectedLevel !== null"
+              class="fc__level-badge"
               :style="{
-                color: selectedLevel !== null ? LEVEL_INFO[selectedLevel].color : undefined
+                background: LEVEL_INFO[selectedLevel].color + '22',
+                color: LEVEL_INFO[selectedLevel].color,
+                borderColor: LEVEL_INFO[selectedLevel].color + '55'
               }"
-            >{{ difficultyLabel }}</span>
+            >
+              <AppIcon :name="LEVEL_INFO[selectedLevel].icon" :size="12" />
+              {{ LEVEL_INFO[selectedLevel].name }}
+            </span>
+            <span v-else class="fc__diff-name">{{ difficultyLabel }}</span>
             <button
               v-if="selectedLevel !== null"
               type="button"
@@ -2078,7 +2091,7 @@ onUnmounted(() => {
       </div>
     </header>
 
-    <!-- Seleção de nível -->
+    <!-- Seleção de nível (mesmo padrão da tela inicial do "Completar Frases") -->
     <section v-if="selectedLevel === null" class="fc__levels">
       <div
         v-for="level in [1, 2, 3]"
@@ -2088,7 +2101,7 @@ onUnmounted(() => {
         @click="pickLevel(level)"
       >
         <div class="fc__level-icon">
-          <AppIcon :name="LEVEL_INFO[level].icon" :size="28" />
+          <AppIcon :name="LEVEL_INFO[level].icon" :size="32" />
         </div>
         <div class="fc__level-body">
           <div class="fc__level-head">
@@ -2098,6 +2111,15 @@ onUnmounted(() => {
             </span>
           </div>
           <p class="fc__level-desc">{{ LEVEL_INFO[level].description }}</p>
+          <div class="fc__level-meta">
+            <span
+              v-for="tag in LEVEL_INFO[level].meta"
+              :key="tag"
+              class="fc__level-tag"
+            >
+              {{ tag }}
+            </span>
+          </div>
           <div class="fc__level-cta">
             <AppIcon name="play" :size="14" />
             <span>Começar</span>
@@ -2408,7 +2430,7 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 24px;
   font-family: var(--font-body);
-  max-width: 720px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
@@ -2419,6 +2441,20 @@ onUnmounted(() => {
   align-items: flex-end;
   gap: 16px;
   flex-wrap: wrap;
+}
+
+@media (max-width: 720px) {
+  .fc__head {
+    align-items: stretch;
+  }
+  .fc__progress-card {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+  }
+  .fc__sub {
+    max-width: none;
+  }
 }
 
 .fc__eyebrow {
@@ -2504,7 +2540,7 @@ onUnmounted(() => {
 
 /* ─── Adaptive indicator ─── */
 
-/* ─── Level selector ─── */
+/* ─── Level selector (mesmo padrão da CompletePage) ─── */
 .fc__levels {
   display: grid;
   grid-template-columns: 1fr;
@@ -2512,9 +2548,37 @@ onUnmounted(() => {
   margin-top: 4px;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 600px) {
   .fc__levels {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .fc__levels {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .fc__level-card {
+    padding: 18px 20px;
+    gap: 12px;
+  }
+  .fc__level-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+  .fc__level-name {
+    font-size: 18px;
+  }
+  .fc__level-count {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+  .fc__level-cta {
+    font-size: 11px;
   }
 }
 
@@ -2522,39 +2586,53 @@ onUnmounted(() => {
   display: flex;
   align-items: flex-start;
   gap: 16px;
-  padding: 20px;
+  padding: 22px 24px;
+  background: var(--surface-card);
+  border: 2px solid var(--border-default);
+  border-left: 6px solid var(--level-color);
+  border-radius: var(--radius-xl);
   cursor: pointer;
-  transition: transform var(--motion-fast), box-shadow var(--motion-fast),
-    border-color var(--motion-fast);
+  box-shadow: var(--shadow-xs);
+  transition: border-color var(--motion-base) var(--ease-out),
+    transform var(--motion-base) var(--ease-out),
+    box-shadow var(--motion-base) var(--ease-out);
   text-align: left;
   --level-color: var(--color-primary);
 }
 
 .fc__level-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
   border-color: var(--level-color);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px -10px color-mix(in srgb, var(--level-color) 30%, transparent);
+}
+
+.fc__level-card:active {
+  transform: translateY(0);
 }
 
 .fc__level-icon {
   width: 56px;
   height: 56px;
-  border-radius: 16px;
+  border-radius: 14px;
   background: color-mix(in srgb, var(--level-color) 14%, transparent);
   color: var(--level-color);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border: 1px solid color-mix(in srgb, var(--level-color) 30%, transparent);
+  transition: transform var(--motion-base) var(--ease-out);
+}
+
+.fc__level-card:hover .fc__level-icon {
+  transform: scale(1.06) rotate(-4deg);
 }
 
 .fc__level-body {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-width: 0;
 }
 
 .fc__level-head {
@@ -2566,7 +2644,7 @@ onUnmounted(() => {
 
 .fc__level-name {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -2577,9 +2655,9 @@ onUnmounted(() => {
   font-family: var(--font-nav);
   font-size: 11px;
   font-weight: 700;
-  color: var(--text-muted);
-  background: var(--surface-sunken);
-  padding: 3px 8px;
+  color: var(--level-color);
+  background: color-mix(in srgb, var(--level-color) 12%, transparent);
+  padding: 3px 10px;
   border-radius: 999px;
   white-space: nowrap;
 }
@@ -2591,14 +2669,37 @@ onUnmounted(() => {
   line-height: 1.5;
 }
 
+.fc__level-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.fc__level-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--level-color) 14%, transparent);
+  color: var(--level-color);
+}
+
 .fc__level-cta {
   margin-top: 6px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-family: var(--font-nav);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--level-color);
 }
 
@@ -2664,6 +2765,20 @@ onUnmounted(() => {
   text-transform: uppercase;
   color: var(--text-muted);
   align-self: flex-start;
+}
+
+.fc__level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: 1px solid;
 }
 
 .fc__adaptive-foot {
@@ -3472,6 +3587,12 @@ onUnmounted(() => {
   gap: 10px;
 }
 
+@media (max-width: 720px) {
+  .fc__stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .fc__stat {
   display: flex;
   align-items: center;
@@ -3628,9 +3749,6 @@ onUnmounted(() => {
   .fc__back-fr strong,
   .fc__back-pt span:last-child {
     font-size: 18px;
-  }
-  .fc__stats {
-    grid-template-columns: repeat(2, 1fr);
   }
   .fc__progress-card {
     flex: 1;

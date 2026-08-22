@@ -5,7 +5,7 @@ namespace FrenchSucco.Api.Services;
 
 public interface IMiniMaxService
 {
-    Task<string> CompleteChatAsync(string systemPrompt, string userPrompt, CancellationToken ct = default);
+    Task<string> CompleteChatAsync(string systemPrompt, string userPrompt, CancellationToken ct = default, bool jsonMode = false, int? maxTokens = null);
     Task<byte[]> SynthesizeSpeechAsync(string text, string voice, double speed, string region, CancellationToken ct = default);
     Task<string> DetectLanguageAsync(string text, CancellationToken ct = default);
 }
@@ -40,17 +40,21 @@ public class MiniMaxService : IMiniMaxService
     private MiniMaxOptions Options =>
         _config.GetSection("MiniMax").Get<MiniMaxOptions>() ?? new MiniMaxOptions();
 
-    public async Task<string> CompleteChatAsync(string systemPrompt, string userPrompt, CancellationToken ct = default)
+    public async Task<string> CompleteChatAsync(string systemPrompt, string userPrompt, CancellationToken ct = default, bool jsonMode = false, int? maxTokens = null)
     {
+        var messages = new object[]
+        {
+            new { role = "system", content = systemPrompt },
+            new { role = "user", content = userPrompt }
+        };
+
         var body = new
         {
             model = Options.TextModel,
-            messages = new[]
-            {
-                new { role = "system", content = systemPrompt },
-                new { role = "user", content = userPrompt }
-            },
-            temperature = 0.3
+            messages,
+            temperature = jsonMode ? 0.2 : 0.3,
+            top_p = 0.9,
+            max_tokens = maxTokens ?? (jsonMode ? 400 : 500)
         };
 
         var content = new StringContent(JsonSerializer.Serialize(body), System.Text.Encoding.UTF8, "application/json");

@@ -20,7 +20,7 @@ public class GrammarService : IGrammarService
 
     public async Task<GrammarResponse> CorrectAsync(string text, string region, CancellationToken ct = default)
     {
-        var system = @"Você é um corretor gramatical nativo de francês. Recebe uma frase em francês e devolve o JSON:
+        var system = @"Você é um corretor gramatical nativo de francês. Recebe uma frase em francês e devolve SOMENTE o JSON:
 {
   ""corrected"": ""<frase 100% correta em francês>"",
   ""phonetic"": ""<transcrição fonética simplificada em PT-BR>"",
@@ -29,9 +29,9 @@ public class GrammarService : IGrammarService
   ],
   ""culturalTip"": ""<curta dica cultural em português opcional>""
 }
-Se a frase já estiver correta, devolva ""corrections"": [].";
+Se a frase já estiver correta, devolva ""corrections"": []. Sem markdown.";
 
-        var json = await _miniMax.CompleteChatAsync(system, $"Frase: {text}", ct);
+        var json = await _miniMax.CompleteChatAsync(system, $"Frase: {text}", ct, jsonMode: true, maxTokens: 400);
 
         if (string.IsNullOrWhiteSpace(json))
             throw new InvalidOperationException("Resposta vazia do corretor gramatical.");
