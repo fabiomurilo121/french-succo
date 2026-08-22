@@ -48,6 +48,16 @@ const routes = [
     component: () => import('@/pages/PlaquesPage.vue')
   },
   {
+    path: '/ditado',
+    name: 'ditado',
+    component: () => import('@/pages/DitadoPage.vue')
+  },
+  {
+    path: '/redacao',
+    name: 'redacao',
+    component: () => import('@/pages/RedacaoPage.vue')
+  },
+  {
     path: '/detalhes',
     name: 'detalhes',
     component: () => import('@/pages/DetalhesPage.vue')

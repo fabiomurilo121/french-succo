@@ -113,6 +113,20 @@ export const api = {
   getAudioUrl(text, voice, speed, region = 'fr') {
     const params = new URLSearchParams({ text, voice, speed, region })
     return `${BASE_URL}/audio?${params.toString()}`
+  },
+
+  async gradeWriting(payload) {
+    return request('/writing/grade', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
+  },
+
+  async generateWritingWords(payload) {
+    return request('/writing/words', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
   }
 }
 

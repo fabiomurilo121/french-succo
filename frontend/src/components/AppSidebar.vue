@@ -20,6 +20,8 @@ const navItems = [
   { name: 'Adivinhar Áudio', to: '/adivinhar', icon: 'headphones' },
   { name: 'Conversar', to: '/conversa', icon: 'chat' },
   { name: 'Placas de Rua', to: '/placas', icon: 'map' },
+  { name: 'Ditado', to: '/ditado', icon: 'ear' },
+  { name: 'Redação', to: '/redacao', icon: 'pencilSquare' },
   { name: 'Detalhes', to: '/detalhes', icon: 'chartBar' },
   { name: 'Configurações', to: '/configuracoes', icon: 'settings' }
 ]

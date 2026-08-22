@@ -24,6 +24,7 @@ builder.Services.AddScoped<IPhoneticService, PhoneticService>();
 builder.Services.AddScoped<ITtsService, TtsService>();
 builder.Services.AddScoped<IStatsService, StatsService>();
 builder.Services.AddScoped<IConversationService, ConversationService>();
+builder.Services.AddScoped<IWritingService, WritingService>();
 
 builder.Services.AddCors(opt =>
 {

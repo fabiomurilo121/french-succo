@@ -187,3 +187,46 @@ public record ConversationReplyResponse(
     string? CulturalTip,
     List<ConversationSuggestionDto> SuggestedReplies
 );
+
+// ─── Writing (Redação) ─────────────────────────────────
+public record WritingGradeRequest(
+    string[] Words,
+    string Text,
+    string Level,
+    string? Mode = "free"
+);
+
+public record WritingWord(
+    string Fr,
+    string Pt,
+    string Phonetic
+);
+
+public record WritingWordsRequest(
+    string Level,
+    string? Topic = null,
+    int? Count = 18
+);
+
+public record WritingWordsResponse(
+    string Level,
+    string Topic,
+    List<WritingWord> Words
+);
+
+public record WritingGrammarError(
+    string From,
+    string To,
+    string Reason
+);
+
+public record WritingGradeResponse(
+    int Score,
+    int WordsUsed,
+    int WordsTotal,
+    List<string> WordsMissed,
+    List<string> WordsUsedList,
+    List<WritingGrammarError> GrammarErrors,
+    string Feedback,
+    string Suggestion
+);
