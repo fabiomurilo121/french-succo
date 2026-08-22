@@ -53,6 +53,11 @@ const routes = [
     component: () => import('@/pages/DitadoPage.vue')
   },
   {
+    path: '/gramatica',
+    name: 'gramatica',
+    component: () => import('@/pages/GramaticaPage.vue')
+  },
+  {
     path: '/redacao',
     name: 'redacao',
     component: () => import('@/pages/RedacaoPage.vue')

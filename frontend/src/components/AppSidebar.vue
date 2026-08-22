@@ -22,6 +22,7 @@ const navItems = [
   { name: 'Placas de Rua', to: '/placas', icon: 'map' },
   { name: 'Ditado', to: '/ditado', icon: 'ear' },
   { name: 'Redação', to: '/redacao', icon: 'pencilSquare' },
+  { name: 'Gramática', to: '/gramatica', icon: 'bookOpen' },
   { name: 'Detalhes', to: '/detalhes', icon: 'chartBar' },
   { name: 'Configurações', to: '/configuracoes', icon: 'settings' }
 ]

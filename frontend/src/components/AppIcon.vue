@@ -21,6 +21,7 @@ const icons = {
   calendar: 'M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM16 2v4M8 2v4M3 10h18',
   filter: 'M3 5h18l-7 8v6l-4-2v-4z',
   book: 'M4 4a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2zM6 4v16',
+  bookOpen: 'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z',
   list: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
   search: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3',
   bookmark: 'M6 3a2 2 0 0 0-2 2v17l7-4 7 4V5a2 2 0 0 0-2-2z',
