@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
+import { api } from '@/services/api'
 
 const STORAGE_KEY = 'french-succo:settings'
 
@@ -14,7 +15,10 @@ const defaults = {
   dailyReminder: true,
   reminderTime: '20:00',
   hideExplanations: false,
-  heroDismissed: false
+  heroDismissed: false,
+  validateWithDictionary: true,
+  validateWithLevenshtein: true,
+  validateWithAi: false
 }
 
 function detectSystemTheme() {
@@ -40,6 +44,9 @@ export const useSettingsStore = defineStore('settings', () => {
   const reminderTime = ref('20:00')
   const hideExplanations = ref(false)
   const heroDismissed = ref(false)
+  const validateWithDictionary = ref(true)
+  const validateWithLevenshtein = ref(true)
+  const validateWithAi = ref(false)
 
   const systemPrefersDark = ref(detectSystemTheme())
 
@@ -66,9 +73,60 @@ export const useSettingsStore = defineStore('settings', () => {
       reminderTime.value = data.reminderTime ?? defaults.reminderTime
       hideExplanations.value = data.hideExplanations ?? defaults.hideExplanations
       heroDismissed.value = data.heroDismissed ?? defaults.heroDismissed
+      validateWithDictionary.value = data.validateWithDictionary ?? defaults.validateWithDictionary
+      validateWithLevenshtein.value = data.validateWithLevenshtein ?? defaults.validateWithLevenshtein
+      validateWithAi.value = data.validateWithAi ?? defaults.validateWithAi
       applyTheme(theme.value)
     } catch (e) {
       console.warn('Failed to load settings', e)
+    }
+  }
+
+  async function loadFromBackend() {
+    try {
+      const remote = await api.getSettings()
+      if (!remote) return
+      voice.value = remote.voice ?? voice.value
+      speed.value = remote.speed ?? speed.value
+      region.value = remote.region ?? region.value
+      autoPlay.value = remote.autoPlay ?? autoPlay.value
+      showPhonetic.value = remote.showPhonetic ?? showPhonetic.value
+      highlightVerbs.value = remote.highlightVerbs ?? highlightVerbs.value
+      dailyReminder.value = remote.dailyReminder ?? dailyReminder.value
+      reminderTime.value = remote.reminderTime ?? reminderTime.value
+      hideExplanations.value = remote.hideExplanations ?? hideExplanations.value
+      if (typeof remote.validateWithDictionary === 'boolean') {
+        validateWithDictionary.value = remote.validateWithDictionary
+      }
+      if (typeof remote.validateWithLevenshtein === 'boolean') {
+        validateWithLevenshtein.value = remote.validateWithLevenshtein
+      }
+      if (typeof remote.validateWithAi === 'boolean') {
+        validateWithAi.value = remote.validateWithAi
+      }
+    } catch (e) {
+      console.warn('Failed to load settings from backend', e)
+    }
+  }
+
+  async function pushToBackend() {
+    try {
+      await api.updateSettings({
+        voice: voice.value,
+        speed: speed.value,
+        region: region.value,
+        autoPlay: autoPlay.value,
+        showPhonetic: showPhonetic.value,
+        highlightVerbs: highlightVerbs.value,
+        dailyReminder: dailyReminder.value,
+        reminderTime: reminderTime.value,
+        hideExplanations: hideExplanations.value,
+        validateWithDictionary: validateWithDictionary.value,
+        validateWithLevenshtein: validateWithLevenshtein.value,
+        validateWithAi: validateWithAi.value
+      })
+    } catch (e) {
+      console.warn('Failed to push settings to backend', e)
     }
   }
 
@@ -84,7 +142,10 @@ export const useSettingsStore = defineStore('settings', () => {
       dailyReminder: dailyReminder.value,
       reminderTime: reminderTime.value,
       hideExplanations: hideExplanations.value,
-      heroDismissed: heroDismissed.value
+      heroDismissed: heroDismissed.value,
+      validateWithDictionary: validateWithDictionary.value,
+      validateWithLevenshtein: validateWithLevenshtein.value,
+      validateWithAi: validateWithAi.value
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   }
@@ -101,6 +162,9 @@ export const useSettingsStore = defineStore('settings', () => {
     reminderTime.value = defaults.reminderTime
     hideExplanations.value = defaults.hideExplanations
     heroDismissed.value = defaults.heroDismissed
+    validateWithDictionary.value = defaults.validateWithDictionary
+    validateWithLevenshtein.value = defaults.validateWithLevenshtein
+    validateWithAi.value = defaults.validateWithAi
     persist()
     applyTheme(theme.value)
   }
@@ -134,7 +198,8 @@ export const useSettingsStore = defineStore('settings', () => {
   watch(theme, () => applyTheme(theme.value))
   watch(
     [autoPlay, showPhonetic, highlightVerbs, dailyReminder, reminderTime,
-      hideExplanations, voice, speed, region, heroDismissed],
+      hideExplanations, voice, speed, region, heroDismissed,
+      validateWithDictionary, validateWithLevenshtein, validateWithAi],
     () => persist(),
     { deep: true }
   )
@@ -154,10 +219,15 @@ export const useSettingsStore = defineStore('settings', () => {
     reminderTime,
     hideExplanations,
     heroDismissed,
+    validateWithDictionary,
+    validateWithLevenshtein,
+    validateWithAi,
     systemPrefersDark,
     resolvedTheme,
     voiceLabel,
     load,
+    loadFromBackend,
+    pushToBackend,
     persist,
     restoreDefaults,
     setTheme,

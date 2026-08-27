@@ -138,6 +138,7 @@ const rootRef = ref(null)
 
 onMounted(() => {
   settings.load()
+  settings.loadFromBackend()
   cleanupWatcher = settings.watchSystemTheme()
   document.addEventListener('click', onDocClick)
   document.addEventListener('keydown', onDocKey)

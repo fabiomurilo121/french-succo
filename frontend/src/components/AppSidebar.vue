@@ -23,6 +23,7 @@ const navItems = [
   { name: 'Ditado', to: '/ditado', icon: 'ear' },
   { name: 'Redação', to: '/redacao', icon: 'pencilSquare' },
   { name: 'Gramática', to: '/gramatica', icon: 'bookOpen' },
+  { name: 'Vocabulário', to: '/vocabulario', icon: 'sparkles' },
   { name: 'Detalhes', to: '/detalhes', icon: 'chartBar' },
   { name: 'Configurações', to: '/configuracoes', icon: 'settings' }
 ]

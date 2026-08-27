@@ -127,6 +127,40 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload)
     })
+  },
+
+  async getLearnedWords(params = {}) {
+    const qs = new URLSearchParams(params).toString()
+    return request(`/learned-words${qs ? `?${qs}` : ''}`)
+  },
+
+  async addLearnedWord(payload) {
+    return request('/learned-words', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
+  },
+
+  async checkLearnedWord(word) {
+    return request(`/learned-words/check?word=${encodeURIComponent(word)}`)
+  },
+
+  async markLearnedWordReviewed(id) {
+    return request(`/learned-words/${id}/review`, {
+      method: 'PATCH'
+    })
+  },
+
+  async deleteLearnedWord(id) {
+    return request(`/learned-words/${id}`, { method: 'DELETE' })
+  },
+
+  async clearLearnedWords() {
+    return request('/learned-words', { method: 'DELETE' })
+  },
+
+  async getLearnedWordCategories() {
+    return request('/learned-words/categories')
   }
 }
 

@@ -16,6 +16,7 @@ const regions = ['França (Padrão)', 'Québec', 'Bélgica']
 const sections = [
   { id: 'audio',     label: 'Áudio',                icon: 'volume'  },
   { id: 'interface', label: 'Interface & Estudo',   icon: 'zap'     },
+  { id: 'vocab',     label: 'Validação',            icon: 'check'   },
   { id: 'notify',    label: 'Notificações',         icon: 'bell'    },
   { id: 'account',   label: 'Conta & Segurança',    icon: 'user'    },
   { id: 'data',      label: 'Banco de Dados',       icon: 'layers'  }
@@ -28,6 +29,7 @@ const original = ref(null)
 
 onMounted(() => {
   settings.load()
+  settings.loadFromBackend()
   snapshot()
   setTimeout(() => (hasChanges.value = false), 0)
   loadDatabaseStats()
@@ -42,6 +44,7 @@ watch(
   () => {
     if (!original.value) return
     hasChanges.value = JSON.stringify(settings.$state) !== JSON.stringify(original.value)
+    settings.pushToBackend()
   },
   { deep: true }
 )
@@ -280,6 +283,67 @@ function formatNumber(n) {
           </div>
           <label class="switch" :class="{ 'is-on': settings.hideExplanations }">
             <input type="checkbox" v-model="settings.hideExplanations" />
+            <span class="switch__track"><span class="switch__thumb"></span></span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Validação de Vocabulário -->
+    <section id="cs-vocab" class="cs__section">
+      <header class="cs__section-head">
+        <div class="cs__section-icon cs__section-icon--blue">
+          <AppIcon name="check" :size="20" />
+        </div>
+        <div>
+          <h2>Validação de Vocabulário</h2>
+          <p>Ferramentas para evitar palavras duplicadas ou escritas errado ao adicionar vocabulário aprendido.</p>
+        </div>
+      </header>
+
+      <div class="cs__card">
+        <div class="cs__toggle-row">
+          <div>
+            <strong>Comparar com dicionário</strong>
+            <small>
+              Verifica se a palavra está presente no dicionário de francês conhecido (~7000+ palavras).
+              Quando ativa, o sistema marca palavras que existem nesse dicionário para te ajudar.
+            </small>
+          </div>
+          <label class="switch" :class="{ 'is-on': settings.validateWithDictionary }">
+            <input type="checkbox" v-model="settings.validateWithDictionary" />
+            <span class="switch__track"><span class="switch__thumb"></span></span>
+          </label>
+        </div>
+
+        <hr class="cs__divider" />
+
+        <div class="cs__toggle-row">
+          <div>
+            <strong>Detectar palavras parecidas (Levenshtein)</strong>
+            <small>
+              Se você digitar algo como "bonjourr" ou "bonjourrr", o sistema sugere a forma correta
+              com base nas palavras já salvas no seu vocabulário.
+            </small>
+          </div>
+          <label class="switch" :class="{ 'is-on': settings.validateWithLevenshtein }">
+            <input type="checkbox" v-model="settings.validateWithLevenshtein" />
+            <span class="switch__track"><span class="switch__thumb"></span></span>
+          </label>
+        </div>
+
+        <hr class="cs__divider" />
+
+        <div class="cs__toggle-row">
+          <div>
+            <strong>Validação por IA (MiniMax)</strong>
+            <small>
+              Pede para a IA validar se a palavra parece uma palavra/expressão francesa válida.
+              Mais lento (chamada extra à API) e pode consumir mais tokens. Recomendado apenas para casos duvidosos.
+            </small>
+          </div>
+          <label class="switch" :class="{ 'is-on': settings.validateWithAi }">
+            <input type="checkbox" v-model="settings.validateWithAi" />
             <span class="switch__track"><span class="switch__thumb"></span></span>
           </label>
         </div>

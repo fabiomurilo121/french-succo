@@ -36,6 +36,9 @@ public class UserSettings
     public bool DailyReminder { get; set; } = true;
     public string ReminderTime { get; set; } = "20:00";
     public bool HideExplanations { get; set; }
+    public bool ValidateWithDictionary { get; set; } = true;
+    public bool ValidateWithLevenshtein { get; set; } = true;
+    public bool ValidateWithAi { get; set; }
 }
 
 public class Story
@@ -93,4 +96,20 @@ public class AudioCacheEntry
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime LastUsedAt { get; set; } = DateTime.UtcNow;
     public int UseCount { get; set; } = 1;
+}
+
+public class LearnedWord
+{
+    public long Id { get; set; }
+    public string UserId { get; set; } = "default";
+    public string Word { get; set; } = string.Empty;
+    public string WordNormalized { get; set; } = string.Empty;
+    public string Translation { get; set; } = string.Empty;
+    public string? Phonetic { get; set; }
+    public string? Category { get; set; }
+    public string? Notes { get; set; }
+    public string? Context { get; set; }
+    public int ReviewCount { get; set; }
+    public DateTime? LastReviewedAt { get; set; }
+    public DateTime LearnedAt { get; set; } = DateTime.UtcNow;
 }

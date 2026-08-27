@@ -58,6 +58,11 @@ const routes = [
     component: () => import('@/pages/GramaticaPage.vue')
   },
   {
+    path: '/vocabulario',
+    name: 'vocabulario',
+    component: () => import('@/pages/VocabularioPage.vue')
+  },
+  {
     path: '/redacao',
     name: 'redacao',
     component: () => import('@/pages/RedacaoPage.vue')

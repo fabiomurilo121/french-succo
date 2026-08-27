@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<StoryVocabulary> StoryVocabulary => Set<StoryVocabulary>();
     public DbSet<WordDictionary> Words => Set<WordDictionary>();
     public DbSet<AudioCacheEntry> AudioCache => Set<AudioCacheEntry>();
+    public DbSet<LearnedWord> LearnedWords => Set<LearnedWord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -62,6 +63,9 @@ public class AppDbContext : DbContext
             entity.Property(e => e.DailyReminder).HasColumnName("daily_reminder");
             entity.Property(e => e.ReminderTime).HasColumnName("reminder_time").HasMaxLength(10);
             entity.Property(e => e.HideExplanations).HasColumnName("hide_explanations");
+            entity.Property(e => e.ValidateWithDictionary).HasColumnName("validate_with_dictionary");
+            entity.Property(e => e.ValidateWithLevenshtein).HasColumnName("validate_with_levenshtein");
+            entity.Property(e => e.ValidateWithAi).HasColumnName("validate_with_ai");
         });
 
         modelBuilder.Entity<Story>(entity =>
@@ -142,6 +146,27 @@ public class AppDbContext : DbContext
             entity.Property(e => e.UseCount).HasColumnName("use_count");
             entity.HasIndex(e => e.Hash).IsUnique();
             entity.HasIndex(e => e.LastUsedAt);
+        });
+
+        modelBuilder.Entity<LearnedWord>(entity =>
+        {
+            entity.ToTable("learned_words");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.UserId).HasColumnName("user_id").HasMaxLength(64).IsRequired();
+            entity.Property(e => e.Word).HasColumnName("word").HasMaxLength(120).IsRequired();
+            entity.Property(e => e.WordNormalized).HasColumnName("word_normalized").HasMaxLength(120).IsRequired();
+            entity.Property(e => e.Translation).HasColumnName("translation").HasMaxLength(400).IsRequired();
+            entity.Property(e => e.Phonetic).HasColumnName("phonetic").HasMaxLength(200);
+            entity.Property(e => e.Category).HasColumnName("category").HasMaxLength(40);
+            entity.Property(e => e.Notes).HasColumnName("notes").HasMaxLength(1000);
+            entity.Property(e => e.Context).HasColumnName("context").HasMaxLength(400);
+            entity.Property(e => e.ReviewCount).HasColumnName("review_count");
+            entity.Property(e => e.LastReviewedAt).HasColumnName("last_reviewed_at");
+            entity.Property(e => e.LearnedAt).HasColumnName("learned_at");
+            entity.HasIndex(e => new { e.UserId, e.WordNormalized }).IsUnique();
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.Category);
         });
     }
 }

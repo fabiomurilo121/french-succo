@@ -185,6 +185,9 @@ public class SettingsController : ControllerBase
         settings.DailyReminder = dto.DailyReminder;
         settings.ReminderTime = dto.ReminderTime;
         settings.HideExplanations = dto.HideExplanations;
+        settings.ValidateWithDictionary = dto.ValidateWithDictionary;
+        settings.ValidateWithLevenshtein = dto.ValidateWithLevenshtein;
+        settings.ValidateWithAi = dto.ValidateWithAi;
 
         await _db.SaveChangesAsync(ct);
         return Ok(MapToDto(settings));
@@ -192,7 +195,8 @@ public class SettingsController : ControllerBase
 
     private static SettingsDto MapToDto(UserSettings s) => new(
         s.Voice, s.Speed, s.Region, s.AutoPlay, s.ShowPhonetic,
-        s.HighlightVerbs, s.DailyReminder, s.ReminderTime, s.HideExplanations);
+        s.HighlightVerbs, s.DailyReminder, s.ReminderTime, s.HideExplanations,
+        s.ValidateWithDictionary, s.ValidateWithLevenshtein, s.ValidateWithAi);
 }
 
 [ApiController]

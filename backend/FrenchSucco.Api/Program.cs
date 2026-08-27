@@ -25,6 +25,7 @@ builder.Services.AddScoped<ITtsService, TtsService>();
 builder.Services.AddScoped<IStatsService, StatsService>();
 builder.Services.AddScoped<IConversationService, ConversationService>();
 builder.Services.AddScoped<IWritingService, WritingService>();
+builder.Services.AddScoped<ILearnedWordsValidationService, LearnedWordsValidationService>();
 
 builder.Services.AddCors(opt =>
 {
@@ -47,6 +48,8 @@ using (var scope = app.Services.CreateScope())
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     db.Database.EnsureCreated();
     await EnsureAudioCacheTable(db, logger);
+    await EnsureUserSettingsColumns(db, logger);
+    await EnsureLearnedWordsTable(db, logger);
     await DataSeeder.SeedAsync(db, logger);
 }
 
@@ -75,6 +78,58 @@ static async Task EnsureAudioCacheTable(AppDbContext db, ILogger logger)
     catch (Exception ex)
     {
         logger.LogError(ex, "Failed to ensure audio_cache table");
+    }
+}
+
+static async Task EnsureUserSettingsColumns(AppDbContext db, ILogger logger)
+{
+    try
+    {
+        await db.Database.ExecuteSqlRawAsync(@"
+            ALTER TABLE user_settings
+                ADD COLUMN IF NOT EXISTS validate_with_dictionary BOOLEAN NOT NULL DEFAULT TRUE,
+                ADD COLUMN IF NOT EXISTS validate_with_levenshtein BOOLEAN NOT NULL DEFAULT TRUE,
+                ADD COLUMN IF NOT EXISTS validate_with_ai BOOLEAN NOT NULL DEFAULT FALSE;
+        ");
+        logger.LogInformation("user_settings validation columns ready.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Failed to ensure user_settings validation columns");
+    }
+}
+
+static async Task EnsureLearnedWordsTable(AppDbContext db, ILogger logger)
+{
+    try
+    {
+        await db.Database.ExecuteSqlRawAsync(@"
+            CREATE TABLE IF NOT EXISTS learned_words (
+                id BIGSERIAL PRIMARY KEY,
+                user_id VARCHAR(64) NOT NULL,
+                word VARCHAR(120) NOT NULL,
+                word_normalized VARCHAR(120) NOT NULL,
+                translation VARCHAR(400) NOT NULL,
+                phonetic VARCHAR(200),
+                category VARCHAR(40),
+                notes VARCHAR(1000),
+                context VARCHAR(400),
+                review_count INTEGER NOT NULL DEFAULT 0,
+                last_reviewed_at TIMESTAMP WITH TIME ZONE,
+                learned_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS ix_learned_words_user_word
+                ON learned_words (user_id, word_normalized);
+            CREATE INDEX IF NOT EXISTS ix_learned_words_user_id
+                ON learned_words (user_id);
+            CREATE INDEX IF NOT EXISTS ix_learned_words_category
+                ON learned_words (category);
+        ");
+        logger.LogInformation("learned_words table ready.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Failed to ensure learned_words table");
     }
 }
 

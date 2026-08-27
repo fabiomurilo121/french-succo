@@ -68,7 +68,10 @@ public record SettingsDto(
     bool HighlightVerbs,
     bool DailyReminder,
     string ReminderTime,
-    bool HideExplanations
+    bool HideExplanations,
+    bool ValidateWithDictionary,
+    bool ValidateWithLevenshtein,
+    bool ValidateWithAi
 );
 
 public record StatsDto(
@@ -229,4 +232,51 @@ public record WritingGradeResponse(
     List<WritingGrammarError> GrammarErrors,
     string Feedback,
     string Suggestion
+);
+
+// ─── Learned Words (Vocabulário aprendido) ─────────
+public record LearnedWordDto(
+    long Id,
+    string Word,
+    string Translation,
+    string? Phonetic,
+    string? Category,
+    string? Notes,
+    string? Context,
+    int ReviewCount,
+    DateTime? LastReviewedAt,
+    DateTime LearnedAt
+);
+
+public record CreateLearnedWordRequest(
+    string Word,
+    string Translation,
+    string? Phonetic,
+    string? Category,
+    string? Notes,
+    string? Context
+);
+
+public record LearnedWordSuggestionDto(
+    long Id,
+    string Word,
+    string Translation,
+    int Distance,
+    string Reason
+);
+
+public record LearnedWordValidationDto(
+    bool IsValid,
+    string? Reason,
+    bool IsDuplicate,
+    long? DuplicateId,
+    List<LearnedWordSuggestionDto> Suggestions
+);
+
+public record LearnedWordCheckResponse(
+    string Word,
+    string WordNormalized,
+    LearnedWordValidationDto Validation,
+    bool InDictionary,
+    bool InLearnedList
 );
