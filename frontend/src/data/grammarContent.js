@@ -989,6 +989,96 @@ export const LEVEL_META = {
             ]
           }
         ]
+      },
+      {
+        id: 'a2-pronoms-possessifs',
+        title: 'Pronomes possessivos (le mien, le tien...)',
+        summary: 'Substituem um sintagma "adjetivo possessivo + nome" para evitar repetição. Concordam em gênero e número com a coisa possuída.',
+        rules: [
+          {
+            label: 'Tabela completa com pronúncia (IPA)',
+            explanation: 'Concordam em gênero e número com a COISA possuída. O circunflexo (ê) garante a vogal aberta [ɛ]. Cuidado com "leur": singular (pronome) ≠ deles (adjetivo).',
+            examples: [
+              { fr: 'le mien',     ipa: '[lə mjɛ̃]',  pt: 'o meu (masc. sing.)' },
+              { fr: 'la mienne',   ipa: '[la mjɛn]',  pt: 'a minha (fem. sing.)' },
+              { fr: 'les miens',   ipa: '[le mjɛ̃]',  pt: 'os meus (masc. pl.)' },
+              { fr: 'les miennes', ipa: '[le mjɛn]',  pt: 'as minhas (fem. pl.)' },
+              { fr: 'le tien',     ipa: '[lə tjɛ̃]',  pt: 'o teu (masc. sing.)' },
+              { fr: 'la tienne',   ipa: '[la tjɛn]',  pt: 'a tua (fem. sing.)' },
+              { fr: 'les tiens',   ipa: '[le tjɛ̃]',  pt: 'os teus (masc. pl.)' },
+              { fr: 'les tiennes', ipa: '[le tjɛn]',  pt: 'as tuas (fem. pl.)' },
+              { fr: 'le sien',     ipa: '[lə sjɛ̃]',  pt: 'o dele / o dela (masc. sing.)' },
+              { fr: 'la sienne',   ipa: '[la sjɛn]',  pt: 'a dele / a dela (fem. sing.)' },
+              { fr: 'les siens',   ipa: '[le sjɛ̃]',  pt: 'os dele / os dela (masc. pl.)' },
+              { fr: 'les siennes', ipa: '[le sjɛn]',  pt: 'as dele / as dela (fem. pl.)' },
+              { fr: 'le nôtre',    ipa: '[lə notʁ]', pt: 'o nosso (masc. sing.)' },
+              { fr: 'la nôtre',    ipa: '[la notʁ]', pt: 'a nossa (fem. sing.)' },
+              { fr: 'les nôtres',  ipa: '[le notʁ]', pt: 'os nossos / as nossas' },
+              { fr: 'le vôtre',    ipa: '[lə votʁ]', pt: 'o seu de vocês (masc. sing.)' },
+              { fr: 'la vôtre',    ipa: '[la votʁ]', pt: 'a sua de vocês (fem. sing.)' },
+              { fr: 'les vôtres',  ipa: '[le votʁ]', pt: 'os seus / as suas de vocês' },
+              { fr: 'le leur',     ipa: '[lə lœʁ]', pt: 'o dele / o dela (masc. sing.) — pronome' },
+              { fr: 'la leur',     ipa: '[la lœʁ]', pt: 'a dele / a dela (fem. sing.) — pronome' },
+              { fr: 'les leurs',   ipa: '[le lœʁ]', pt: 'os deles / as delas — pronome plural' }
+            ]
+          },
+          {
+            label: 'Quando usar',
+            explanation: 'Substituem um sintagma "adjetivo possessivo + nome" para evitar repetição, ou quando o nome já foi mencionado.',
+            examples: [
+              { fr: "C'est mon livre, et c'est le tien. (É meu livro, e é o teu.)" },
+              { fr: 'Notre maison est plus grande que la vôtre. (Nossa casa é maior que a de vocês.)' },
+              { fr: 'Mes parents et les siens. (Meus pais e os dele / dela.)' },
+              { fr: 'Ses idées sont meilleures que les nôtres. (As ideias dele/dela são melhores que as nossas.)' }
+            ]
+          },
+          {
+            label: 'Pronome vs adjetivo possessivo',
+            explanation: 'Adjetivo possessivo (mon, ton, son...) ACOMPANHA o nome. Pronome possessivo (le mien) SUBSTITUI o sintagma "adj + nome".',
+            examples: [
+              { fr: "Voici mon stylo. (Aqui está minha caneta.) — adjetivo" },
+              { fr: 'Le mien est sur la table. (A minha [caneta] está na mesa.) — pronome' },
+              { fr: "Tu aimes tes chaussures. (Você gosta das tuas calças.) — adjetivo" },
+              { fr: "Je préfère les tiennes. (Prefiro as tuas.) — pronome" }
+            ]
+          },
+          {
+            label: 'Com a preposição "à"',
+            explanation: 'Forma muito comum no francês falado para dizer "este livro é meu / teu / dele".',
+            examples: [
+              { fr: 'Ce livre est à moi. (Este livro é meu.)' },
+              { fr: "C'est à toi ? (É teu?)" },
+              { fr: "Ce n'est pas à moi, c'est à lui. (Não é meu, é dele.)" },
+              { fr: 'Une amie à moi. (Uma amiga minha.)' }
+            ]
+          },
+          {
+            label: 'Atenção: "leur" pronome (singular) × "leur" adjetivo (plural)',
+            explanation: 'O pronome "le leur" está no singular mesmo quando se refere a várias coisas — a concordância é com o nome SUBSTITUÍDO, não com o número de donos.',
+            examples: [
+              { fr: "C'est leur livre. (É o livro deles.) — adjetivo, plural" },
+              { fr: 'C\'est le leur. (É o deles.) — pronome, masc. sing.' },
+              { fr: 'Ce sont leurs affaires. (São os assuntos deles.) — adjetivo' },
+              { fr: 'Ce sont les leurs. (São os deles.) — pronome plural' }
+            ]
+          },
+          {
+            label: 'Pratique — complete com o pronome correto',
+            explanation: 'Substitua o sintagma "adjetivo possessivo + nome" pelo pronome possessivo. Pense no GÊNERO e NÚMERO da coisa possuída (não do dono).',
+            examples: [
+              { fr: "C'est ma voiture, et c'est aussi la ___.",                         blank: 'tienne',  hint: 'tua (fem. sing., 2ª pes.)' },
+              { fr: "J'ai mon livre. Et toi, tu as le ___?",                              blank: 'tien',    hint: 'teu (masc. sing., 2ª pes.)' },
+              { fr: "Voici mon idée. Et ___ ?",                                          blank: 'la sienne', hint: 'a dele/dela (fem. sing., 3ª pes.)' },
+              { fr: "Nous avons nos enfants, et ils ont ___.",                            blank: 'les leurs', hint: 'os deles (masc. pl., 3ª pes. pl.)' },
+              { fr: "Ma maison est petite, mais ___ est grande.",                         blank: 'la nôtre', hint: 'a nossa (fem. sing., 1ª pes. pl.)' },
+              { fr: "Tes gâteaux sont bons, mais ___ sont meilleurs.",                    blank: 'les miens', hint: 'os meus (masc. pl., 1ª pes. sing.)' },
+              { fr: "Son sac est noir, et ___ est rouge.",                                blank: 'le sien',   hint: 'o dele/dela (masc. sing., 3ª pes.)' },
+              { fr: "Mes clés sont perdues. Et les ___ ?",                                blank: 'tiennes',   hint: 'as tuas (fem. pl., 2ª pes.)' },
+              { fr: "Ce livre est à ___ ?",                                               blank: 'toi',       hint: 'tu (forma com "à")' },
+              { fr: "C'est votre voiture ? Non, ce n'est pas la ___.",                    blank: 'nôtre',     hint: 'nossa (fem. sing., 1ª pes. pl.)' }
+            ]
+          }
+        ]
       }
     ]
   },
@@ -1156,66 +1246,7 @@ export const LEVEL_META = {
           }
         ]
       },
-      {
-        id: 'b1-pronoms-possessifs',
-        title: 'Pronomes possessivos (le mien, le tien...)',
-        summary: 'Substituem um sintagma "adjetivo possessivo + nome" para evitar repetição.',
-        rules: [
-          {
-            label: 'Tabela completa',
-            explanation: 'Concordam em gênero e número com a COISA possuída (igual aos adjetivos possessivos).',
-            examples: [
-              { fr: 'le mien / la mienne / les miens / les miennes (o meu / a minha / os meus / as minhas)' },
-              { fr: 'le tien / la tienne / les tiens / les tiennes (o teu / a tua / os teus / as tuas)' },
-              { fr: 'le sien / la sienne / les siens / les siennes (o dele / a dela / os dele / as dela)' },
-              { fr: 'le nôtre / la nôtre / les nôtres (o nosso / a nossa / os nossos / as nossas)' },
-              { fr: 'le vôtre / la vôtre / les vôtres (o seu de vocês / a sua de vocês / os seus / as suas)' },
-              { fr: 'le leur / la leur / les leurs (o dele / a dele / os dele / as dele)' }
-            ]
-          },
-          {
-            label: 'Quando usar (substitui "adjetivo possessivo + nome")',
-            explanation: 'Para evitar repetição ou quando o nome já foi mencionado.',
-            examples: [
-              { fr: "C'est mon livre, et c'est le tien. (É meu livro, e é o teu.)" },
-              { fr: 'Notre maison est plus grande que la vôtre. (Nossa casa é maior que a de vocês.)' },
-              { fr: 'Mes parents et les siens. (Meus pais e os dele / dela.)' },
-              { fr: 'Ses idées sont meilleures que les nôtres. (As ideias dele/dela são melhores que as nossas.)' }
-            ]
-          },
-          {
-            label: 'Diferença: pronome possessivo vs adjetivo possessivo',
-            explanation: 'Adjetivo possessivo (mon, ton, son...) acompanha o nome. Pronome possessivo (le mien) substitui o sintagma.',
-            examples: [
-              { fr: "Voici mon stylo. (Aqui está minha caneta.) — adjetivo" },
-              { fr: 'Le mien est sur la table. (A minha está na mesa.) — pronome' },
-              { fr: "Tu aimes tes chaussures. (Você gosta das suas calças.) — adjetivo" },
-              { fr: "Je préfère les tiennes. (Prefiro as tuas.) — pronome" }
-            ]
-          },
-          {
-            label: 'Com preposição "à"',
-            explanation: 'Comum em expressões do tipo "este livro é meu".',
-            examples: [
-              { fr: 'Ce livre est à moi. (Este livro é meu.)' },
-              { fr: 'C\'est à toi ? (É seu?)' },
-              { fr: "Ce n'est pas à moi, c'est à lui. (Não é meu, é dele.)" },
-              { fr: 'Une amie à moi. (Uma amiga minha.)' }
-            ]
-          },
-          {
-            label: 'Atenção ao gênero do "leur" (singular)',
-            explanation: 'Diferente do adjetivo possessivo leur (plural deles).',
-            examples: [
-              { fr: 'C\'est leur livre. (É o livro deles.) — adjetivo, plural' },
-              { fr: 'C\'est le leur. (É o deles.) — pronome, masculino singular' },
-              { fr: 'Ce sont leurs affaires. (São os assuntos deles.) — adjetivo' },
-              { fr: 'Ce sont les leurs. (São os deles.) — pronome plural' }
-            ]
-          }
-        ]
-      },
-      {
+{
         id: 'b1-disc-ind',
         title: 'Discurso indireto no presente',
         summary: 'Quando relatamos o que alguém disse.',

@@ -115,6 +115,94 @@ function scrollToTopic(id) {
   if (!expandedTopics.value.has(id)) toggleTopic(id)
 }
 
+/* ── Interactive exercises (fill-in-the-blank) ── */
+const exerciseAnswers = ref({}) // { [topicId]: { [ruleIdx-exIdx]: string } }
+const exerciseState = ref({})   // { [topicId]: { [ruleIdx-exIdx]: 'correct'|'wrong' } }
+const exerciseScore = ref({})   // { [topicId]: { correct, total } }
+
+function normalizeAnswer(s) {
+  return (s || '')
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // remove accents
+    .replace(/\s+/g, ' ')
+}
+
+function getAnswerKey(topicId, ruleIdx, exIdx) {
+  return `${topicId}::${ruleIdx}::${exIdx}`
+}
+
+function exerciseInputKey(topicId, ruleIdx, exIdx) {
+  return `${topicId}-${ruleIdx}-${exIdx}`
+}
+
+function getExerciseValue(topicId, ruleIdx, exIdx) {
+  const k = getAnswerKey(topicId, ruleIdx, exIdx)
+  return exerciseAnswers.value[k] || ''
+}
+
+function setExerciseValue(topicId, ruleIdx, exIdx, value) {
+  const k = getAnswerKey(topicId, ruleIdx, exIdx)
+  exerciseAnswers.value = { ...exerciseAnswers.value, [k]: value }
+}
+
+function checkExercise(topicId, ruleIdx, exIdx, expected) {
+  const k = getAnswerKey(topicId, ruleIdx, exIdx)
+  const user = normalizeAnswer(getExerciseValue(topicId, ruleIdx, exIdx))
+  const ok = user === normalizeAnswer(expected)
+  exerciseState.value = {
+    ...exerciseState.value,
+    [k]: ok ? 'correct' : 'wrong'
+  }
+  recomputeExerciseScore(topicId)
+}
+
+function revealExercise(topicId, ruleIdx, exIdx, expected) {
+  const k = getAnswerKey(topicId, ruleIdx, exIdx)
+  setExerciseValue(topicId, ruleIdx, exIdx, expected)
+  exerciseState.value = {
+    ...exerciseState.value,
+    [k]: 'revealed'
+  }
+  recomputeExerciseScore(topicId)
+}
+
+function resetExercise(topicId, ruleIdx, exIdx) {
+  const k = getAnswerKey(topicId, ruleIdx, exIdx)
+  setExerciseValue(topicId, ruleIdx, exIdx, '')
+  const next = { ...exerciseState.value }
+  delete next[k]
+  exerciseState.value = next
+  recomputeExerciseScore(topicId)
+}
+
+function getExerciseState(topicId, ruleIdx, exIdx) {
+  const k = getAnswerKey(topicId, ruleIdx, exIdx)
+  return exerciseState.value[k] || 'idle'
+}
+
+function recomputeExerciseScore(topicId) {
+  const topic = topics.value.find((t) => t.id === topicId)
+  if (!topic) return
+  let correct = 0
+  let total = 0
+  topic.rules.forEach((rule, ri) => {
+    if (!rule.examples) return
+    rule.examples.forEach((ex, ei) => {
+      if (!ex.blank) return
+      total++
+      const s = getExerciseState(topicId, ri, ei)
+      if (s === 'correct' || s === 'revealed') correct++
+    })
+  })
+  exerciseScore.value = {
+    ...exerciseScore.value,
+    [topicId]: { correct, total }
+  }
+}
+
 onMounted(() => {})
 </script>
 
@@ -300,16 +388,115 @@ onMounted(() => {})
                   v-for="(ex, ei) in rule.examples"
                   :key="`ex-${topic.id}-${ri}-${ei}`"
                   class="gr__example"
+                  :class="{ 'gr__example--blank': !!ex.blank }"
                 >
-                  <div class="gr__example-fr">
-                    <span class="gr__lang-tag">FR</span>
-                    <span>{{ ex.fr }}</span>
-                  </div>
-                  <div v-if="ex.pt" class="gr__example-pt">
-                    <AppIcon name="arrow" :size="11" />
-                    <span>{{ ex.pt }}</span>
-                  </div>
+                  <!-- Static example (read-only) -->
+                  <template v-if="!ex.blank">
+                    <div class="gr__example-fr">
+                      <span class="gr__lang-tag">FR</span>
+                      <span class="gr__example-fr-text">{{ ex.fr }}</span>
+                      <span v-if="ex.ipa" class="gr__example-ipa">{{ ex.ipa }}</span>
+                    </div>
+                    <div v-if="ex.pt" class="gr__example-pt">
+                      <AppIcon name="arrow" :size="11" />
+                      <span>{{ ex.pt }}</span>
+                    </div>
+                  </template>
+
+                  <!-- Interactive blank (fill-in-the-blank) -->
+                  <template v-else>
+                    <div class="gr__exercise">
+                      <div class="gr__exercise-head">
+                        <span class="gr__exercise-tag">PRÁTICA</span>
+                        <span v-if="ex.hint" class="gr__exercise-hint">
+                          <AppIcon name="sparkles" :size="11" />
+                          Dica: {{ ex.hint }}
+                        </span>
+                      </div>
+
+                      <div class="gr__exercise-fr">
+                        <span class="gr__lang-tag">FR</span>
+                        <span>{{ ex.fr }}</span>
+                      </div>
+
+                      <div class="gr__exercise-row">
+                        <input
+                          type="text"
+                          class="gr__exercise-input"
+                          :class="{
+                            'is-correct': getExerciseState(topic.id, ri, ei) === 'correct',
+                            'is-wrong':   getExerciseState(topic.id, ri, ei) === 'wrong',
+                            'is-revealed':getExerciseState(topic.id, ri, ei) === 'revealed'
+                          }"
+                          :value="getExerciseValue(topic.id, ri, ei)"
+                          @input="setExerciseValue(topic.id, ri, ei, $event.target.value)"
+                          @keydown.enter="checkExercise(topic.id, ri, ei, ex.blank)"
+                          :placeholder="'…'"
+                          autocomplete="off"
+                          spellcheck="false"
+                          :aria-label="'Resposta para ' + ex.fr"
+                        />
+                        <button
+                          type="button"
+                          class="gr__exercise-btn gr__exercise-btn--check"
+                          @click="checkExercise(topic.id, ri, ei, ex.blank)"
+                          :disabled="!getExerciseValue(topic.id, ri, ei).trim()"
+                        >
+                          Verificar
+                        </button>
+                        <button
+                          type="button"
+                          class="gr__exercise-btn gr__exercise-btn--reveal"
+                          @click="revealExercise(topic.id, ri, ei, ex.blank)"
+                          :title="'Mostrar resposta'"
+                          :aria-label="'Mostrar resposta'"
+                        >
+                          <AppIcon name="sparkles" :size="13" />
+                        </button>
+                      </div>
+
+                      <div
+                        v-if="getExerciseState(topic.id, ri, ei) !== 'idle'"
+                        class="gr__exercise-feedback"
+                        :class="{
+                          'is-correct':  getExerciseState(topic.id, ri, ei) === 'correct',
+                          'is-wrong':    getExerciseState(topic.id, ri, ei) === 'wrong',
+                          'is-revealed': getExerciseState(topic.id, ri, ei) === 'revealed'
+                        }"
+                      >
+                        <template v-if="getExerciseState(topic.id, ri, ei) === 'correct'">
+                          <AppIcon name="check" :size="14" />
+                          <span>Resposta correta !</span>
+                        </template>
+                        <template v-else-if="getExerciseState(topic.id, ri, ei) === 'wrong'">
+                          <AppIcon name="cross" :size="14" />
+                          <span>Tente novamente ou veja a dica.</span>
+                        </template>
+                        <template v-else>
+                          <AppIcon name="sparkles" :size="14" />
+                          <span>Resposta: <strong>{{ ex.blank }}</strong></span>
+                          <button
+                            type="button"
+                            class="gr__exercise-reset"
+                            @click="resetExercise(topic.id, ri, ei)"
+                          >
+                            Refazer
+                          </button>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
                 </div>
+              </div>
+
+              <!-- Practice score (only for rules that contain blank exercises) -->
+              <div
+                v-if="exerciseScore[topic.id] && rule.examples && rule.examples.some((e) => e.blank)"
+                class="gr__exercise-score"
+              >
+                <strong>Progresso dos exercícios:</strong>
+                {{ exerciseScore[topic.id].correct }} /
+                {{ exerciseScore[topic.id].total }} corretos
               </div>
             </section>
           </div>
@@ -856,6 +1043,25 @@ onMounted(() => {})
   font-weight: 500;
   line-height: 1.4;
 }
+.gr__example-fr-text {
+  flex: 1;
+  min-width: 0;
+}
+.gr__example-ipa {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-primary-deep);
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
 .gr__example-pt {
   display: flex;
   align-items: baseline;
@@ -871,6 +1077,210 @@ onMounted(() => {})
   color: var(--color-primary);
   flex-shrink: 0;
   transform: rotate(-90deg);
+}
+
+/* ── Interactive exercises ── */
+.gr__example--blank {
+  display: block;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+.gr__exercise {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--color-primary-soft);
+  background: var(--color-primary-softer);
+  border-radius: 14px;
+}
+.gr__exercise-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.gr__exercise-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.gr__exercise-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  font-family: var(--font-nav);
+}
+.gr__exercise-hint :deep(svg) {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+.gr__exercise-fr {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+.gr__exercise-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.gr__exercise-input {
+  flex: 1;
+  min-width: 160px;
+  height: 40px;
+  padding: 0 14px;
+  border: 1.5px solid var(--border-default);
+  border-radius: 10px;
+  background: var(--surface-card);
+  font-family: var(--font-nav);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+  transition: border-color var(--motion-fast), box-shadow var(--motion-fast), background var(--motion-fast);
+}
+.gr__exercise-input::placeholder {
+  color: var(--text-faint);
+  font-weight: 600;
+}
+.gr__exercise-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+.gr__exercise-input.is-correct {
+  border-color: var(--color-success, #16a34a);
+  background: rgba(34, 197, 94, 0.08);
+  color: var(--color-success, #15803d);
+}
+.gr__exercise-input.is-wrong {
+  border-color: var(--color-danger, #ef4444);
+  background: rgba(239, 68, 68, 0.08);
+}
+.gr__exercise-input.is-revealed {
+  border-color: var(--color-primary);
+  background: var(--color-primary-softer);
+  color: var(--color-primary-deep);
+}
+.gr__exercise-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-family: var(--font-nav);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: background var(--motion-fast), color var(--motion-fast), border-color var(--motion-fast), transform var(--motion-fast);
+  flex-shrink: 0;
+}
+.gr__exercise-btn--check {
+  background: var(--color-primary);
+  color: #fff;
+}
+.gr__exercise-btn--check:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+}
+.gr__exercise-btn--check:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+.gr__exercise-btn--reveal {
+  width: 40px;
+  padding: 0;
+  background: var(--surface-card);
+  border-color: var(--border-default);
+  color: var(--text-muted);
+}
+.gr__exercise-btn--reveal:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--surface-card);
+}
+.gr__exercise-feedback {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-size: 12px;
+  font-weight: 700;
+  width: fit-content;
+}
+.gr__exercise-feedback :deep(svg) {
+  flex-shrink: 0;
+}
+.gr__exercise-feedback.is-correct {
+  background: rgba(34, 197, 94, 0.14);
+  color: var(--color-success, #15803d);
+}
+.gr__exercise-feedback.is-wrong {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-danger, #b91c1c);
+}
+.gr__exercise-feedback.is-revealed {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-deep);
+}
+.gr__exercise-reset {
+  margin-left: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  font-family: var(--font-nav);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--motion-fast), color var(--motion-fast);
+}
+.gr__exercise-reset:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+.gr__exercise-score {
+  margin-top: 12px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: var(--surface-sunken);
+  border: 1px dashed var(--border-default);
+  font-family: var(--font-nav);
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.gr__exercise-score strong {
+  color: var(--color-primary-deep);
+  font-weight: 700;
 }
 
 .gr__lang-tag {
