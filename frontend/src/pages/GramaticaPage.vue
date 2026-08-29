@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import AppIcon from '@/components/AppIcon.vue'
 import { LEVELS, LEVEL_META } from '@/data/grammarContent'
 import { useToastStore } from '@/stores/toast'
+import { APP_VERSION, APP_BUILD } from '@/version'
 
 const toast = useToastStore()
 
@@ -326,6 +327,14 @@ onMounted(() => {})
         </p>
       </section>
     </template>
+
+    <footer class="gr__footer">
+      <span>© 2026 Parle-Juh — A gramática francesa, do A1 ao B2.</span>
+      <span class="gr__footer-version">
+        v{{ APP_VERSION }}
+        <small>· {{ APP_BUILD }}</small>
+      </span>
+    </footer>
   </div>
 </template>
 
@@ -932,5 +941,35 @@ onMounted(() => {})
   .gr__example-fr { font-size: 14px; }
   .gr__complete-icon { width: 64px; height: 64px; }
   .gr__complete-title { font-size: 20px; }
+}
+
+/* ─── Footer ─── */
+.gr__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 16px 0;
+}
+
+.gr__footer-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+.gr__footer-version small {
+  font-weight: 600;
+  color: var(--text-muted);
 }
 </style>

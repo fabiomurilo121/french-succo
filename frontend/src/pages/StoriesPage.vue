@@ -6,6 +6,7 @@ import { useSettingsStore } from '@/stores/settings'
 import { api } from '@/services/api'
 import { getAudioUrl } from '@/services/audioCache'
 import { scenes } from '@/assets/stories/scenes'
+import { APP_VERSION, APP_BUILD } from '@/version'
 
 const toast = useToastStore()
 const settings = useSettingsStore()
@@ -798,6 +799,14 @@ onUnmounted(() => {
       </div>
     </Transition>
 
+    <footer class="st__footer">
+      <span>© 2026 Parle-Juh — Histórias para aprender francês.</span>
+      <span class="st__footer-version">
+        v{{ APP_VERSION }}
+        <small>· {{ APP_BUILD }}</small>
+      </span>
+    </footer>
+
     <audio
       ref="audioEl"
       @ended="onAudioEnded"
@@ -1555,5 +1564,35 @@ onUnmounted(() => {
   .st__story-cover { width: 30px; height: 30px; font-size: 16px; }
   .st__story-text strong { font-size: 12px; }
   .st__story-text small { font-size: 10px; }
+}
+
+/* ─── Footer ─── */
+.st__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 16px 0;
+}
+
+.st__footer-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+.st__footer-version small {
+  font-weight: 600;
+  color: var(--text-muted);
 }
 </style>

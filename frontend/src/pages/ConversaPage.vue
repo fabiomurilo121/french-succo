@@ -5,6 +5,7 @@ import { useSettingsStore } from '@/stores/settings'
 import { useToastStore } from '@/stores/toast'
 import { api } from '@/services/api'
 import { getAudioUrl } from '@/services/audioCache'
+import { APP_VERSION, APP_BUILD } from '@/version'
 
 const settings = useSettingsStore()
 const toast = useToastStore()
@@ -654,6 +655,14 @@ function onInputKey(e) {
         @pause="speaking = false"
       ></audio>
     </template>
+
+    <footer class="cv__footer">
+      <span>© 2026 Parle-Juh — Converse com confiança.</span>
+      <span class="cv__footer-version">
+        v{{ APP_VERSION }}
+        <small>· {{ APP_BUILD }}</small>
+      </span>
+    </footer>
   </div>
 </template>
 
@@ -1554,6 +1563,36 @@ function onInputKey(e) {
 }
 .cv__send :deep(svg) {
   transform: rotate(-90deg);
+}
+
+/* ─── Footer ─── */
+.cv__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 16px 0;
+}
+
+.cv__footer-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+.cv__footer-version small {
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 @media (max-width: 640px) {

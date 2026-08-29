@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import AppIcon from '@/components/AppIcon.vue'
 import { useToastStore } from '@/stores/toast'
+import { APP_VERSION, APP_BUILD } from '@/version'
 
 const toast = useToastStore()
 
@@ -914,6 +915,10 @@ const errorMessage = computed(() => {
         <AppIcon name="refresh" :size="13" />
         Embaralhar tudo
       </button>
+      <span class="cp__footer-version">
+        v{{ APP_VERSION }}
+        <small>· {{ APP_BUILD }}</small>
+      </span>
     </footer>
     </template>
   </div>
@@ -1723,6 +1728,24 @@ const errorMessage = computed(() => {
 .cp__restart:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
+}
+
+.cp__footer-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+.cp__footer-version small {
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 @media (max-width: 600px) {

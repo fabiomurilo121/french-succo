@@ -3,6 +3,7 @@ import { ref, computed, reactive, onMounted } from 'vue'
 import AppIcon from '@/components/AppIcon.vue'
 import { useToastStore } from '@/stores/toast'
 import { VERBS, PRONOUNS, getVerb, getPronounsFor, normalizeAnswer } from '@/data/verbs'
+import { APP_VERSION, APP_BUILD } from '@/version'
 
 const toast = useToastStore()
 
@@ -572,6 +573,14 @@ onMounted(() => {
         </button>
       </div>
     </template>
+
+    <footer class="cj__footer">
+      <span>© 2026 Parle-Juh — Pratique a conjugação em todos os tempos.</span>
+      <span class="cj__footer-version">
+        v{{ APP_VERSION }}
+        <small>· {{ APP_BUILD }}</small>
+      </span>
+    </footer>
   </div>
 </template>
 
@@ -1329,6 +1338,36 @@ onMounted(() => {
 .cj__done-actions .btn--lg {
   padding: 12px 18px;
   font-size: 13px;
+}
+
+/* ─── Footer ─── */
+.cj__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 16px 0;
+}
+
+.cj__footer-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+.cj__footer-version small {
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 @media (max-width: 640px) {

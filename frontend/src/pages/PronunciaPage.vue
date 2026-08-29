@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import AppIcon from '@/components/AppIcon.vue'
 import { useSettingsStore } from '@/stores/settings'
 import { getAudioUrl } from '@/services/audioCache'
+import { APP_VERSION, APP_BUILD } from '@/version'
 
 const settings = useSettingsStore()
 
@@ -304,6 +305,14 @@ onMounted(() => {})
         </ul>
       </article>
     </div>
+
+    <footer class="pr__footer">
+      <span>© 2026 Parle-Juh — Domine a pronúncia francesa.</span>
+      <span class="pr__footer-version">
+        v{{ APP_VERSION }}
+        <small>· {{ APP_BUILD }}</small>
+      </span>
+    </footer>
 
     <audio
       ref="audioEl"
@@ -610,5 +619,35 @@ onMounted(() => {})
   }
   .pr__group-combo strong { font-size: 20px; }
   .pr__group-sound-value { font-size: 18px; }
+}
+
+/* ─── Footer ─── */
+.pr__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 16px 0;
+}
+
+.pr__footer-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  font-family: var(--font-nav);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+.pr__footer-version small {
+  font-weight: 600;
+  color: var(--text-muted);
 }
 </style>
