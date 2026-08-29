@@ -18,7 +18,7 @@ services:
       - succo-net
 
   backend:
-    image: french-succo-backend:1.0.2-amd64
+    image: french-succo-backend:1.0.3-amd64
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: Production
@@ -41,13 +41,13 @@ services:
       start_period: 60s
 
   frontend:
-    image: french-succo-frontend:1.0.2-amd64
+    image: french-succo-frontend:1.0.3-amd64
     restart: unless-stopped
     networks:
       - succo-net
 
   nginx:
-    image: french-succo-proxy:1.0.2-amd64
+    image: french-succo-proxy:1.0.3-amd64
     restart: unless-stopped
     ports:
       - "8080:80"
